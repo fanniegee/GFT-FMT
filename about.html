@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>About - The Guvaza Family Trust</title>
+
+    <!-- Material Icons -->
+    <link
+        href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+        rel="stylesheet"
+    >
+
+    <!-- Public website stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Global public configuration -->
+    <script src="config.js"></script>
+<link rel="stylesheet" href="public-footer.css">
+
+    <style>
+        /* =====================================================
+           ABOUT PAGE
+           ===================================================== */
+
+        .about-page {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+
+        /* =====================================================
+           HERO
+           ===================================================== */
+
+        .about-hero {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            margin-bottom: 18px;
+            background: #7a1a24;
+        }
+
+        .about-hero img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            opacity: 0.8;
+            display: block;
+        }
+
+        .about-hero .overlay {
+            position: absolute;
+            inset: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            background: rgba(90, 18, 29, 0.4);
+        }
+
+        .about-hero h1 {
+            margin: 0;
+
+            color: #fff;
+
+            font-size: 26px;
+            line-height: 1.25;
+
+            text-align: center;
+
+            text-shadow:
+                0 2px 10px rgba(0, 0, 0, 0.7);
+        }
+
+
+        /* =====================================================
+           ABOUT BLOCK
+           ===================================================== */
+
+        .about-block {
+            background: #fff;
+
+            border-radius: 18px;
+
+            padding: 18px;
+
+            border: 1px solid rgba(0, 0, 0, 0.06);
+
+            box-shadow:
+                0 4px 14px rgba(0, 0, 0, 0.04);
+
+            margin: 18px 0 12px 0;
+
+            position: relative;
+        }
+
+        .about-block.edge {
+            border-left:
+                5px solid var(--edge-color, #7a1a24);
+
+            border-right:
+                5px solid var(--edge-color, #7a1a24);
+        }
+
+        .about-heading {
+            margin: 0 0 8px 0;
+
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            color: #0f172a;
+
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .about-heading .mi {
+            color: #7a1a24;
+        }
+
+
+        /* =====================================================
+           STORY
+           ===================================================== */
+
+        .story-subtitle {
+            font-size: 14px;
+
+            font-weight: 800;
+
+            color: #7a1a24;
+
+            margin:
+                18px 0 6px 0;
+
+            padding-top: 8px;
+
+            border-top:
+                1px dashed #f1c2c8;
+        }
+
+        .story-para {
+            font-size: 13.5px;
+
+            color: #334155;
+
+            line-height: 1.7;
+
+            margin:
+                0 0 10px 0;
+
+            white-space: pre-wrap;
+        }
+
+        .story-label {
+            color: #7a1a24;
+            font-weight: 800;
+        }
+
+
+        /* =====================================================
+           GALLERY
+           ===================================================== */
+
+        .gallery-title {
+            margin:
+                24px 0 8px 8px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 6px;
+
+            color: #0f172a;
+
+            font-size: 15px;
+
+            font-weight: 800;
+        }
+
+        .gallery-title .mi {
+            color: #7a1a24;
+        }
+
+        .family-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(180px, 1fr)
+                );
+
+            gap: 18px;
+
+            margin:
+                12px 0 28px 0;
+        }
+
+        .family-card {
+            background: #fff;
+
+            border-radius: 18px;
+
+            overflow: hidden;
+
+            border:
+                1px solid rgba(0, 0, 0, 0.06);
+
+            box-shadow:
+                0 4px 14px rgba(0, 0, 0, 0.06);
+
+            text-align: center;
+
+            transition:
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
+
+            cursor: default;
+        }
+
+        .family-card:hover {
+            transform:
+                translateY(-6px)
+                scale(1.02);
+
+            box-shadow:
+                0 12px 28px rgba(0, 0, 0, 0.15);
+        }
+
+        .family-card img {
+            width: 100%;
+
+            height: 190px;
+
+            object-fit: cover;
+
+            display: block;
+
+            background: #f1f5f9;
+
+            transition:
+                transform 0.35s ease;
+        }
+
+        .family-card:hover img {
+            transform: scale(1.08);
+        }
+
+        .family-card .info {
+            padding:
+                12px 10px;
+        }
+
+        .family-card h4 {
+            margin:
+                0 0 4px 0;
+
+            font-size: 15px;
+
+            font-weight: 800;
+
+            color: #0f172a;
+        }
+
+        .family-card p {
+            margin: 0;
+
+            font-size: 12px;
+
+            color: #475569;
+        }
+
+        .empty-gallery {
+            font-size: 12px;
+
+            color: #94a3b8;
+
+            padding: 8px;
+        }
+
+
+        /* =====================================================
+           MOBILE
+           ===================================================== */
+
+        @media (max-width: 600px) {
+
+            .about-page {
+                padding:
+                    10px;
+            }
+
+            .about-hero img {
+                height: 180px;
+            }
+
+            .about-hero h1 {
+                font-size: 21px;
+            }
+
+            .about-block {
+                padding: 15px;
+            }
+
+            .family-grid {
+                grid-template-columns:
+                    repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
+
+                gap: 12px;
+            }
+
+            .family-card img {
+                height: 150px;
+            }
+
+            .family-card h4 {
+                font-size: 14px;
+            }
+
+            .family-card p {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 380px) {
+
+            .family-grid {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .family-card img {
+                height: 190px;
+            }
+        }
+    </style>
+</head>
+
+
+<body class="gft-public-page">
+
+
+    <!-- =====================================================
+         PUBLIC NAVIGATION
+         ===================================================== -->
+
+    <nav class="top-menu">
+
+        <a href="index.html">
+            Home
+        </a>
+
+        <a href="register.html">
+            Register
+        </a>
+
+        <a
+            href="about.html"
+            class="active"
+        >
+            About
+        </a>
+
+        <a href="companies.html">
+            Companies
+        </a>
+
+        <a href="contact.html">
+            Contact
+        </a>
+
+    </nav>
+
+
+    <!-- =====================================================
+         MAIN ABOUT CONTENT
+         ===================================================== -->
+
+    <main class="about-page">
+
+
+        <!-- =================================================
+             HERO
+             ================================================= -->
+
+        <div class="about-hero">
+
+            <img
+                id="aboutHeroImage"
+                src="assets/about-banner.jpg"
+                alt="The Guvaza Family Trust"
+            >
+
+            <div class="overlay">
+
+                <h1 id="aboutMainTitle">
+                    About The Guvaza Family Trust
+                </h1>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             DYNAMIC ABOUT CONTENT
+             ================================================= -->
+
+        <div id="aboutSectionsContainer"></div>
+
+    </main>
+
+
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
+
+    <footer>
+
+        <p id="aboutFooter">
+            © 2026 The Guvaza Family Trust - All Rights Reserved
+        </p>
+
+    </footer>
+
+
+    <!-- =====================================================
+         ABOUT PAGE ENGINE
+         -----------------------------------------------------
+         Uses config.js only.
+
+         It does NOT:
+         - load guvazaTree.json
+         - modify localStorage
+         - perform registration
+         - perform beneficiary verification
+         - modify family IDs
+         ===================================================== -->
+
+    <script>
+
+        "use strict";
+
+
+        /* =================================================
+           SAFE TEXT HELPER
+        ================================================= */
+
+        function setText(element, value, fallback) {
+
+            if (!element) {
+                return;
+            }
+
+            const finalValue =
+                value !== undefined &&
+                value !== null &&
+                String(value).trim() !== ""
+                    ? value
+                    : fallback;
+
+            element.textContent = finalValue;
+        }
+
+
+        /* =================================================
+           SAFE IMAGE HELPER
+        ================================================= */
+
+        function setImage(imageElement, source, fallback) {
+
+            if (!imageElement) {
+                return;
+            }
+
+            imageElement.onerror = function () {
+
+                if (
+                    fallback &&
+                    imageElement.src !==
+                    new URL(fallback, window.location.href).href
+                ) {
+                    imageElement.src = fallback;
+                }
+
+            };
+
+            if (source) {
+                imageElement.src = source;
+            }
+            else if (fallback) {
+                imageElement.src = fallback;
+            }
+        }
+
+
+        /* =================================================
+           STORY RENDERER
+        ================================================= */
+
+        function renderStory(text, container) {
+
+            if (!container) {
+                return;
+            }
+
+            container.replaceChildren();
+
+            const story =
+                text ||
+                "Root: Guvaza.";
+
+            const lines =
+                String(story).split(/\n/);
+
+            let currentParagraph = "";
+
+
+            function flushParagraph() {
+
+                if (!currentParagraph.trim()) {
+                    return;
+                }
+
+                const paragraph =
+                    document.createElement("p");
+
+                paragraph.className =
+                    "story-para";
+
+                paragraph.textContent =
+                    currentParagraph.trim();
+
+                container.appendChild(
+                    paragraph
+                );
+
+                currentParagraph = "";
+            }
+
+
+            lines.forEach(function (rawLine) {
+
+                const line =
+                    rawLine.trim();
+
+                if (!line) {
+
+                    flushParagraph();
+
+                    return;
+                }
+
+
+                /*
+                 * Short heading-style lines.
+                 */
+
+                const isShortHeading =
+                    line.length < 50 &&
+                    !line.includes(".") &&
+                    (
+                        line.endsWith(":") ||
+                        line.split(/\s+/).length <= 5
+                    );
+
+
+                if (
+                    isShortHeading &&
+                    line.length < 45
+                ) {
+
+                    flushParagraph();
+
+                    const heading =
+                        document.createElement("div");
+
+                    heading.className =
+                        "story-subtitle";
+
+                    heading.textContent =
+                        line.replace(/:$/, "");
+
+                    container.appendChild(
+                        heading
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * Label: text
+                 */
+
+                if (
+                    line.includes(":") &&
+                    line.split(":")[0].length < 35
+                ) {
+
+                    flushParagraph();
+
+                    const parts =
+                        line.split(":");
+
+                    const label =
+                        parts.shift();
+
+                    const paragraph =
+                        document.createElement("p");
+
+                    paragraph.className =
+                        "story-para";
+
+
+                    const labelSpan =
+                        document.createElement("span");
+
+                    labelSpan.className =
+                        "story-label";
+
+                    labelSpan.textContent =
+                        label + ":";
+
+
+                    paragraph.appendChild(
+                        labelSpan
+                    );
+
+                    paragraph.appendChild(
+                        document.createTextNode(
+                            " " + parts.join(":")
+                        )
+                    );
+
+                    container.appendChild(
+                        paragraph
+                    );
+
+                    return;
+                }
+
+
+                currentParagraph +=
+                    (
+                        currentParagraph
+                            ? " "
+                            : ""
+                    ) + line;
+
+            });
+
+
+            flushParagraph();
+        }
+
+
+        /* =================================================
+           CREATE GALLERY CARD
+        ================================================= */
+
+        function createFamilyCard(member) {
+
+            const card =
+                document.createElement("div");
+
+            card.className =
+                "family-card";
+
+
+            const image =
+                document.createElement("img");
+
+            image.alt =
+                member.name || "Family member";
+
+            setImage(
+                image,
+                member.image,
+                "assets/family-placeholder.jpg"
+            );
+
+
+            const info =
+                document.createElement("div");
+
+            info.className =
+                "info";
+
+
+            const name =
+                document.createElement("h4");
+
+            name.textContent =
+                member.name || "";
+
+
+            const caption =
+                document.createElement("p");
+
+            caption.textContent =
+                member.caption || "";
+
+
+            info.appendChild(name);
+            info.appendChild(caption);
+
+            card.appendChild(image);
+            card.appendChild(info);
+
+            return card;
+        }
+
+
+        /* =================================================
+           RENDER GALLERY
+        ================================================= */
+
+        function renderGallery(
+            members,
+            title,
+            container
+        ) {
+
+            if (!container) {
+                return;
+            }
+
+
+            const galleryTitle =
+                document.createElement("h4");
+
+            galleryTitle.className =
+                "gallery-title";
+
+
+            const galleryIcon =
+                document.createElement("span");
+
+            galleryIcon.className =
+                "mi";
+
+            galleryIcon.textContent =
+                "groups";
+
+
+            galleryTitle.appendChild(
+                galleryIcon
+            );
+
+            galleryTitle.appendChild(
+                document.createTextNode(
+                    title ||
+                    "Family Members Gallery"
+                )
+            );
+
+
+            container.appendChild(
+                galleryTitle
+            );
+
+
+            const grid =
+                document.createElement("div");
+
+            grid.className =
+                "family-grid";
+
+
+            if (
+                !Array.isArray(members) ||
+                members.length === 0
+            ) {
+
+                const empty =
+                    document.createElement("p");
+
+                empty.className =
+                    "empty-gallery";
+
+                empty.textContent =
+                    "No photos yet for this section.";
+
+                grid.appendChild(empty);
+
+            }
+            else {
+
+                members.forEach(
+                    function (member) {
+
+                        if (!member) {
+                            return;
+                        }
+
+                        grid.appendChild(
+                            createFamilyCard(member)
+                        );
+
+                    }
+                );
+
+            }
+
+
+            container.appendChild(grid);
+        }
+
+
+        /* =================================================
+           RENDER ONE ABOUT SECTION
+        ================================================= */
+
+        function renderSection(
+            section,
+            index,
+            container
+        ) {
+
+            if (!section || !container) {
+                return;
+            }
+
+
+            const block =
+                document.createElement("section");
+
+            block.className =
+                "about-block edge";
+
+
+            block.style.setProperty(
+                "--edge-color",
+                section.edgeColor ||
+                "#7a1a24"
+            );
+
+
+            const heading =
+                document.createElement("h3");
+
+            heading.className =
+                "about-heading";
+
+
+            const icon =
+                document.createElement("span");
+
+            icon.className =
+                "mi";
+
+            icon.textContent =
+                "info";
+
+
+            heading.appendChild(icon);
+
+            heading.appendChild(
+                document.createTextNode(
+                    section.title ||
+                    "About"
+                )
+            );
+
+
+            block.appendChild(heading);
+
+
+            const storyContainer =
+                document.createElement("div");
+
+
+            renderStory(
+                section.story || "",
+                storyContainer
+            );
+
+
+            block.appendChild(
+                storyContainer
+            );
+
+
+            container.appendChild(
+                block
+            );
+
+
+            renderGallery(
+                section.gallery || [],
+                section.galleryTitle ||
+                    "Family Members Gallery",
+                container
+            );
+        }
+
+
+        /* =================================================
+           RENDER LEGACY SINGLE ABOUT CONFIG
+           -------------------------------------------------
+           This supports the current config.js structure
+           without using localStorage or duplicating data.
+        ================================================= */
+
+        function renderLegacyAbout(
+            aboutData,
+            container
+        ) {
+
+            const block =
+                document.createElement("section");
+
+            block.className =
+                "about-block edge";
+
+            block.style.setProperty(
+                "--edge-color",
+                "#7a1a24"
+            );
+
+
+            const heading =
+                document.createElement("h3");
+
+            heading.className =
+                "about-heading";
+
+
+            const icon =
+                document.createElement("span");
+
+            icon.className =
+                "mi";
+
+            icon.textContent =
+                "info";
+
+
+            heading.appendChild(icon);
+
+            heading.appendChild(
+                document.createTextNode(
+                    aboutData.title ||
+                    "Our Story"
+                )
+            );
+
+
+            block.appendChild(
+                heading
+            );
+
+
+            const storyContainer =
+                document.createElement("div");
+
+
+            renderStory(
+                aboutData.story ||
+                    aboutData.aboutText ||
+                    "",
+                storyContainer
+            );
+
+
+            block.appendChild(
+                storyContainer
+            );
+
+
+            container.appendChild(
+                block
+            );
+
+
+            renderGallery(
+                aboutData.familyMembers || [],
+                "Family Members Gallery",
+                container
+            );
+        }
+
+
+        /* =================================================
+           INITIALIZE ABOUT PAGE
+        ================================================= */
+
+        /* =================================================
+           PUBLIC CONFIG RESOLVER
+           -------------------------------------------------
+           config.js remains the public fallback.
+           Founder/Admin saved configuration in
+           guvaza_custom_config is applied on top of it.
+
+           This keeps the public page read-only while allowing
+           Founder/Admin changes to appear without exporting a
+           new config.js after every edit.
+        ================================================= */
+
+        function readStoredPublicConfig() {
+            try {
+                const raw = localStorage.getItem("guvaza_custom_config");
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === "object" ? parsed : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function mergePublicConfig(base, stored) {
+            const safeBase = base && typeof base === "object" ? base : {};
+            const safeStored = stored && typeof stored === "object" ? stored : {};
+
+            const merged = { ...safeBase, ...safeStored };
+            merged.about = {
+                ...(safeBase.about || {}),
+                ...(safeStored.about || {})
+            };
+
+            return merged;
+        }
+
+        function getAboutPageConfig() {
+            const base = window.TRUST_CONFIG || {};
+            const stored = readStoredPublicConfig();
+            const config = mergePublicConfig(base, stored);
+
+            /* Compatibility with the older Admin About keys. */
+            if (stored) {
+                if (!config.about.title) {
+                    config.about.title = localStorage.getItem("guvaza_about_title") || "";
+                }
+                if (!config.about.story) {
+                    config.about.story =
+                        localStorage.getItem("guvaza_about_text") ||
+                        localStorage.getItem("aboutText") ||
+                        "";
+                }
+            }
+
+            return config;
+        }
+
+        function renderAboutPage() {
+            const config = getAboutPageConfig();
+            const aboutData = config.about || {};
+
+            /* Clear previous dynamic content so a storage update
+               does not duplicate sections or galleries. */
+            const container =
+                document.getElementById("aboutSectionsContainer");
+
+            if (container) {
+                container.replaceChildren();
+            }
+
+            /* Page title */
+
+                document.title =
+                    (
+                        aboutData.title ||
+                        "About"
+                    ) +
+                    " - " +
+                    (
+                        config.name ||
+                        "The Guvaza Family Trust"
+                    );
+
+
+                /*
+                 * Hero title
+                 */
+
+                const title =
+                    document.getElementById(
+                        "aboutMainTitle"
+                    );
+
+
+                setText(
+                    title,
+
+                    aboutData.title,
+
+                    "About The Guvaza Family Trust"
+                );
+
+
+                /*
+                 * Hero image
+                 */
+
+                const hero =
+                    document.getElementById(
+                        "aboutHeroImage"
+                    );
+
+
+                setImage(
+                    hero,
+
+                    aboutData.bannerImage,
+
+                    "assets/about-banner.jpg"
+                );
+
+
+                /*
+                 * Footer
+                 */
+
+                const footer =
+                    document.getElementById(
+                        "aboutFooter"
+                    );
+
+
+                setText(
+                    footer,
+
+                    config.footerText,
+
+                    "© 2026 The Guvaza Family Trust - All Rights Reserved"
+                );
+
+
+                /* Main content */
+                if (!container) {
+                    return;
+                }
+
+                /* New section-based configuration. */
+                if (
+                    Array.isArray(aboutData.sections) &&
+                    aboutData.sections.length > 0
+                ) {
+                    aboutData.sections.forEach(function (section, index) {
+                        renderSection(section, index, container);
+                    });
+                } else {
+                    /* Legacy single-story configuration. */
+                    renderLegacyAbout(aboutData, container);
+                }
+        }
+
+        /*
+         * IMPORTANT: config changes are saved by Founder/Admin in
+         * localStorage. If this About page is already open in another
+         * tab, refresh it automatically when that storage changes.
+         */
+        window.addEventListener("storage", function (event) {
+            if (event.key === "guvaza_custom_config" ||
+                event.key === "guvaza_about_title" ||
+                event.key === "guvaza_about_text" ||
+                event.key === "aboutTitle" ||
+                event.key === "aboutText") {
+                renderAboutPage();
+            }
+        });
+
+        /* Also expose a safe manual refresh for testing/debugging. */
+        window.refreshGFTAboutPage = renderAboutPage;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            renderAboutPage();
+        });
+
+    </script>
+<div id="gft-public-footer"></div>
+<script src="public-footer.js"></script>
+
+</body>
+</html>

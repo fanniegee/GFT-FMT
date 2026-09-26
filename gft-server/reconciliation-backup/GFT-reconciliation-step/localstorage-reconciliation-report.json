@@ -1,0 +1,2545 @@
+{
+  "metadata": {
+    "generatedAt": "2026-09-25T21:22:54.797Z",
+    "mode": "READ_ONLY",
+    "writesToPostgres": false,
+    "writesToLocalStorage": false,
+    "snapshotExportedAt": "2026-09-25T21:02:30.633Z",
+    "snapshotKeyCount": 61,
+    "canonicalSource": "guvazaTree.txt",
+    "optionalTrustRulesSourcePresent": false
+  },
+  "canonicalFamily": {
+    "recordCount": 224,
+    "uniqueSystemIdCount": 224,
+    "duplicateSystemIds": [],
+    "generations": {
+      "1": 1,
+      "2": 5,
+      "3": 37,
+      "4": 181
+    }
+  },
+  "snapshotFamily": {
+    "recordCount": 225,
+    "uniqueSystemIdCount": 225,
+    "duplicateSystemIds": [],
+    "generations": {
+      "1": 1,
+      "2": 5,
+      "3": 37,
+      "4": 182
+    },
+    "statuses": {
+      "AUTO_LINEAGE_PENDING": 204,
+      "PLACEHOLDER_ADMIN_EDIT": 19,
+      "PHYSICALLY_VERIFIED": 1,
+      "NEW_REGISTRATION_VERIFIED": 1
+    },
+    "placeholders": [
+      "GFT-GEN3-003",
+      "GFT-GEN3-027",
+      "GFT-GEN3-028",
+      "GFT-GEN3-034",
+      "GFT-GEN3-035",
+      "GFT-GEN3-036",
+      "GFT-GEN3-037",
+      "GFT-GEN4-001",
+      "GFT-GEN4-008",
+      "GFT-GEN4-035",
+      "GFT-GEN4-070",
+      "GFT-GEN4-149",
+      "GFT-GEN4-150",
+      "GFT-GEN4-151",
+      "GFT-GEN4-152",
+      "GFT-GEN4-178",
+      "GFT-GEN4-179",
+      "GFT-GEN4-180",
+      "GFT-GEN4-181"
+    ],
+    "physicallyVerified": [
+      "GFT-GEN3-011",
+      "GFT-GEN4-182"
+    ]
+  },
+  "familyComparison": {
+    "snapshotNotInCanonical": [
+      "GFT-GEN4-182"
+    ],
+    "snapshotNotInCanonicalRecords": [
+      {
+        "fullName": "Deigratia Nyasha Guvaza",
+        "name": "Deigratia Nyasha Guvaza",
+        "systemId": "GFT-GEN4-182",
+        "membership": "GFT-GEN4-182",
+        "idNumber": "22-2029604A22",
+        "parentId": "GFT-GEN3-011",
+        "generation": 4,
+        "branch": "BRANCH_VURAYAI",
+        "wifeNo": "WIFE1_VaZvichaipwi",
+        "rootSurname": "Guvaza",
+        "currentSurname": "Guvaza",
+        "secondSurname": "",
+        "dob": "2007-10-08",
+        "phone": "+263713735970",
+        "username": "deiggee",
+        "parentName": "Fannuel Guvaza",
+        "grandParentName": "Zekia Guvaza",
+        "gender": "FEMALE",
+        "status": "NEW_REGISTRATION_VERIFIED",
+        "isAutoLineage": false,
+        "isPhysicallyVerified": true
+      }
+    ],
+    "canonicalNotInSnapshot": [],
+    "commonCount": 224,
+    "fieldMismatches": [],
+    "fieldsMissingInSnapshot": [
+      {
+        "systemId": "GFT-GEN1-01",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN2-01",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN2-02",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN2-03",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN2-04",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN2-05",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-001",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-002",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-003",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-004",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-005",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-006",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-007",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-008",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-009",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-010",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-011",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-012",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-013",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-014",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-015",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-016",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-017",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-018",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-019",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-020",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-021",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-022",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-023",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-024",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-025",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-026",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-027",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-028",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-029",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-030",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-031",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-032",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-033",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-034",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-035",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-036",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN3-037",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-001",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-002",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-003",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-004",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-005",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-006",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-007",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-008",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-009",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-010",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-011",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-012",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-013",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-014",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-015",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-016",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-017",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-018",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-019",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-020",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-021",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-022",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-023",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-024",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-025",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-026",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-027",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-028",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-029",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-030",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-031",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-032",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-033",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-034",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-035",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-036",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-037",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-038",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-039",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-040",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-041",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-042",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-043",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-044",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-045",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-046",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-047",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-048",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-049",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-050",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-051",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-052",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-053",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-054",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-055",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-056",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-057",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-058",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-059",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-060",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-061",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-062",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-063",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-064",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-065",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-066",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-067",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-068",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-069",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-070",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-071",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-072",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-073",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-074",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-075",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-076",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-077",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-078",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-079",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-080",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-081",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-082",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-083",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-084",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-085",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-086",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-087",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-088",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-089",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-090",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-091",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-092",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-093",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-094",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-095",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-096",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-097",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-098",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-099",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-100",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-101",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-102",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-103",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-104",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-105",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-106",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-107",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-108",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-109",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-110",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-111",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-112",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-113",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-114",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-115",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-116",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-117",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-118",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-119",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-120",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-121",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-122",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-123",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-124",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-125",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-126",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-127",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-128",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-129",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-130",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-131",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-132",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-133",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-134",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-135",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-136",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-137",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-138",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-139",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-140",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-141",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-142",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-143",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-144",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-145",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-146",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-147",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-148",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-149",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-150",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-151",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-152",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-153",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-154",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-155",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-156",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-157",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-158",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-159",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-160",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-161",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-162",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-163",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-164",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-165",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-166",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-167",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-168",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-169",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-170",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-171",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-172",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-173",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-174",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-175",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-176",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-177",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-178",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-179",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-180",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-181",
+        "fields": [
+          {
+            "field": "isFemaleChild",
+            "canonical": false
+          }
+        ]
+      }
+    ],
+    "missingFieldCounts": {
+      "isFemaleChild": 224
+    },
+    "fieldsMissingInCanonical": [],
+    "snapshotDuplicateSystemIds": [],
+    "canonicalDuplicateSystemIds": []
+  },
+  "parentIntegrity": {
+    "snapshot": {
+      "missingParents": [],
+      "generationMismatches": []
+    },
+    "canonical": {
+      "missingParents": [],
+      "generationMismatches": []
+    }
+  },
+  "beneficiarySources": {
+    "sources": {
+      "founder_beneficiary_pool": {
+        "count": 2,
+        "systemIds": [
+          "GFT-GEN3-011",
+          "GFT-GEN4-182"
+        ],
+        "records": [
+          {
+            "fullName": "Fannuel Guvaza",
+            "name": "Fannuel Guvaza",
+            "systemId": "GFT-GEN3-011",
+            "membership": "GFT-GEN3-011",
+            "idNumber": "22-192469Y22",
+            "parentId": "GFT-GEN2-02",
+            "generation": 3,
+            "branch": "BRANCH_VURAYAI",
+            "wifeNo": "WIFE2_Punha",
+            "rootSurname": "Guvaza",
+            "currentSurname": "Guvaza",
+            "dob": "1981-11-30",
+            "phone": "+27616035517",
+            "username": "fanniegee",
+            "gender": "MALE",
+            "parentName": "Zekia Guvaza",
+            "grandParentName": "Vurayai",
+            "status": "PHYSICALLY_VERIFIED",
+            "isPhysical": true,
+            "source": "PHYSICAL",
+            "walletEligible": true,
+            "timestamp": 1790006801517
+          },
+          {
+            "fullName": "Deigratia Nyasha Guvaza",
+            "name": "Deigratia Nyasha Guvaza",
+            "systemId": "GFT-GEN4-182",
+            "membership": "GFT-GEN4-182",
+            "idNumber": "22-2029604A22",
+            "parentId": "GFT-GEN3-011",
+            "generation": 4,
+            "branch": "BRANCH_VURAYAI",
+            "wifeNo": "WIFE1_VaZvichaipwi",
+            "rootSurname": "Guvaza",
+            "currentSurname": "Guvaza",
+            "dob": "2007-10-08",
+            "phone": "+263713735970",
+            "username": "deiggee",
+            "gender": "FEMALE",
+            "parentName": "Fannuel Guvaza",
+            "grandParentName": "Zekia Guvaza",
+            "status": "PHYSICALLY_VERIFIED",
+            "isPhysical": true,
+            "source": "PHYSICAL",
+            "walletEligible": true,
+            "timestamp": 1790007562240
+          }
+        ]
+      },
+      "gft_physical_registry": {
+        "count": 2,
+        "systemIds": [
+          "GFT-GEN3-011",
+          "GFT-GEN4-182"
+        ],
+        "records": [
+          {
+            "fullName": "Fannuel Guvaza",
+            "name": "Fannuel Guvaza",
+            "systemId": "GFT-GEN3-011",
+            "membership": "GFT-GEN3-011",
+            "idNumber": "22-192469Y22",
+            "parentId": "GFT-GEN2-02",
+            "generation": 3,
+            "branch": "BRANCH_VURAYAI",
+            "wifeNo": "WIFE2_Punha",
+            "rootSurname": "Guvaza",
+            "currentSurname": "Guvaza",
+            "dob": "1981-11-30",
+            "phone": "+27616035517",
+            "username": "fanniegee",
+            "gender": "MALE",
+            "parentName": "Zekia Guvaza",
+            "grandParentName": "Vurayai",
+            "status": "PHYSICALLY_VERIFIED",
+            "isPhysical": true,
+            "source": "PHYSICAL",
+            "walletEligible": true,
+            "timestamp": 1790006801517
+          },
+          {
+            "fullName": "Deigratia Nyasha Guvaza",
+            "name": "Deigratia Nyasha Guvaza",
+            "systemId": "GFT-GEN4-182",
+            "membership": "GFT-GEN4-182",
+            "idNumber": "22-2029604A22",
+            "parentId": "GFT-GEN3-011",
+            "generation": 4,
+            "branch": "BRANCH_VURAYAI",
+            "wifeNo": "WIFE1_VaZvichaipwi",
+            "rootSurname": "Guvaza",
+            "currentSurname": "Guvaza",
+            "dob": "2007-10-08",
+            "phone": "+263713735970",
+            "username": "deiggee",
+            "gender": "FEMALE",
+            "parentName": "Fannuel Guvaza",
+            "grandParentName": "Zekia Guvaza",
+            "status": "PHYSICALLY_VERIFIED",
+            "isPhysical": true,
+            "source": "PHYSICAL",
+            "walletEligible": true,
+            "timestamp": 1790007562240
+          }
+        ]
+      },
+      "gft_approved_for_payout": {
+        "count": 2,
+        "systemIds": [
+          "GFT-GEN3-011",
+          "GFT-GEN4-182"
+        ],
+        "records": [
+          {
+            "fullName": "Fannuel Guvaza",
+            "name": "Fannuel Guvaza",
+            "systemId": "GFT-GEN3-011",
+            "membership": "GFT-GEN3-011",
+            "idNumber": "22-192469Y22",
+            "parentId": "GFT-GEN2-02",
+            "generation": 3,
+            "branch": "BRANCH_VURAYAI",
+            "wifeNo": "WIFE2_Punha",
+            "rootSurname": "Guvaza",
+            "currentSurname": "Guvaza",
+            "dob": "1981-11-30",
+            "phone": "+27616035517",
+            "username": "fanniegee",
+            "gender": "MALE",
+            "parentName": "Zekia Guvaza",
+            "grandParentName": "Vurayai",
+            "status": "PHYSICALLY_VERIFIED",
+            "isPhysical": true,
+            "source": "PHYSICAL",
+            "walletEligible": true,
+            "timestamp": 1790006801517
+          },
+          {
+            "fullName": "Deigratia Nyasha Guvaza",
+            "name": "Deigratia Nyasha Guvaza",
+            "systemId": "GFT-GEN4-182",
+            "membership": "GFT-GEN4-182",
+            "idNumber": "22-2029604A22",
+            "parentId": "GFT-GEN3-011",
+            "generation": 4,
+            "branch": "BRANCH_VURAYAI",
+            "wifeNo": "WIFE1_VaZvichaipwi",
+            "rootSurname": "Guvaza",
+            "currentSurname": "Guvaza",
+            "dob": "2007-10-08",
+            "phone": "+263713735970",
+            "username": "deiggee",
+            "gender": "FEMALE",
+            "parentName": "Fannuel Guvaza",
+            "grandParentName": "Zekia Guvaza",
+            "status": "PHYSICALLY_VERIFIED",
+            "isPhysical": true,
+            "source": "PHYSICAL",
+            "walletEligible": true,
+            "timestamp": 1790007562240
+          }
+        ]
+      },
+      "guvaza_bens": {
+        "count": 1,
+        "systemIds": [
+          "GFT-GEN3-011"
+        ],
+        "records": [
+          {
+            "name": "Fannuel Guvaza",
+            "id": "GFT-GEN4-057",
+            "phone": "+27616035517",
+            "idNumber": "22-192469Y22",
+            "systemId": "GFT-GEN3-011",
+            "fullName": "Fannuel Guvaza",
+            "isPhysical": true,
+            "walletEligible": true,
+            "dateAdded": "9/21/2026, 6:06:41 PM"
+          }
+        ]
+      }
+    },
+    "overlaps": [
+      {
+        "systemId": "GFT-GEN3-011",
+        "sources": [
+          "founder_beneficiary_pool",
+          "gft_approved_for_payout",
+          "gft_physical_registry",
+          "guvaza_bens"
+        ]
+      },
+      {
+        "systemId": "GFT-GEN4-182",
+        "sources": [
+          "founder_beneficiary_pool",
+          "gft_approved_for_payout",
+          "gft_physical_registry"
+        ]
+      }
+    ]
+  },
+  "finance": {
+    "scalarBalances": {
+      "guvaza_dist": 900,
+      "guvaza_ben_pool": 0,
+      "guvaza_fun": 3800,
+      "guvaza_sch": 2100,
+      "guvaza_trust": 24000,
+      "guvaza_fpb": 0,
+      "guvaza_reserve": 900
+    },
+    "walletCount": 225,
+    "nonZeroWallets": [
+      {
+        "systemId": "GFT-GEN4-057",
+        "balance": 1200
+      },
+      {
+        "systemId": "GFT-GEN4-182",
+        "balance": 1200
+      },
+      {
+        "systemId": "GFT-GEN3-011",
+        "balance": 1200
+      }
+    ],
+    "walletIdsNotInSnapshot": [],
+    "payoutEvents": [
+      {
+        "date": "9/21/2026, 9:13:02 PM",
+        "total": 3600,
+        "count": 3,
+        "perHead": 1200
+      }
+    ],
+    "note": "Balances are reconciliation candidates only. No ledger entries or transactions are created by this script."
+  },
+  "configuration": {
+    "customConfigPresent": true,
+    "customConfigTopLevelKeys": [
+      "name",
+      "tagline",
+      "email",
+      "logo",
+      "footerText",
+      "caps",
+      "rules",
+      "companies",
+      "homepage",
+      "about",
+      "branding",
+      "contact",
+      "social"
+    ],
+    "legacyAboutKeysPresent": [
+      "aboutRoots",
+      "aboutText",
+      "aboutTitle",
+      "guvaza_about_text",
+      "guvaza_about_title"
+    ],
+    "warning": "Configuration sources must be merged field-by-field; do not let one browser object overwrite unrelated Founder/Admin changes."
+  },
+  "security": {
+    "adminCount": 1,
+    "plaintextPasswordFields": [
+      {
+        "systemId": 1789717339537,
+        "field": "passwordPlain"
+      }
+    ],
+    "passwordHashFields": [
+      {
+        "systemId": 1789717339537,
+        "field": "passwordHash"
+      }
+    ],
+    "founderPasswordPresent": false,
+    "twoFactorCodePresent": false,
+    "currentSessionKeysPresent": [
+      "guvaza_logged_user",
+      "guvaza_current_user_id",
+      "guvaza_current_user_name"
+    ],
+    "action": "Do not migrate plaintext passwords, browser sessions, or 2FA codes. Re-enrollment/reset is required on the server."
+  },
+  "auxiliaryKeys": {
+    "allKeys": [
+      "aboutRoots",
+      "aboutText",
+      "aboutTitle",
+      "dipvtc_contacts_v2",
+      "dipvtc_courses",
+      "dipvtc_current",
+      "dipvtc_pathways_v2",
+      "dipvtc_subjects_image_boxes",
+      "founder_beneficiary_pool",
+      "gft_admin_audit_events",
+      "gft_approved_for_payout",
+      "gft_physical_registry",
+      "guvaza_about_text",
+      "guvaza_about_title",
+      "guvaza_admin_companies",
+      "guvaza_admins",
+      "guvaza_all_alerts",
+      "guvaza_auto_approve",
+      "guvaza_auto_tree_view",
+      "guvaza_ben_pool",
+      "guvaza_ben_pool_payouts",
+      "guvaza_ben_wallets",
+      "guvaza_bens",
+      "guvaza_card_bg_GFT-GEN4-043",
+      "guvaza_card_bg_GFT-GEN4-057",
+      "guvaza_child_bg_GFT-GEN4-043",
+      "guvaza_child_bg_GFT-GEN4-057",
+      "guvaza_current_user_id",
+      "guvaza_current_user_name",
+      "guvaza_custom_config",
+      "guvaza_del_log",
+      "guvaza_dist",
+      "guvaza_extra_GFT-GEN4-043",
+      "guvaza_extra_GFT-GEN4-057",
+      "guvaza_founder_email",
+      "guvaza_founder_email2",
+      "guvaza_fpb",
+      "guvaza_fun",
+      "guvaza_gender_22-192469Y22",
+      "guvaza_gender_GFT-GEN3-011",
+      "guvaza_gender_GFT-GEN4-043",
+      "guvaza_gender_GFT-GEN4-057",
+      "guvaza_logged_user",
+      "guvaza_personal_color_GFT-GEN3-011",
+      "guvaza_personal_color_GFT-GEN4-063",
+      "guvaza_personal_descendants_GFT-GEN3-011",
+      "guvaza_proper_v6",
+      "guvaza_proper_v7",
+      "guvaza_registrations",
+      "guvaza_reserve",
+      "guvaza_sch",
+      "guvaza_spouses_GFT-GEN3-011",
+      "guvaza_trust",
+      "guvaza_whatsapp_number",
+      "guvaza_wife_bg_GFT-GEN4-043",
+      "guvaza_wife_bg_GFT-GEN4-057",
+      "guvaza_wives_22-192469Y22",
+      "guvaza_wives_GFT-GEN3-011",
+      "guvaza_wives_GFT-GEN4-043",
+      "guvaza_wives_GFT-GEN4-057",
+      "guvaza_wives_clean"
+    ],
+    "excludedFromGftCore": [
+      "dipvtc_contacts_v2",
+      "dipvtc_courses",
+      "dipvtc_current",
+      "dipvtc_pathways_v2",
+      "dipvtc_subjects_image_boxes"
+    ],
+    "sessionOrUiOnly": [
+      "guvaza_logged_user",
+      "guvaza_current_user_id",
+      "guvaza_current_user_name",
+      "guvaza_auto_tree_view"
+    ],
+    "appearanceOrPersonalization": [
+      "guvaza_card_bg_GFT-GEN4-043",
+      "guvaza_card_bg_GFT-GEN4-057",
+      "guvaza_child_bg_GFT-GEN4-043",
+      "guvaza_child_bg_GFT-GEN4-057",
+      "guvaza_gender_22-192469Y22",
+      "guvaza_gender_GFT-GEN3-011",
+      "guvaza_gender_GFT-GEN4-043",
+      "guvaza_gender_GFT-GEN4-057",
+      "guvaza_personal_color_GFT-GEN3-011",
+      "guvaza_personal_color_GFT-GEN4-063",
+      "guvaza_personal_descendants_GFT-GEN3-011",
+      "guvaza_spouses_GFT-GEN3-011",
+      "guvaza_wife_bg_GFT-GEN4-043",
+      "guvaza_wife_bg_GFT-GEN4-057",
+      "guvaza_wives_22-192469Y22",
+      "guvaza_wives_GFT-GEN3-011",
+      "guvaza_wives_GFT-GEN4-043",
+      "guvaza_wives_GFT-GEN4-057",
+      "guvaza_wives_clean"
+    ]
+  },
+  "migrationGate": {
+    "readyToImport": false,
+    "reason": "Reconciliation is informational only. Any discrepancies, duplicate beneficiary sources, security fields, and financial opening balances require review before PostgreSQL import."
+  },
+  "severitySummary": {
+    "snapshotNotInCanonical": 1,
+    "canonicalNotInSnapshot": 0,
+    "fieldMismatches": 0,
+    "fieldsMissingInSnapshot": 224,
+    "fieldsMissingInCanonical": 0,
+    "parentMissing": 0,
+    "beneficiaryOverlaps": 2,
+    "plaintextPasswords": 1,
+    "twoFactorCode": 0,
+    "payoutEvents": 1
+  }
+}

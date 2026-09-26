@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>My Direct Lineage</title>
+<script src="trustRules.js"></script>
+<script src="guvazaTree.js"></script>
+<script src="guvazaMainTree.js"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#f4f7f5;font-family:Arial,sans-serif;color:#17251d}.app{max-width:680px;margin:auto;min-height:100vh}
+.top{position:sticky;top:0;z-index:10;background:#0d4f2c;color:#fff;padding:15px 18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 12px #0002}.top h1{font-size:19px;margin:0}.top small{font-size:11px;opacity:.8}
+.page{padding:10px}.sec{background:#fff;border-radius:18px;margin-bottom:13px;box-shadow:0 2px 10px #00000010;overflow:hidden}.head{padding:16px 15px 10px}.title{font-size:20px;font-weight:800}.sub{font-size:13px;color:#657269;margin-top:4px}.badge{float:right;background:#edf5ef;color:#176438;border-radius:18px;padding:5px 9px;font-size:10px;font-weight:bold}
+.chain{padding:5px 14px 8px}.node{position:relative;display:flex;align-items:center;gap:11px;padding:8px 9px;min-height:70px;border-radius:14px}.node.current-node{background:var(--current-bg,#e7f6eb);border:2px solid var(--current-border,#1b8a4b);color:var(--current-fg,#17251d)}.node.current-node .name{color:var(--current-fg,#17251d)}.node.current-node .id{color:var(--current-muted,#304038)}.node.current-node .role{color:var(--current-fg,#17251d)}.node + .node{margin-top:16px}.node + .node:before{content:"";position:absolute;left:29px;top:-16px;width:3px;height:16px;background:#23844a;border-radius:3px}.node + .node:after{content:"";position:absolute;left:24px;top:-21px;width:13px;height:13px;border-radius:50%;background:#23844a;border:2px solid #fff}
+.av{width:52px;height:52px;border-radius:50%;overflow:hidden;border:3px solid #dce9df;background:#e6eee8;display:flex;align-items:center;justify-content:center;color:#235837;font-weight:800;flex:none;padding:0}.av img,.smallav img,.wavatar img,.cavatar img{width:100%;height:100%;object-fit:cover}.info{min-width:0;flex:1}.name{font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.id{font-size:10px;color:#647269;margin-top:2px}.role{font-size:11px;color:#227241;font-weight:800;margin-top:3px}.you{background:#198344;color:#fff;border-radius:8px;padding:6px 8px;font-size:10px;font-weight:800}
+.note{margin:0 14px 14px;padding:10px 12px;background:#eef8f1;border-radius:12px;color:#31563e;font-size:12px;line-height:1.5}.familyhead{padding:16px;border-bottom:1px solid #edf1ee;display:flex;gap:10px;align-items:center}.familyicon{font-size:25px;background:#e5f4e9;border-radius:12px;padding:8px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:11px}.sum{padding:10px 4px;border-radius:12px;text-align:center}.sum:nth-child(1){background:#f8eafb}.sum:nth-child(2){background:#eaf3fc}.sum:nth-child(3){background:#e8f6ed}.num{font-size:20px;font-weight:800}.lab{font-size:10px;color:#53635a}
+.primary{width:calc(100% - 22px);margin:0 11px 12px;padding:12px;border:0;border-radius:10px;background:#168344;color:#fff;font-weight:800}.wives{padding:0 11px 12px}.wife{margin-top:8px;border-radius:15px;overflow:hidden;border:1px solid #0000000d;background:#f7eef8}.wife:nth-child(2n){background:#edf5fc}.wife:nth-child(3n){background:#fff0e9}.whead{padding:11px;display:flex;gap:10px;align-items:center;cursor:pointer}.wavatar{width:46px;height:46px;border-radius:50%;overflow:hidden;background:#dce9e0;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}.winfo{flex:1;min-width:0}.wslot{font-size:10px;color:#69766e;font-weight:700}.wname{font-size:15px;font-weight:800}.wcount{font-size:10px;color:#657168;margin-top:2px}.arrow{font-size:20px}.wbody{display:none;padding:0 9px 10px}.wife.open .wbody{display:block}.wifeactions{display:flex;gap:5px;padding:0 9px 9px}.children{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.child{background:#fff;border-radius:12px;padding:8px;border:1px solid #e4e9e5}.ctop{display:flex;gap:7px;align-items:center}.cavatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#e8eee9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex:none}.cinfo{min-width:0}.cname{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cid,.cline{font-size:8px;color:#66746b;margin-top:2px}.cline{color:#19733c;font-weight:700}.actions{display:flex;gap:5px;margin-top:7px}.mini{flex:1;border:0;border-radius:7px;padding:6px 2px;font-size:9px;font-weight:700;background:#eef4ef;color:#275538}.colorbtn{min-width:36px;flex:0 0 36px;border:1px solid #cbd8ce;border-radius:7px;padding:5px;background:#fff;font-size:13px}.addchild{width:100%;margin-top:7px;padding:8px;border:1px dashed #9eb5a5;background:#f7fbf8;color:#28603b;border-radius:9px;font-size:10px;font-weight:800}.desc{margin-top:7px;display:none}.dnode{margin-left:8px;padding:7px 0 7px 15px;border-left:2px solid #c8d9ce;position:relative}.dnode:before{content:"";position:absolute;left:-2px;top:20px;width:15px;height:2px;background:#c8d9ce}.dcard{background:#fff;border:1px solid #e2e8e3;border-radius:11px;padding:8px;display:flex;gap:7px;align-items:center}.smallav{width:36px;height:36px;border-radius:50%;overflow:hidden;background:#e7eee9;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex:none}.dactions{display:flex;gap:4px;margin-top:6px}.dactions .mini{padding:5px 2px}
+.search{padding:14px}.search h3{margin:0 0 8px;font-size:16px}.searchbox{display:flex;gap:7px;border:1px solid #ccd8cf;border-radius:10px;padding:9px;background:#fff}.searchbox input{border:0;outline:0;flex:1;min-width:0}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px}.tab{border:1px solid #d5dfd8;border-radius:8px;padding:9px;background:#f6f8f6;font-size:10px;font-weight:800}.tab.active{background:#177c40;color:#fff}.all{display:none;margin-top:8px}.item{display:flex;gap:8px;padding:9px;border-bottom:1px solid #edf1ee}
+.modalbg{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;z-index:50}.modalbg.show{display:flex}.modal{width:100%;max-width:680px;background:#fff;border-radius:20px 20px 0 0;padding:18px;max-height:90vh;overflow:auto}.modal h2{margin:0 0 14px;font-size:20px}.group{margin-bottom:11px}.group label{display:block;font-size:10px;font-weight:800;margin-bottom:4px;color:#46554c}.group input,.group select{width:100%;padding:10px;border:1px solid #ccd7cf;border-radius:8px;outline:0}.group input[type=color]{height:42px;padding:3px}.locked{background:#f1f4f2!important}.modalactions{display:flex;gap:7px;margin-top:14px}.modalactions button{flex:1;padding:11px;border:0;border-radius:9px;font-weight:800}.save{background:#177c40;color:#fff}.cancel{background:#edf1ee}.delete{background:#fbeaea;color:#a52d2d}.hidden{display:none}.error{margin:15px;background:#fff0f0;border:1px solid #efcaca;color:#8d2c2c;padding:14px;border-radius:12px}
+@media(max-width:420px){.children{grid-template-columns:1fr}.page{padding:8px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><div><h1>🌳 GuVaza Family Tree</h1><small>My Direct Lineage</small></div><button style="background:none;border:0;color:#fff;font-size:23px" onclick="history.back()">☰</button></header>
+<main class="page">
+<section class="sec">
+<div class="head"><span class="badge">GFT FIXED</span><div class="title">MY DIRECT LINEAGE</div><div class="sub">From Guvaza to me</div></div>
+<div id="ancestry" class="chain"></div>
+<div class="note">This section is obtained directly from <b>guvazaTree.js</b> using the active account's biological <b>parentId</b> chain. It stops at YOU and cannot be edited here.</div>
+</section>
+<section class="sec">
+<div class="familyhead"><div class="familyicon">👨‍👩‍👧‍👦</div><div><div class="title">MY FAMILY</div><div class="sub">My spouse, children and descendants</div></div></div>
+<div class="summary"><div class="sum"><div id="wifeCount" class="num">0</div><div id="wifeLabel" class="lab">Spouse</div></div><div class="sum"><div id="childCount" class="num">0</div><div class="lab">Children</div></div><div class="sum"><div id="descCount" class="num">0</div><div class="lab">Descendants</div></div></div>
+<button id="spouseBtn" class="primary" onclick="openSpouse()">＋ ADD SPOUSE</button>
+<div id="wives" class="wives"></div>
+</section>
+<section class="sec search">
+<h3>🔎 Find a Descendant</h3>
+<div class="searchbox">🔍<input id="q" placeholder="Search name / GFT ID / FG ID..." oninput="search()"></div>
+<div class="tabs"><button id="treeTab" class="tab active" onclick="tab('tree')">🌳 FAMILY TREE</button><button id="allTab" class="tab" onclick="tab('all')">☷ ALL DESCENDANTS</button></div>
+<div id="all" class="all"></div>
+</section>
+</main>
+</div>
+
+<div id="personColorModal" class="modalbg">
+<div class="modal">
+<h2>🎨 Personal Card Colour</h2>
+<div style="font-size:12px;color:#647168;margin-bottom:12px">Choose the personal colour for <b id="personColorName"></b>.</div>
+<div class="group">
+<label>Choose Colour</label>
+<input id="personColorPicker" type="color" value="#e8f4ec">
+</div>
+<div style="font-size:10px;color:#66746c;line-height:1.5;background:#f1f6f2;padding:9px;border-radius:9px">
+This changes only the personal family-card colour. Official GFT branch colours and fixed ancestry colours remain unchanged.
+</div>
+<input id="personColorTarget" type="hidden">
+<div class="modalactions">
+<button class="cancel" onclick="closeModals()">Cancel</button>
+<button class="save" onclick="savePersonColor()">Save Colour</button>
+</div>
+</div>
+</div>
+
+<input id="photoInput" class="hidden" type="file" accept="image/*" onchange="photoSelected(event)">
+
+<div id="spouseModal" class="modalbg"><div class="modal"><h2 id="spouseTitle">Add Spouse</h2><div class="group"><label id="spouseNameLabel">Name</label><input id="spouseName" placeholder="Enter full name"></div><div class="group"><label>Family Position</label><select id="spouseSlot"></select></div><div class="group"><label>Personal Card Colour</label><input id="spouseColor" type="color" value="#f7eef8"></div><div class="modalactions"><button class="cancel" onclick="closeModals()">Cancel</button><button id="deleteSpouseBtn" class="delete" style="display:none" onclick="deleteSpouse()">Delete</button><button class="save" onclick="saveSpouse()">Save</button></div></div></div>
+
+<div id="childModal" class="modalbg"><div class="modal"><h2 id="childTitle">Add Child</h2><div class="group"><label>Full Name</label><input id="childName" placeholder="Enter child's full name"></div><div class="group"><label>Official GFT ID</label><input id="childId" class="locked" readonly><small>🔒 Permanent official ID; cannot be edited.</small></div><div class="group"><label>Personal Lineage ID</label><input id="lineageId" placeholder="e.g. FG-GEN2-01"><small>Editable personal family ID.</small></div><div class="group"><label>Personal Card Colour</label><input id="childColor" type="color" value="#e8f4ec"></div><div class="group"><label>Biological Parent</label><input id="childParent" class="locked" readonly></div><div class="modalactions"><button class="cancel" onclick="closeModals()">Cancel</button><button id="deleteBtn" class="delete" style="display:none" onclick="deleteChild()">Delete</button><button class="save" onclick="saveChild()">Save</button></div></div></div>
+
+<script>
+const params=new URLSearchParams(location.search);
+const ACTIVE_ID=params.get("id")||localStorage.getItem("guvaza_current_user_id")||"";
+const ACTIVE_PERSON=(typeof guvazaTreeById!=="undefined")?guvazaTreeById[ACTIVE_ID]:null;
+if(!ACTIVE_PERSON){document.querySelector(".page").innerHTML='<div class="error"><b>Account not found.</b><br><br>The page requires the unique registered systemId from guvazaTree.js. No GFT account ID is hard-coded.</div>';throw Error("Active account not found")}
+
+const EK="guvaza_personal_descendants_"+ACTIVE_ID;
+const SK="guvaza_spouses_"+ACTIVE_ID;
+const PK="guvaza_profile_";
+const CK="guvaza_personal_color_";
+const WK="guvaza_personal_spouse_color_";
+let editId=null,editSpouse=null,editParentId=ACTIVE_ID,photoTarget=null,photoKind="person";
+
+const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+const initials=n=>{let clean=String(n||"?").replace(/\s*\([^)]*\)/g," ").replace(/\s+/g," ").trim();let p=clean.split(" ").filter(Boolean);return p.length?(p[0][0]+(p.length>1?p[p.length-1][0]:"")).toUpperCase():"?"};
+const extras=()=>{try{return JSON.parse(localStorage.getItem(EK)||"[]")}catch{return[]}};
+const saveExtras=x=>localStorage.setItem(EK,JSON.stringify(x));
+const spouses=()=>{try{return JSON.parse(localStorage.getItem(SK)||"[]")}catch{return[]}};
+const saveSpouses=x=>localStorage.setItem(SK,JSON.stringify(x));
+const all=()=>[...(Array.isArray(guvazaTree)?guvazaTree:[]),...extras()];
+const get=id=>(typeof guvazaTreeById!=="undefined"&&guvazaTreeById[id])||extras().find(x=>x.systemId===id)||null;
+const photo=id=>localStorage.getItem(PK+id)||"";
+const personalColor=id=>localStorage.getItem(CK+id)||"";
+const spouseColor=id=>localStorage.getItem(WK+id)||"";
+function branchDefaultColor(branch){const colors={"BRANCH_ROOT":"#23395d","ROOT":"#23395d","BRANCH_RUTAMBO":"#1b5e20","RUTAMBO":"#1b5e20","BRANCH_VURAYAI":"#e67e22","VURAYAI":"#e67e22","BRANCH_SVUSVU":"#1e40af","SVUSVU":"#1e40af","BRANCH_VAFONJO":"#ad1457","VAFONJO":"#ad1457","BRANCH_DAUGHTER2":"#6b21a8","DAUGHTER2":"#6b21a8","BRANCH_SECOND_DAUGHTER":"#6b21a8"};return colors[branch]||"#23395d";}
+const isMale=String(ACTIVE_PERSON.gender||"").toUpperCase()==="MALE";
+const isFemale=String(ACTIVE_PERSON.gender||"").toUpperCase()==="FEMALE";
+const spouseNoun=isMale?"WIFE":isFemale?"HUSBAND":"SPOUSE";
+
+function avatar(p){let s=photo(p.systemId);return `<button class="av" onclick="pickPhoto('${esc(p.systemId)}','person')">${s?`<img src="${esc(s)}">`:esc(initials(p.fullName))}</button>`}
+function chain(){let a=[],p=get(ACTIVE_ID),seen=new Set();while(p&&!seen.has(p.systemId)){seen.add(p.systemId);a.unshift(p);p=p.parentId?get(p.parentId):null}return a}
+function role(i,n){if(i===0)return"Root Ancestor";if(i===n-1)return"YOU";if(i===n-2)return"Parent";if(i===n-3)return"Grandparent";return"Ancestor"}
+function hexToRgb(h){let x=String(h||"").replace("#","");if(x.length!==6)return[35,57,93];return[parseInt(x.slice(0,2),16),parseInt(x.slice(2,4),16),parseInt(x.slice(4,6),16)]}function contrastText(h){let[r,g,b]=hexToRgb(h);let lum=(0.299*r+0.587*g+0.114*b)/255;return lum>0.58?"#17251d":"#ffffff"}function mutedText(h){let fg=contrastText(h);return fg==="#ffffff"?"#eaf3ed":"#44534b"}function renderAncestry(){let a=chain();document.getElementById("ancestry").innerHTML=a.map((p,i)=>{let current=p.systemId===ACTIVE_ID;let bg=current?(personalColor(ACTIVE_ID)||branchDefaultColor(p.branch)||"#23395d"):(branchDefaultColor(p.branch)||"#23395d");let fg=contrastText(bg);let muted=mutedText(bg);let style=`style="--current-bg:${esc(bg)};--current-fg:${esc(fg)};--current-muted:${esc(muted)}"`;return `<div class="node ${current?"current-node":""}" ${style}>${avatar(p)}<div class="info"><div class="name">${esc(p.fullName)}</div><div class="id">${esc(p.systemId)}</div><div class="role">${role(i,a.length)}</div></div>${current?`<button class="colorbtn" title="Choose your personal card colour" onclick="openPersonColor('${esc(ACTIVE_ID)}');event.stopPropagation()">🎨</button><span class="you" style="background:${esc(fg)};color:${esc(bg)}">YOU</span>`:""}</div>`}).join("")}
+function gft(a,b){let n=x=>Number((String(x.systemId||"").match(/-(\d+)$/)||[,999999])[1]);return n(a)-n(b)}
+function descendantsOf(parentId){let out=[],records=all();function walk(pid){records.filter(x=>x.parentId===pid).sort(gft).forEach(x=>{out.push(x);walk(x.systemId)})}walk(parentId);return out}
+function desc(){return descendantsOf(ACTIVE_ID)}
+function childrenOf(parentId){return all().filter(x=>x.parentId===parentId).sort(gft)}
+function nextIdForGeneration(gen){let max=0;all().forEach(x=>{if(Number(x.generation)!==Number(gen))return;let m=String(x.systemId||"").match(/-(\d+)$/);if(m)max=Math.max(max,Number(m[1]))});return `GFT-GEN${gen}-${String(max+1).padStart(3,"0")}`}
+function nextIdForParent(parentId){let p=get(parentId)||ACTIVE_PERSON;return nextIdForGeneration(Number(p.generation||1)+1)}
+function suggestLineage(parentId){let p=get(parentId)||ACTIVE_PERSON;let gen=Number(p.lineageGeneration||1)+1;let used=new Set(desc().map(x=>x.lineageId).filter(Boolean));for(let n=1;n<1000;n++){let id=`FG-GEN${gen}-${String(n).padStart(2,"0")}`;if(!used.has(id))return id}return `FG-GEN${gen}-01`}
+function personalRecord(id){return extras().find(x=>x.systemId===id)||null}
+
+function spouseSlots(){return Array.from({length:8},(_,i)=>`${spouseNoun} ${i+1}`)}
+function renderSpouseSlots(selected=""){let s=document.getElementById("spouseSlot");s.innerHTML=spouseSlots().map(x=>`<option value="${x}">${x}</option>`).join("");if(selected)s.value=selected}
+function render(){
+ renderAncestry();
+ let s=spouses(),c=childrenOf(ACTIVE_ID),d=descendantsOf(ACTIVE_ID);
+ document.getElementById("wifeCount").textContent=s.length;
+ document.getElementById("childCount").textContent=c.length;
+ document.getElementById("descCount").textContent=Math.max(0,d.length-c.length);
+ document.getElementById("wifeLabel").textContent=isMale?"Wives":isFemale?"Husbands":"Spouse";
+ document.getElementById("spouseBtn").textContent=`＋ ADD ${spouseNoun}`;
+ document.getElementById("wives").innerHTML=s.map(w=>{
+   let cs=c.filter(x=>x.spouseId===w.id||(!x.spouseId&&x.wifeNo===w.slot));
+   let wc=spouseColor(w.id)||"#f7eef8";
+   return `<div class="wife" id="w-${esc(w.id)}" style="background:${esc(wc)}">
+    <div class="whead" onclick="toggleWife('${esc(w.id)}')">
+      <button class="wavatar" onclick="event.stopPropagation();pickSpousePhoto('${esc(w.id)}')">${w.photo?`<img src="${esc(w.photo)}">`:esc(initials(w.name))}</button>
+      <div class="winfo"><div class="wslot">${esc(w.slot)}</div><div class="wname">${esc(w.name)}</div><div class="wcount">${cs.length} ${cs.length===1?"Child":"Children"}</div></div><div class="arrow">⌄</div>
+    </div>
+    <div class="wifeactions"><button class="mini" onclick="event.stopPropagation();openSpouse('${esc(w.id)}')">✎ Edit</button><button class="colorbtn" title="Change card colour" onclick="event.stopPropagation();openSpouseColor('${esc(w.id)}')">🎨</button><button class="mini" onclick="event.stopPropagation();pickSpousePhoto('${esc(w.id)}')">📷 Photo</button></div>
+    <div class="wbody">${cs.length?`<div class="children">${cs.map(childCard).join("")}</div>`:`<div style='padding:10px;text-align:center;color:#69756d;font-size:11px'>No children registered yet.</div>`}<button class="addchild" onclick="event.stopPropagation();openChild(null,'${esc(w.id)}','${esc(ACTIVE_ID)}')">＋ Add Child</button></div>
+   </div>`;
+ }).join("")||`<div style="padding:14px;text-align:center;color:#66736a;font-size:13px">Add your first ${spouseNoun.toLowerCase()} to begin.</div>`;
+}
+
+function childCard(c){
+ let col=personalColor(c.systemId)||"#fff",s=photo(c.systemId),fixed=!personalRecord(c.systemId);
+ return `<div class="child" style="background:${esc(col)}">
+   <div class="ctop"><button class="cavatar" onclick="pickPhoto('${esc(c.systemId)}','person')">${s?`<img src="${esc(s)}">`:esc(initials(c.fullName))}</button><div class="cinfo"><div class="cname">${esc(c.fullName)}</div><div class="cid">${esc(c.systemId)} ${fixed?"🔒":""}</div><div class="cline">${c.lineageId?esc(c.lineageId):"Personal ID not assigned"}</div></div></div>
+   <div class="actions"><button class="mini" onclick="openChild('${esc(c.systemId)}','${esc(c.spouseId||"")}','${esc(c.parentId||ACTIVE_ID)}')">${fixed?"View":"Edit"}</button><button class="colorbtn" title="Change card colour" onclick="openPersonColor('${esc(c.systemId)}')">🎨</button><button class="mini" onclick="toggleDesc('${esc(c.systemId)}')">Children</button></div>
+   <button class="addchild" onclick="openChild(null,'${esc(c.spouseId||"")}','${esc(c.systemId)}')">＋ Add Child</button>
+   <div id="d-${esc(c.systemId)}" class="desc"></div>
+ </div>`;
+}
+function toggleWife(id){document.getElementById("w-"+id)?.classList.toggle("open")}
+function toggleDesc(id){let b=document.getElementById("d-"+id);if(b.style.display==="block"){b.style.display="none";return}let cs=childrenOf(id);b.innerHTML=cs.length?cs.map(descendantCard).join(""):"<div style='padding:8px;font-size:10px;color:#69756d'>No descendants yet.</div>";b.style.display="block"}
+function descendantCard(x){let col=personalColor(x.systemId)||"#fff",s=photo(x.systemId),fixed=!personalRecord(x.systemId);return `<div class="dnode"><div class="dcard" style="background:${esc(col)}"><button class="smallav" onclick="pickPhoto('${esc(x.systemId)}','person')">${s?`<img src="${esc(s)}">`:esc(initials(x.fullName))}</button><div class="info"><div class="name" style="font-size:12px">${esc(x.fullName)}</div><div class="id">${esc(x.systemId)} ${fixed?"🔒":""}</div>${x.lineageId?`<div class="role">${esc(x.lineageId)}</div>`:""}<div class="dactions"><button class="mini" onclick="openChild('${esc(x.systemId)}','${esc(x.spouseId||"")}','${esc(x.parentId||"")}')">${fixed?"View":"Edit"}</button><button class="colorbtn" title="Change card colour" onclick="openPersonColor('${esc(x.systemId)}')">🎨</button><button class="mini" onclick="toggleDesc('${esc(x.systemId)}')">Children</button></div></div></div><div id="d-${esc(x.systemId)}" class="desc"></div></div>`}
+
+function openSpouse(id=null){
+ editSpouse=id;let t=document.getElementById("spouseTitle"),n=document.getElementById("spouseName"),d=document.getElementById("deleteSpouseBtn"),s=spouses();
+ if(id){let w=s.find(x=>x.id===id);if(!w)return;t.textContent=`Edit ${spouseNoun}`;n.value=w.name;renderSpouseSlots(w.slot);document.getElementById("spouseColor").value=spouseColor(id)||"#f7eef8";d.style.display="block"}
+ else{t.textContent=`Add ${spouseNoun}`;n.value="";renderSpouseSlots();document.getElementById("spouseColor").value="#f7eef8";d.style.display="none"}
+ document.getElementById("spouseModal").classList.add("show")
+}
+function saveSpouse(){let n=document.getElementById("spouseName").value.trim(),slot=document.getElementById("spouseSlot").value,col=document.getElementById("spouseColor").value,s=spouses();if(!n)return alert(`Please enter the ${spouseNoun.toLowerCase()} name.`);if(s.some(x=>x.slot===slot&&x.id!==editSpouse))return alert(slot+" is already assigned.");if(editSpouse){let i=s.findIndex(x=>x.id===editSpouse);if(i<0)return; s[i].name=n;s[i].slot=slot;saveSpouses(s);localStorage.setItem(WK+editSpouse,col)}else{let id="S-"+ACTIVE_ID+"-"+Date.now();s.push({id,name:n,slot,ownerId:ACTIVE_ID,photo:""});saveSpouses(s);localStorage.setItem(WK+id,col)}closeModals();render()}
+function deleteSpouse(){if(!editSpouse)return;if(!confirm(`Delete this ${spouseNoun.toLowerCase()} and keep the children?`))return;let s=spouses().filter(x=>x.id!==editSpouse);saveSpouses(s);localStorage.removeItem(WK+editSpouse);closeModals();render()}
+function openSpouseColor(id){let w=spouses().find(x=>x.id===id);if(!w)return;document.getElementById("personColorTarget").value="SPOUSE:"+id;document.getElementById("personColorName").textContent=w.name||spouseNoun;document.getElementById("personColorPicker").value=spouseColor(id)||"#f7eef8";document.getElementById("personColorModal").classList.add("show")}
+
+function openChild(id=null,sid="",parentId=ACTIVE_ID){editId=id;editSpouse=sid;editParentId=parentId||ACTIVE_ID;let t=document.getElementById("childTitle"),di=document.getElementById("childId"),n=document.getElementById("childName"),li=document.getElementById("lineageId"),co=document.getElementById("childColor"),pa=document.getElementById("childParent"),del=document.getElementById("deleteBtn");
+ if(id){let c=get(id);if(!c)return;t.textContent=personalRecord(id)?"Edit Descendant":"View GFT Descendant";di.value=c.systemId;n.value=c.fullName;li.value=c.lineageId||"";co.value=personalColor(c.systemId)||"#e8f4ec";pa.value=(get(c.parentId)?.fullName||"")+" • "+(c.parentId||"");del.style.display=personalRecord(id)?"block":"none";n.readOnly=!personalRecord(id);li.disabled=!personalRecord(id);co.disabled=false;document.querySelector('#childModal .save').textContent=personalRecord(id)?"Save":"Close"}
+ else{t.textContent="Add Child";di.value=nextIdForParent(editParentId);n.value="";li.value=suggestLineage(editParentId);co.value="#e8f4ec";pa.value=(get(editParentId)?.fullName||ACTIVE_PERSON.fullName)+" • "+editParentId;del.style.display="none";n.readOnly=false;li.disabled=false;co.disabled=false;document.querySelector('#childModal .save').textContent="Save"}
+ document.getElementById("childModal").classList.add("show")
+}
+function saveChild(){
+ if(editId&&!personalRecord(editId)){openPersonColor(editId);return}
+ let n=document.getElementById("childName").value.trim(),li=document.getElementById("lineageId").value.trim().toUpperCase(),co=document.getElementById("childColor").value;
+ if(!n)return alert("Please enter the child's full name.");if(!/^FG-GEN\d+-\d+$/.test(li))return alert("Personal Lineage ID must use the format FG-GEN2-01.");
+ let e=extras();
+ if(editId){let i=e.findIndex(x=>x.systemId===editId);if(i<0)return; if(e.some(x=>x.lineageId===li&&x.systemId!==editId))return alert("That Personal Lineage ID is already in use.");e[i].fullName=n;e[i].lineageId=li;saveExtras(e);localStorage.setItem(CK+editId,co);closeModals();render();return}
+ let parent=get(editParentId);if(!parent)return alert("The biological parent could not be verified.");if(e.some(x=>x.lineageId===li)||all().some(x=>x.lineageId===li))return alert("That Personal Lineage ID is already in use.");
+ let id=nextIdForParent(editParentId),gen=Number(parent.generation||1)+1,parentLineageGen=Number(parent.lineageGeneration||1);
+ e.push({systemId:id,fullName:n,rootSurname:"Guvaza",currentSurname:n.split(/\s+/).pop(),parentId:editParentId,generation:gen,branch:parent.branch||ACTIVE_PERSON.branch,gender:"",lineageOwnerId:ACTIVE_ID,lineageId:li,lineageGeneration:parentLineageGen+1,wifeNo:editSpouse?(spouses().find(x=>x.id===editSpouse)||{}).slot:null,spouseId:editSpouse||"",isPlaceholder:false,isEditable:true});
+ saveExtras(e);localStorage.setItem(CK+id,co);closeModals();render();alert("Child added.\n\nOfficial GFT ID: "+id+"\nPersonal Lineage ID: "+li)
+}
+function deleteChild(){if(!editId)return;let e=extras();if(!e.some(x=>x.systemId===editId))return alert("Official GFT members cannot be deleted here.");if(!confirm("Delete this personal descendant and its descendants?"))return;let gone=new Set([editId]);function walk(id){e.filter(x=>x.parentId===id).forEach(x=>{gone.add(x.systemId);walk(x.systemId)})}walk(editId);saveExtras(e.filter(x=>!gone.has(x.systemId)));gone.forEach(id=>{localStorage.removeItem(CK+id);localStorage.removeItem(PK+id)});closeModals();render()}
+function openPersonColor(id){let p=get(id);if(!p)return;document.getElementById("personColorTarget").value=id;document.getElementById("personColorName").textContent=p.fullName||id;document.getElementById("personColorPicker").value=personalColor(id)||branchDefaultColor(p.branch)||"#e8f4ec";document.getElementById("personColorModal").classList.add("show")}
+function savePersonColor(){let target=document.getElementById("personColorTarget").value;let color=document.getElementById("personColorPicker").value;if(!target)return;if(target.startsWith("SPOUSE:")){let id=target.slice(7);localStorage.setItem(WK+id,color)}else{localStorage.setItem(CK+target,color)}closeModals();render()}
+function closeModals(){document.querySelectorAll(".modalbg").forEach(x=>x.classList.remove("show"));editId=null;editSpouse=null;editParentId=ACTIVE_ID}
+document.querySelectorAll(".modalbg").forEach(x=>x.onclick=e=>{if(e.target===x)closeModals()});
+function pickPhoto(id,kind="person"){photoTarget=id;photoKind=kind;document.getElementById("photoInput").click()}
+function pickSpousePhoto(id){photoTarget=id;photoKind="spouse";document.getElementById("photoInput").click()}
+function photoSelected(e){let f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith("image/"))return alert("Please select an image.");if(f.size>5*1024*1024)return alert("Please choose an image smaller than 5 MB.");let r=new FileReader();r.onload=()=>{if(photoKind==="spouse"){let s=spouses(),i=s.findIndex(x=>x.id===photoTarget);if(i>=0){s[i].photo=r.result;saveSpouses(s)}}else localStorage.setItem(PK+photoTarget,r.result);render()};r.readAsDataURL(f);e.target.value=""}
+function tab(x){let a=document.getElementById("all"),t=document.getElementById("treeTab"),b=document.getElementById("allTab");if(x==="all"){a.style.display="block";b.classList.add("active");t.classList.remove("active");search()}else{a.style.display="none";t.classList.add("active");b.classList.remove("active")}}
+function search(){let q=document.getElementById("q").value.trim().toLowerCase(),box=document.getElementById("all"),r=desc().filter(x=>!q||[x.fullName,x.systemId,x.lineageId].some(v=>String(v||"").toLowerCase().includes(q)));box.innerHTML=r.map(x=>`<div class="item"><div class="smallav">${photo(x.systemId)?`<img src="${esc(photo(x.systemId))}">`:esc(initials(x.fullName))}</div><div class="info"><div class="name" style="font-size:12px">${esc(x.fullName)}</div><div class="id">${esc(x.systemId)}</div>${x.lineageId?`<div class="role">${esc(x.lineageId)}</div>`:""}</div><button class="colorbtn" onclick="openPersonColor('${esc(x.systemId)}')">🎨</button></div>`).join("")||'<div style="padding:14px;text-align:center;color:#6c776f;font-size:12px">No descendants found.</div>'}
+render();
+</script>
+</body>
+</html>

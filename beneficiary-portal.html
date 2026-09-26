@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Canonical portal filename: beneficiary-portal.html -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal - GFT Dashboard</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+body{margin:0;font-family:system-ui;background:#f5f1f1}
+.top{position:sticky;top:0;z-index:20;background:#7a1a24;color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.top h1{font-size:16px;margin:0}
+.nav{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#020a25 0%,#0a1a4a 35%,#0d2c6b 100%);border-top:none;display:flex;justify-content:space-around;padding:8px 0;z-index:20;box-shadow:0 -4px 20px rgba(2,10,37,0.4)}
+.nav a{font-size:11px;color:rgba(255,255,255,0.75);text-align:center;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav a.active{color:#ef4444 !important;font-weight:900;background:transparent !important}
+.nav a.active .mi{color:#ef4444 !important}
+.nav a .mi{color:#fff}
+.nav a .mi{font-size:30px;line-height:30px}
+.main{padding:14px 14px 80px;max-width:700px;margin:0 auto;width:100%;box-sizing:border-box}
+.main.expanded{max-width:850px!important;margin:0 auto!important;display:block!important;left:0;right:0}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06)}
+.balance{font-size:28px;font-weight:900;margin:6px 0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btnTree{padding:14px;border-radius:12px;background:#fff;border:1px solid #e2e8f0;text-align:center;font-weight:700;font-size:12px;cursor:pointer}
+.companiesGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:850px;margin:0 auto!important;justify-content:center;place-content:center}
+.comp{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;text-align:center;font-size:11px;font-weight:700;cursor:pointer;min-height:92px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.view{display:none}
+.view.active{display:block}
+.lockOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:100;color:#fff;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px}
+.watermark{position:fixed;inset:0;pointer-events:none;opacity:0.06;font-size:14px;transform:rotate(-25deg);display:flex;flex-wrap:wrap;gap:60px;padding:100px;z-index:5;overflow:hidden;word-break:break-all}
+.mi{font-family:'Material Icons Round'}
+.clan-badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:800;color:#fff;margin-right:6px}
+.branch-ROOT{background:#7a1a24!important}
+.branch-RUTAMBO{background:#166534!important}
+.branch-VURAYAI{background:#a16207!important}
+.clan-item{padding:8px 10px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;border-radius:8px;margin-bottom:4px}
+#view-clan iframe{width:100%;height:78vh;border:0;border-radius:16px;background:#fff;display:block}
+/* === EXACT GFT VISA CARD FROM YOUR PHOTO === */
+.ben-bal-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.ben-bal-card b{font-size:15px}
+.visa-wrap{perspective:1000px;cursor:pointer;max-width:420px;margin:0 auto 14px}
+.visa-inner{position:relative;width:100%;height:200px;transition:transform .6s;transform-style:preserve-3d}
+.visa-wrap.flipped .visa-inner{transform:rotateY(180deg)}
+.visa-front,.visa-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;padding:18px}
+.visa-front{background:linear-gradient(135deg,#3d0c15 0%,#8a1e32 60%,#b0354a 100%);color:#fff;display:flex;flex-direction:column;justify-content:space-between}
+.visa-back{background:#0f172a;color:#fff;transform:rotateY(180deg);border-radius:18px;padding:18px;display:flex;flex-direction:column;justify-content:center}
+@media(max-width:560px){.companiesGrid{grid-template-columns:repeat(2,1fr)!important}#libraryContent>div:nth-child(3){grid-template-columns:1fr!important}}
+</style>
+</head>
+<body>
+<div id="watermark" class="watermark"></div>
+<div id="lockOverlay" class="lockOverlay">
+<span class="mi" style="font-size:48px">lock</span>
+<h2>App Locked - Screenshot Detected</h2>
+<p style="font-size:13px;line-height:1.6;max-width:320px">Security violation detected.Your GFT- ID has been logged and sent to Trust Admin.<br>App will auto-unfreeze on the 8th day after Admin verification.</p>
+<p id="lockId" style="font-weight:800;margin-top:10px"></p>
+<button onclick="location.href='index.html'" style="margin-top:14px;padding:10px 20px;border-radius:8px;border:none;font-weight:700">Back to Home</button>
+</div>
+<div class="top">
+  <div style="display:flex;align-items:center;gap:8px">
+    <img src="assets/gft.png" style="width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:#fff;object-fit:cover" onerror="this.src='assets/logo.png';this.onerror=function(){this.style.display='none'}">
+    <h1 id="topName">GFT- Portal</h1>
+  </div>
+  <span class="mi" onclick="logout()" style="cursor:pointer">logout</span>
+</div>
+<div class="main" id="mainWrap">
+<div id="view-home" class="view active">
+<div class="card" style="background:linear-gradient(135deg,#020a25 0%,#0a1a4a 35%,#0d2c6b 100%);color:#fff;border:none">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<span style="font-size:12px;opacity:0.9">Account Balance • Managed by Trust Office</span>
+<span style="background:#dcfce7;color:#166534;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:800">Approved</span>
+</div>
+
+<div class="balance" id="balanceTxt" style="color:#fff">USD$ 0.00</div>
+<div style="font-size:11px;opacity:0.85" id="memberId">GFT-2026-0014</div>
+</div>
+
+<div class="row2" style="gap:10px">
+<div class="btnTree" onclick="openMyDirectLineage()" style="background:linear-gradient(135deg,#2a0a0a 0%,#6b1212 45%,#a01c1c 100%);color:#fff;border:none"><span class="mi" style="color:#fff">account_tree</span>My Direct Lineage</div>
+<div class="btnTree" onclick="openView('clan')" style="background:linear-gradient(135deg,#2a0a0a 0%,#6b1212 45%,#a01c1c 100%);color:#fff;border:none"><span class="mi" style="color:#fff">family_restroom</span>Whole Clan Tree</div>
+</div>
+
+<div class="card" style="margin-top:12px;background:linear-gradient(135deg,#010a22 0%,#0a235e 45%,#12307e 100%);color:#fff;border:none">
+<h3 style="margin:0 0 6px;display:flex;align-items:center;gap:6px;color:#fff"><span class="mi">fingerprint</span> Payout</h3>
+<p style="font-size:11px;color:#e3f2fd;margin:0 0 10px">Payout granted only after fingerprint verification — last step.</p>
+<div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:8px">
+<button class="payoutBtn" onclick="requestPayout()" style="background:#fff;color:#0d47a1;border:none;padding:10px 16px;border-radius:10px;font-weight:800;display:flex;align-items:center;gap:6px"><span class="mi">fingerprint</span> Request Payout</button>
+<button class="payoutBtn" onclick="openCashoutModal()" style="background:#fff;color:#0d47a1;border:none;padding:10px 14px;border-radius:10px;font-weight:700">💵 Cashout</button>
+</div>
+<p id="payoutMsg" style="font-size:11px;color:#e3f2fd;margin-top:8px"></p>
+</div>
+<div class="card" id="portalServicesCard" style="margin-top:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div><h3 style="margin:0">Trust Services</h3><div style="font-size:11px;color:#64748b;margin-top:3px">Information and services available through the GFT Portal</div></div><span class="mi" style="color:#7a1a24">apps</span></div><div id="portalServicesGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px"></div></div>
+
+</div>
+
+<div id="view-notifications" class="view"><div class="card" id="notificationsContent"></div></div>
+<div id="view-security" class="view"><div class="card" id="securityContent"></div></div>
+<div id="view-documents" class="view"><div class="card" id="documentsContent"></div></div>
+<div id="view-benefits" class="view"><div class="card" id="benefitsContent"></div></div>
+<div id="view-library" class="view"><div id="libraryContent"></div></div>
+
+<div id="view-accounts" class="view">
+  <div class="ben-bal-card" style="background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%);color:#fff;padding:16px;border-radius:16px;border:none">
+    <div style="display:flex;align-items:center;gap:6px"><span class="mi">account_balance_wallet</span><b>Beneficiary Account Balance</b></div>
+    <div style="font-size:30px;font-weight:900;margin:8px 0" id="benAccountBalanceFront">USD$ 0.00</div>
+    <div style="font-size:13px;color:#fff">Account No: •••• 4219 • Active</div>
+    <div style="font-size:12px;color:#ffffff;opacity:0.9;margin-top:3px">Connected to Ben Pool • Shows after first allocation • Auto 24h equal share</div>
+  </div>
+
+  <div class="visa-wrap" onclick="this.classList.toggle('flipped')">
+    <div class="visa-inner">
+      <!-- FRONT - EXACTLY LIKE YOUR PHOTO -->
+      <div class="visa-front">
+        <div style="display:flex;justify-content:space-between">
+          <span style="font-weight:900;font-size:18px;letter-spacing:1px">GFT</span>
+          <span style="width:18px;height:18px;background:#fff;border-radius:50%;opacity:0.9;display:block"></span>
+        </div>
+        <div style="font-size:20px;letter-spacing:4px;margin-top:20px">•••• •••• •••• 4129</div>
+        <div style="display:flex;justify-content:space-between;align-items:end;margin-top:20px">
+          <div>
+            <div id="cardHolderName" style="font-size:14px">Fannuel</div>
+            <div style="font-size:12px;opacity:0.8;margin-top:4px">Tap to flip for CVV</div>
+          </div>
+          <span style="font-weight:900;font-style:italic;letter-spacing:1px">VISA</span>
+        </div>
+      </div>
+      <!-- BACK -->
+      <div class="visa-back">
+        <div style="background:#000;height:36px;margin:-18px -18px 16px -18px"></div>
+        <div style="font-size:12px;opacity:0.8">CVV</div>
+        <div style="background:#fff;color:#000;padding:8px 12px;border-radius:6px;margin-top:6px;font-weight:800;letter-spacing:3px;display:flex;justify-content:space-between">
+          <span>••• 4129</span><span id="benCVV">847</span>
+        </div>
+        <div style="font-size:11px;margin-top:10px;opacity:0.7">Tap to flip back</div>
+      </div>
+    </div>
+  </div>
+  <p id="cardSecurityMsg" style="font-size:11px;color:#475569;text-align:center;margin:4px 0 12px">Biometric verification is required to view sensitive card details.</p>
+
+  <button onclick="applyVirtual()" style="width:100%;padding:14px;background:#5a1623;color:#fff;border:none;border-radius:14px;font-weight:800;font-size:14px">Apply for Virtual Card</button>
+  <p id="virtualMsg" style="font-size:11px;color:#166534;margin-top:8px"></p>
+</div>
+
+<div id="view-companies" class="view">
+
+<div class="notice" style="background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%);border-left:5px solid #1e3a8a;border-radius:14px;padding:14px 16px;max-width:850px;margin:0 auto 16px auto!important;color:#fff;font-size:12.5px;line-height:1.5;box-shadow:0 4px 12px rgba(59,130,246,.35);display:block"><span style="background:#fff;color:#1e40af;font-weight:800;font-size:10px;padding:4px 9px;border-radius:20px;margin-right:8px;letter-spacing:.6px">NOTICE</span><span style="color:#fff;font-weight:800"> Being a beneficiary does NOT guarantee automatic employment.</span><span style="color:#e0f2fe"> All vacancies require relevant qualifications and you must apply. Family members given first preference.</span></div>
+
+<div class="companiesGrid" id="companiesGrid"></div>
+</div>
+<div id="view-companyDetail" class="view">
+<button onclick="openView('companies')" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;font-weight:700;font-size:12px;margin-bottom:10px;cursor:pointer"><span class="mi" style="font-size:18px">arrow_back</span> Back to Wallet</button>
+<div id="companyDetailContent"></div>
+</div>
+<div id="view-jobs" class="view">
+
+<div id="jobsList"></div>
+</div>
+<div id="view-profile" class="view">
+
+<div class="card" style="text-align:center;background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%);color:#fff;border:none">
+
+<img src="assets/gft.png" style="width:64px;height:64px;border-radius:50%;border:3px solid #7a1a24;object-fit:cover;margin:0 auto 10px;background:#fff" onerror="this.style.display='none'">
+<h3 style="margin:0" id="profileName"></h3>
+<p style="font-size:12px;color:#ffffff" id="profileId">GFT-2026-0014 • Approved</p>
+<button onclick="logout()" style="padding:10px 16px;background:#7a1a24;color:#fff;border:none;border-radius:8px;font-weight:700">Logout</button>
+</div>
+</div>
+</div>
+<div class="nav">
+<a href="#" id="nav-home" class="active" onclick="openView('home');return false"><span class="mi">home</span>Home</a>
+<a href="#" id="nav-accounts" onclick="openView('accounts');return false"><span class="mi">account_balance_wallet</span>Accounts</a>
+<a href="#" id="nav-companies" onclick="openView('companies');return false"><span class="mi">business</span>Companies</a>
+<a href="#" id="nav-jobs" onclick="openView('jobs');return false"><span class="mi">work</span>Jobs</a>
+<a href="#" id="nav-profile" onclick="openView('profile');return false"><span class="mi">person</span>Profile</a>
+</div>
+<script src="portalData.js"></script>
+<script src="guvazaTree.js"></script>
+<script>
+let session=JSON.parse(localStorage.getItem('guvaza_beneficiary_session')||localStorage.getItem('guvaza_current_user')||'null');
+if(!session){window.location.href='beneficiary-login.html';}
+else{
+  document.getElementById('topName').innerText='Welcome, '+(session.name||session.username||'Beneficiary');
+  document.getElementById('memberId').innerText=session.membership||'GFT-'+new Date().getFullYear()+'-'+Math.floor(1000+Math.random()*9000);
+  document.getElementById('watermark').innerText=Array(40).fill((session.membership||'GFT-')+' • '+(session.idNumber||'')).join(' ');
+  refreshBenWallet();
+document.getElementById('profileName').innerText = session.name || session.username || 'Beneficiary';
+document.getElementById('profileId').innerText = (session.membership||'GFT-2026-0014') + ' • Approved';
+document.getElementById('cardHolderName').innerText = session.name || session.username || 'Beneficiary';
+}
+renderPortalData();
+
+function getMyBenId(){ return session.idNumber || session.id || session.username || ''; }
+function refreshBenWallet(){
+  let myId = getMyBenId();
+  let wallets = {};
+  let bens = [];
+  try{ wallets=JSON.parse(localStorage.getItem('guvaza_ben_wallets')||'{}'); }catch(e){}
+  try{ bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]'); }catch(e){}
+  let myBalance = Math.max(0,parseFloat(wallets[myId]||0)||0);
+  if(myBalance===0 && Array.isArray(bens)){
+    let match = bens.find(b=> b.name && session.name && b.name.toLowerCase() === (session.name||'').toLowerCase());
+    if(match) myBalance = Math.max(0,parseFloat(wallets[match.id]||0)||0);
+  }
+  document.getElementById('balanceTxt').innerText = 'USD$ ' + myBalance.toFixed(2);
+  let benEl = document.getElementById('benAccountBalanceFront');
+  if(benEl) benEl.innerText = 'USD$ ' + myBalance.toFixed(2);
+}
+const DEFAULT_COMPANIES=[
+ {id:'GH',name:'Guvaza Holdings',color:'#7a1a24',info:'Holdings',logo:''},
+ {id:'GA',name:'Guvaza Agri',color:'#10b981',info:'Agriculture',logo:''},
+ {id:'GL',name:'Guvaza Logistics',color:'#3b82f6',info:'Logistics',logo:''},
+ {id:'GP',name:'Guvaza Properties',color:'#8b5cf6',info:'Properties',logo:''},
+ {id:'GF',name:'Guvaza Finance',color:'#f59e0b',info:'Finance',logo:''},
+ {id:'GE',name:'Guvaza Energy',color:'#ef4444',info:'Energy',logo:''},
+ {id:'GR',name:'Guvaza Retail',color:'#ec4899',info:'Retail',logo:''},
+ {id:'GT',name:'Guvaza Tech',color:'#06b6d4',info:'Tech',logo:''},
+ {id:'GH2',name:'Guvaza Health',color:'#10b981',info:'Health',logo:''},
+ {id:'GC',name:'Guvaza Construction',color:'#f97316',info:'Construction',logo:''},
+ {id:'GF2',name:'Guvaza Foods',color:'#84cc16',info:'Foods',logo:''},
+ {id:'GM',name:'Guvaza Media',color:'#6366f1',info:'Media',logo:''}
+];
+function getCompanies(){
+  try{ if(window.GFT_PORTAL_DATA && Array.isArray(window.GFT_PORTAL_DATA.companies)) return window.GFT_PORTAL_DATA.companies; }catch(e){}
+  return DEFAULT_COMPANIES;
+}
+let jobs=(window.GFT_PORTAL_DATA && window.GFT_PORTAL_DATA.jobs && Array.isArray(window.GFT_PORTAL_DATA.jobs.vacancies))
+  ? window.GFT_PORTAL_DATA.jobs.vacancies
+  : [
+      {title:'Operations Manager',company:'Guvaza Holdings',type:'Full-time • Harare',close:'Closes 30 Sep 2026'},
+      {title:'Finance Assistant',company:'Guvaza Finance',type:'Part-time • Remote',close:'Closes 15 Oct 2026'},
+      {title:'Agri Field Officer',company:'Guvaza Agri',type:'Contract • Murewa',close:'Closes 20 Sep 2026'}
+    ];
+
+function renderCompanies(){
+ let companies=getCompanies(), grid=document.getElementById('companiesGrid'); if(!grid)return;
+ grid.innerHTML=''; grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:14px;width:100%';
+ companies.forEach(c=>{
+  let border=c.color||'#22c55e',div=document.createElement('div');
+  div.style.cssText=`background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-radius:14px;padding:14px;border-left:4px solid ${border};cursor:pointer;min-height:130px;display:flex;flex-direction:column;justify-content:space-between;text-align:left`;
+  let logoPart=c.logo?`<img src="${escapeHtml(c.logo)}" style="width:42px;height:42px;border-radius:8px;background:#fff;object-fit:contain;padding:3px">`:`<div style="width:42px;height:42px;border-radius:8px;background:${border};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px">${escapeHtml(c.id||'GFT')}</div>`;
+  div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start">${logoPart}<span style="background:rgba(255,255,255,.10);color:#94a3b8;font-size:8px;padding:3px 7px;border-radius:12px">ID: ${escapeHtml(c.id||'')}</span></div><div><div style="color:#fff;font-weight:700;font-size:11px;text-transform:uppercase;margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="color:${border};margin-right:4px">■</span>${escapeHtml(c.name||'Company')}</div><div style="color:#94a3b8;font-size:10px;margin-top:2px">${escapeHtml(c.info||'')}</div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px"><span style="color:#64748b;font-size:7px">Part of The Guvaza Family Trust</span><span style="background:#fff;border-radius:6px;padding:4px 10px;font-weight:700;font-size:10px">👁 View</span></div>`;
+  div.onclick=()=>openCompanyInside(c); grid.appendChild(div);
+ });
+}
+function openCompanyInside(c){
+  let el=document.getElementById('companyDetailContent');
+  el.innerHTML=`<div class="card"><h2>${escapeHtml(c.name)}</h2><p>${escapeHtml(c.description||c.info||'')}</p></div><button onclick="openView('jobs')">View Jobs</button>`;
+  openView('companyDetail');
+}
+function renderJobs(){
+ let list=document.getElementById('jobsList');list.innerHTML='';
+
+ // small maroon card centered
+ let notice=document.createElement('div');
+ notice.style.cssText='background:linear-gradient(135deg,#7f1d1d 0%,#b91c1c 100%);color:#fff;text-align:center;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:600;max-width:85%;margin:0 auto 16px auto;box-shadow:0 4px 12px rgba(0,0,0,0.15)';
+ notice.innerHTML='Priority to family first — Upload qualifications to apply.';
+ list.appendChild(notice);
+
+ jobs.forEach(j=>{
+  let div=document.createElement('div');div.className='card';div.style.background='linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%)';div.style.color='#fff';div.style.border='none';
+  const close=j.closingDate?('Closes '+j.closingDate):(j.close||'');
+  const type=j.employmentType||j.type||'', location=j.location||'';
+  div.innerHTML=`<b>${escapeHtml(j.title||'Vacancy')}</b><div style="color:#fff;opacity:.9">${escapeHtml(j.company||'')}</div><div style="font-size:10px;margin-top:6px;opacity:.9">${escapeHtml(type)}${location?' • '+escapeHtml(location):''}</div><div style="font-size:9px;margin-top:4px;opacity:.8">${escapeHtml(close)}</div>`;
+  list.appendChild(div);
+});
+}
+
+function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function renderPortalServices(){
+ const grid=document.getElementById('portalServicesGrid'),d=window.GFT_PORTAL_DATA;if(!grid||!d)return;
+ const items=[['notifications','notifications'],['security','security'],['documents','folder_copy'],['benefits','card_giftcard'],['accounts','account_balance_wallet'],['companies','business'],['jobs','work'],['profile','person'],['library','local_library']];
+ grid.innerHTML=items.map(([key,icon])=>{const c=d.portalColors?.[key]||{primary:'#334155',secondary:'#64748b',accent:'#e2e8f0',background:'#f8fafc'};const title=c.name||({documents:'My Documents',library:'Trust Library'}[key]||key);return `<button onclick="openView('${key}')" style="border:1px solid ${c.accent};background:linear-gradient(135deg,${c.background},#fff);border-radius:12px;padding:11px 8px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:9px"><span class="mi" style="color:${c.secondary}">${icon}</span><span style="font-size:11px;font-weight:800;color:${c.primary}">${escapeHtml(title)}</span></button>`}).join('');
+}
+function renderNotifications(){const box=document.getElementById('notificationsContent'),d=window.GFT_PORTAL_DATA?.notifications;if(!box||!d)return;box.innerHTML=`<h2 style="margin:0;color:#7c2d12">${escapeHtml(d.title)}</h2><p style="font-size:12px;color:#64748b">${escapeHtml(d.introduction)}</p>${(d.publicNotices||[]).map(n=>`<div style="padding:12px;margin-top:10px;border-radius:12px;background:#fff7ed;border-left:4px solid #f97316"><b>${escapeHtml(n.title)}</b><div style="font-size:11px;margin-top:4px;color:#475569">${escapeHtml(n.message)}</div><div style="font-size:9px;color:#9a3412;margin-top:6px">${escapeHtml(n.date)} • ${escapeHtml(n.priority)}</div></div>`).join('')}<p style="font-size:11px;color:#64748b;margin-top:12px">${escapeHtml(d.emptyState||'No personal notifications yet.')}</p>`;}
+function renderSecurity(){const box=document.getElementById('securityContent'),d=window.GFT_PORTAL_DATA?.security;if(!box||!d)return;box.innerHTML=`<h2 style="margin:0;color:#172554">${escapeHtml(d.title)}</h2><p style="font-size:12px;color:#64748b">${escapeHtml(d.introduction)}</p>${d.features.map(x=>`<div style="display:flex;gap:10px;padding:11px;margin-top:8px;border-radius:12px;background:#eff6ff;border-left:4px solid #2563eb"><span class="mi" style="color:#2563eb">${escapeHtml(x.icon)}</span><div><b style="font-size:12px">${escapeHtml(x.title)}</b><div style="font-size:10px;color:#475569;margin-top:3px">${escapeHtml(x.description)}</div></div></div>`).join('')}<div style="margin-top:12px;padding:10px;border-radius:10px;background:#dbeafe;font-size:10px;color:#1e3a8a">${escapeHtml(d.beforeRegistration)}</div>`;}
+function renderDocuments(){const box=document.getElementById('documentsContent'),d=window.GFT_PORTAL_DATA?.documents;if(!box||!d)return;const b=d.beforeRegistration;box.innerHTML=`<h2 style="margin:0;color:#334155">${escapeHtml(d.title)}</h2><p style="font-size:12px;color:#64748b">${escapeHtml(d.introduction)}</p><div style="padding:12px;border-radius:12px;background:#f8fafc;border-left:4px solid #64748b"><b>${escapeHtml(b.title)}</b><p style="font-size:11px;color:#475569">${escapeHtml(b.message)}</p><ul style="font-size:11px;color:#475569;padding-left:18px">${b.checklist.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul></div><h3 style="margin:16px 0 8px">Document Categories</h3>${d.categories.map(x=>`<div style="padding:10px;border-bottom:1px solid #e2e8f0"><b style="font-size:12px">${escapeHtml(x.title)}</b><div style="font-size:10px;color:#64748b">${escapeHtml(x.description)}</div></div>`).join('')}`;}
+function renderBenefits(){const box=document.getElementById('benefitsContent'),d=window.GFT_PORTAL_DATA?.benefits;if(!box||!d)return;box.innerHTML=`<h2 style="margin:0;color:#14532d">${escapeHtml(d.title)}</h2><p style="font-size:12px;color:#64748b">${escapeHtml(d.introduction)}</p>${d.items.map(x=>`<div style="padding:12px;margin-top:9px;border-radius:12px;background:#f0fdf4;border-left:4px solid #16a34a;display:flex;gap:9px"><span class="mi" style="color:#16a34a">${escapeHtml(x.icon)}</span><div><b style="font-size:12px">${escapeHtml(x.title)}</b><div style="font-size:10px;color:#475569;margin-top:3px">${escapeHtml(x.description)}</div><span style="display:inline-block;margin-top:6px;font-size:8px;font-weight:800;padding:3px 7px;border-radius:10px;background:#dcfce7;color:#166534">${escapeHtml(x.status)}</span></div></div>`).join('')}`;}
+function renderLibrary(){const box=document.getElementById('libraryContent'),d=window.GFT_PORTAL_DATA?.trustLibrary;if(!box||!d)return;box.innerHTML=`<div class="card" style="background:linear-gradient(135deg,#071d5c 0%,#8b173b 100%);color:#fff"><h2 style="margin:0;display:flex;align-items:center;gap:7px"><span class="mi">local_library</span>${escapeHtml(d.title)}</h2><p style="font-size:11px;line-height:1.5;opacity:.9">${escapeHtml(d.introduction)}</p></div><div class="card"><h3 style="margin-top:0">Library Access</h3><div style="font-size:11px;color:#475569;line-height:1.5">${d.accessPrinciples.map(x=>`<div style="margin:6px 0">• ${escapeHtml(x)}</div>`).join('')}</div></div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">${d.portals.map(x=>`<div class="card" style="margin:0;border-top:4px solid ${x.color}"><span class="mi" style="color:${x.color};font-size:27px">${escapeHtml(x.icon)}</span><h3 style="font-size:13px;margin:7px 0 4px">${escapeHtml(x.title)}</h3><div style="font-size:9px;color:#64748b;line-height:1.4">${escapeHtml(x.description)}</div><div style="font-size:8px;font-weight:800;margin-top:7px;color:${x.color}">${escapeHtml(x.access)}</div></div>`).join('')}</div><div class="card" style="margin-top:10px;background:#fffbeb;border-left:4px solid #d4af37"><h3 style="margin:0;color:#854d0e">Monthly Library Access</h3><p style="font-size:10px;color:#713f12">${escapeHtml(d.subscription.purpose)}</p>${d.subscription.tiers.map(t=>`<div style="padding:8px;border-top:1px solid #fde68a"><b style="font-size:11px">${escapeHtml(t.name)}</b><div style="font-size:9px;color:#78350f">${escapeHtml(t.description)}</div></div>`).join('')}</div>`;}
+function renderPortalData(){renderPortalServices();renderNotifications();renderSecurity();renderDocuments();renderBenefits();renderLibrary();}
+
+function openView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  let target=document.getElementById('view-'+name);
+  if(target) target.classList.add('active');
+  document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+  let navId=name==='companyDetail'?'companies':name;
+  let nav=document.getElementById('nav-'+navId); if(nav) nav.classList.add('active');
+  if(name==='companies') renderCompanies();
+  if(name==='jobs') renderJobs();
+  if(name==='home' || name==='accounts') refreshBenWallet();
+  if(name==='notifications') renderNotifications();
+  if(name==='security') renderSecurity();
+  if(name==='documents') renderDocuments();
+  if(name==='benefits') renderBenefits();
+  if(name==='library') renderLibrary();
+  if(name==='lineage') renderDirectTree();
+  let mainWrap=document.getElementById('mainWrap');
+  if(name==='clan'){ mainWrap.classList.add('expanded'); } else { mainWrap.classList.remove('expanded'); }
+  window.scrollTo(0,0);
+}
+async function requestPayout(){
+  let msg=document.getElementById('payoutMsg');msg.innerText='Place finger on sensor..';await new Promise(r=>setTimeout(r,1500));msg.innerText='✅ Fingerprint verified! Payout request sent to Trust Office.';
+}
+function applyVirtual(){document.getElementById('virtualMsg').innerText='✅ Virtual card application sent!';}
+function logout(){localStorage.removeItem('guvaza_beneficiary_session');localStorage.removeItem('guvaza_current_user');window.location.href='beneficiary-login.html';}
+function getAllRegs(){
+  let a=[]; try{a=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]')}catch(e){}
+  let b=[]; try{b=JSON.parse(localStorage.getItem('pendingRegistrations')||'[]')}catch(e){}
+  return [...a,...b];
+}
+function getBranchMeta(branch, fullName){
+  let bn=(branch||'').toUpperCase();
+  let fn=(fullName||'').toLowerCase();
+  if(bn.includes('ROOT') || fn==='guvaza') return {code:'ROOT', short:'GUVAZA'};
+  if(bn.includes('RUTAMBO') || fn==='rutambo') return {code:'RUTAMBO', short:'RUTAMBO'};
+  if(bn.includes('VURAYAI') || fn==='vurayai') return {code:'VURAYAI', short:'VURAYAI'};
+  if(bn.includes('SVUSVU') || fn==='svusvu') return {code:'SVUSVU', short:'SVUSVU'};
+  if(bn.includes('VAFONJO') || fn==='vafonjo') return {code:'VAFONJO', short:'VAFONJO'};
+  return {code:'VURAYAI', short:'VURAYAI'};
+}
+function renderDirectTree(){
+  let box=document.getElementById('directTree');
+  if(!box) return;
+  box.innerHTML='Loading direct lineage..';
+}
+let lineageDiv=document.createElement('div');lineageDiv.id='view-lineage';lineageDiv.className='view';
+lineageDiv.innerHTML=`<button onclick="openView('home')">Back</button><div class="card"><h3>My Direct Lineage</h3><div id="directTree">Loading...</div></div>`;
+document.querySelector('.main').appendChild(lineageDiv);
+let clanDiv=document.createElement('div');clanDiv.id='view-clan';clanDiv.className='view';
+clanDiv.innerHTML=`<button onclick="openView('home')">Back</button><div class="card"><iframe src="beneficiart-gen-drilldown.html" style="width:100%;height:78vh;border:0"></iframe></div>`;
+document.querySelector('.main').appendChild(clanDiv);
+
+function openMyDirectLineage(){
+ let currentId = (session?.membership || session?.idNumber || 'GFT-2026-0014').trim();
+let first = (session?.name || session?.firstName || '').trim();
+let last = (session?.surname || session?.lastName || session?.familyName || '').trim();
+let currentName = `${first} ${last}`.trim() || (session?.username || 'Beneficiary').trim();
+  localStorage.setItem('guvaza_current_user_id', currentId);
+  localStorage.setItem('guvaza_current_user_name', currentName);
+  window.location.href = `my-direct-lineage.html?id=${encodeURIComponent(currentId)}&name=${encodeURIComponent(currentName)}`;
+}
+(function(){
+  function triggerLock(){
+    let id=session? (session.membership||session.idNumber) : 'Unknown';
+    document.getElementById('lockId').innerText='ID: '+id;
+    document.getElementById('lockOverlay').style.display='flex';
+  }
+  document.addEventListener('keyup', e=>{ if(e.key==='PrintScreen') triggerLock(); });
+})();
+</script>
+<!-- CASHOUT MODAL -->
+<div id="cashoutModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center">
+<div style="background:#fff;width:90%;max-width:360px;border-radius:16px;padding:20px">
+<h3 style="margin:0 0 10px">Cashout Method</h3>
+<p style="font-size:12px;color:#64748b">Choose where your wallet money will be sent</p>
+<select id="cashoutMethod" style="width:100%;padding:10px;border-radius:10px;margin:10px 0;border:1px solid #ddd">
+<option value="">-- Select --</option>
+<option value="Bank">Bank</option>
+<option value="Ecocash">Ecocash</option>
+<option value="Trust Card">Trust Card</option>
+</select>
+<div id="cashoutFields"></div>
+<div style="display:flex;gap:8px;margin-top:12px">
+<button onclick="saveCashoutMethod()" style="flex:1;background:#3b82f6;color:#fff;border:none;padding:10px;border-radius:10px;font-weight:700">Save</button>
+<button onclick="closeCashoutModal()" style="flex:1;background:#e2e8f0;border:none;padding:10px;border-radius:10px">Cancel</button>
+</div>
+<p id="cashoutMsg" style="font-size:11px;color:green;margin-top:8px"></p>
+</div>
+</div>
+
+<script>
+function openCashoutModal(){document.getElementById('cashoutModal').style.display='flex';}
+function closeCashoutModal(){document.getElementById('cashoutModal').style.display='none';}
+document.getElementById('cashoutMethod').addEventListener('change',function(){
+ let f=document.getElementById('cashoutFields');let v=this.value;
+ if(v==='Bank') f.innerHTML='<input id="bankAcc" placeholder="Bank Account Number" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px"><input id="bankName" placeholder="Bank Name" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px">';
+ else if(v==='Ecocash') f.innerHTML='<input id="ecoNum" placeholder="Ecocash Number" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px"><input id="ecoName" placeholder="Ecocash Name" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px">';
+ else if(v==='Trust Card') f.innerHTML='<div style="font-size:13px;padding:8px;background:#f1f5f9;border-radius:8px;margin-top:6px">Money will be sent to your GFT VISA Trust Card ending 4129</div>';
+ else f.innerHTML='';
+});
+function saveCashoutMethod(){
+ let m=document.getElementById('cashoutMethod').value;
+ if(!m){alert('Select method');return;}
+ localStorage.setItem('cashoutMethod',m);
+ document.getElementById('cashoutMsg').innerText='✅ '+m+' saved as your payout method!';
+ setTimeout(closeCashoutModal,1500);
+}
+</script>
+</body>
+</html>

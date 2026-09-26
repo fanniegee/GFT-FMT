@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>The Guvaza Family Trust</title>
+
+
+    <!-- =====================================================
+         MATERIAL ICONS
+    ====================================================== -->
+
+    <link
+        href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+        rel="stylesheet"
+    >
+
+
+    <!-- =====================================================
+         INTER FONT
+    ====================================================== -->
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- =====================================================
+         PUBLIC SITE STYLES
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="styles.css"
+    >
+
+
+    <!-- =====================================================
+         TRUST CONFIGURATION
+    ====================================================== -->
+
+    <script src="config.js"></script>
+
+
+    <!-- =====================================================
+         PUBLIC SITE SCRIPT
+    ====================================================== -->
+
+    <script src="script.js"></script>
+    <script src="gft-api.js"></script>
+    <link rel="stylesheet" href="public-footer.css">
+
+    <style>
+
+        /* =====================================================
+           HOMEPAGE HERO
+        ====================================================== */
+
+        .gft-public-page header {
+
+            position: relative;
+
+            background: #fbe9ea;
+
+            overflow: hidden;
+
+            padding: 70px 20px 80px;
+
+            text-align: center;
+
+            border-bottom: 4px solid #7a1a24;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-height: 330px;
+
+        }
+
+
+        .gft-public-page header #heroBgImg {
+
+            position: absolute;
+
+            inset: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            object-fit: cover;
+
+            display: block;
+
+        }
+
+
+        .gft-public-page header::after {
+
+            content: "";
+
+            position: absolute;
+
+            inset: 0;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(90,18,29,.52),
+                    rgba(90,18,29,.18)
+                );
+
+            pointer-events: none;
+
+        }
+
+
+        /* =====================================================
+           TOP LOGIN ACTIONS
+        ====================================================== */
+
+        .gft-public-page .header-actions {
+
+            position: absolute;
+
+            top: 14px;
+
+            right: 14px;
+
+            z-index: 10;
+
+            display: flex;
+
+            gap: 8px;
+
+            align-items: center;
+
+        }
+
+
+        .gft-public-page .header-actions a {
+
+            padding: 8px 16px;
+
+            border-radius: 20px;
+
+            font-weight: 800;
+
+            font-size: 12px;
+
+            text-decoration: none;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 5px;
+
+            box-shadow:
+                0 2px 8px rgba(0,0,0,.3);
+
+            transition: .2s;
+
+        }
+
+
+        .gft-public-page .header-actions a:hover {
+
+            transform: translateY(-1px);
+
+        }
+
+
+        .gft-public-page .btn-beneficiary {
+
+            background: #fff;
+
+            color: #7a1a24;
+
+            border: 1px solid #fff;
+
+        }
+
+
+        .gft-public-page .btn-beneficiary:hover {
+
+            background: #f5f5f5;
+
+        }
+
+
+        .gft-public-page .btn-admin {
+
+            background: #7a1a24;
+
+            color: #fff;
+
+            border: 1px solid #fff;
+
+        }
+
+
+        .gft-public-page .btn-admin:hover {
+
+            background: #5a121d;
+
+        }
+
+
+        /* =====================================================
+           HERO CONTENT
+        ====================================================== */
+
+        .gft-public-page .header-content {
+
+            position: relative;
+
+            z-index: 2;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 16px;
+
+            flex-wrap: wrap;
+
+            justify-content: center;
+
+            max-width: 1000px;
+
+            margin: 0 auto;
+
+        }
+
+
+        .gft-public-page #heroLogo {
+
+            width: 85px;
+
+            height: 85px;
+
+            border-radius: 50%;
+
+            object-fit: cover;
+
+            border: 3px solid #fff;
+
+            box-shadow:
+                0 4px 15px rgba(0,0,0,.5);
+
+            background: #fff;
+
+            flex-shrink: 0;
+
+        }
+
+
+        .gft-public-page .header-text {
+
+            text-align: left;
+
+        }
+
+
+        .gft-public-page header h1 {
+
+            margin: 0;
+
+            font-size: 32px;
+
+            font-weight: 800;
+
+            color: #fff;
+
+            text-shadow:
+                0 2px 10px rgba(0,0,0,.7);
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+        }
+
+
+        .gft-public-page header p {
+
+            margin: 6px 0 0;
+
+            font-size: 16px;
+
+            color: #fff;
+
+            text-shadow:
+                0 2px 8px rgba(0,0,0,.7);
+
+        }
+
+
+        /* =====================================================
+           WELCOME PANEL
+        ====================================================== */
+
+        .gft-public-page .welcome-panel {
+
+            margin: 20px 0;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #fff,
+                    #fff7ed
+                );
+
+            border: 1px solid #f1d7c0;
+
+            border-radius: 18px;
+
+            padding: 22px;
+
+            position: relative;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 5px 20px rgba(122,26,36,.06);
+
+        }
+
+
+        .gft-public-page .welcome-panel::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 180px;
+
+            height: 180px;
+
+            right: -80px;
+
+            top: -90px;
+
+            border-radius: 50%;
+
+            background: #7a1a24;
+
+            opacity: .045;
+
+        }
+
+
+        .gft-public-page .welcome-panel h2 {
+
+            margin: 0 0 8px;
+
+            color: #7a1a24;
+
+            font-size: 21px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+        }
+
+
+        .gft-public-page .welcome-panel p {
+
+            margin: 0;
+
+            max-width: 850px;
+
+            color: #57534e;
+
+            font-size: 14px;
+
+            line-height: 1.7;
+
+        }
+
+
+        /* =====================================================
+           TRUST HIGHLIGHTS
+        ====================================================== */
+
+        .gft-public-page .trust-highlights {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3,1fr);
+
+            gap: 12px;
+
+            margin: 18px 0;
+
+        }
+
+
+        .gft-public-page .highlight {
+
+            background: #fff;
+
+            border: 1px solid #fde5c8;
+
+            border-radius: 14px;
+
+            padding: 16px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            transition: .2s;
+
+        }
+
+
+        .gft-public-page .highlight:hover {
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 8px 20px rgba(0,0,0,.07);
+
+        }
+
+
+        .gft-public-page .highlight-icon {
+
+            width: 42px;
+
+            height: 42px;
+
+            border-radius: 12px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background: #fff1f2;
+
+            color: #7a1a24;
+
+            flex-shrink: 0;
+
+        }
+
+
+        .gft-public-page .highlight h4 {
+
+            margin: 0 0 3px;
+
+            font-size: 13px;
+
+            color: #1e293b;
+
+        }
+
+
+        .gft-public-page .highlight p {
+
+            margin: 0;
+
+            font-size: 11px;
+
+            line-height: 1.4;
+
+            color: #64748b;
+
+        }
+
+
+        /* =====================================================
+           HOMEPAGE CARDS
+        ====================================================== */
+
+        .gft-public-page .blocks-container {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(auto-fit,minmax(260px,1fr));
+
+            gap: 16px;
+
+            margin: 18px 0;
+
+        }
+
+
+        .gft-public-page .block {
+
+            border-radius: 18px;
+
+            padding: 28px 16px;
+
+            text-align: center;
+
+            color: #0f172a;
+
+            cursor: pointer;
+
+            transition: .25s;
+
+            min-height: 185px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border:
+                1px solid rgba(0,0,0,.06);
+
+            position: relative;
+
+            overflow: hidden;
+
+            background-size: cover !important;
+
+            background-position: center !important;
+
+        }
+
+
+        .gft-public-page .block::after {
+
+            content: "";
+
+            position: absolute;
+
+            inset: 0;
+
+            background:
+                linear-gradient(
+                    to bottom,
+                    transparent,
+                    rgba(255,255,255,.10)
+                );
+
+            pointer-events: none;
+
+        }
+
+
+        .gft-public-page .block:hover {
+
+            transform: translateY(-5px);
+
+            box-shadow:
+                0 14px 28px rgba(0,0,0,.16);
+
+        }
+
+
+        .gft-public-page .block h2 {
+
+            margin: 8px 0 4px;
+
+            font-size: 17px;
+
+            font-weight: 800;
+
+            color: #0f172a;
+
+            text-shadow:
+                0 1px 0 rgba(255,255,255,.8);
+
+        }
+
+
+        .gft-public-page .block small {
+
+            font-size: 12px;
+
+            color: #1e293b;
+
+            font-weight: 700;
+
+            text-shadow:
+                0 1px 0 rgba(255,255,255,.7);
+
+        }
+
+
+        .gft-public-page .block .mi.lg {
+
+            font-size: 38px;
+
+            color: #0f172a;
+
+            background:
+                rgba(255,255,255,.82);
+
+            border-radius: 50%;
+
+            width: 64px;
+
+            height: 64px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            box-shadow:
+                0 2px 8px rgba(0,0,0,.1);
+
+            position: relative;
+
+            z-index: 1;
+
+        }
+
+
+        .gft-public-page .block h2,
+        .gft-public-page .block small {
+
+            position: relative;
+
+            z-index: 1;
+
+        }
+
+
+        /* =====================================================
+           LIBRARY FEATURE
+        ====================================================== */
+
+        .gft-public-page .library-feature {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #312e81,
+                    #5b21b6
+                );
+
+            border-radius: 18px;
+
+            padding: 24px;
+
+            color: #fff;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 20px;
+
+            margin: 20px 0;
+
+            overflow: hidden;
+
+            position: relative;
+
+            box-shadow:
+                0 10px 30px rgba(49,46,129,.18);
+
+        }
+
+
+        .gft-public-page .library-feature::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 220px;
+
+            height: 220px;
+
+            right: -80px;
+
+            top: -110px;
+
+            border-radius: 50%;
+
+            background: #fff;
+
+            opacity: .07;
+
+        }
+
+
+        .gft-public-page .library-content {
+
+            position: relative;
+
+            z-index: 1;
+
+        }
+
+
+        .gft-public-page .library-content h3 {
+
+            margin: 0 0 6px;
+
+            font-size: 19px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+        }
+
+
+        .gft-public-page .library-content p {
+
+            margin: 0;
+
+            color: #e9d5ff;
+
+            font-size: 13px;
+
+            line-height: 1.6;
+
+            max-width: 680px;
+
+        }
+
+
+        .gft-public-page .library-btn {
+
+            position: relative;
+
+            z-index: 1;
+
+            flex-shrink: 0;
+
+            background: #fff;
+
+            color: #4c1d95;
+
+            text-decoration: none;
+
+            padding: 11px 18px;
+
+            border-radius: 12px;
+
+            font-size: 12px;
+
+            font-weight: 800;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            transition: .2s;
+
+        }
+
+
+        .gft-public-page .library-btn:hover {
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 8px 18px rgba(0,0,0,.18);
+
+        }
+
+
+        /* =====================================================
+           ABOUT PREVIEW
+        ====================================================== */
+
+        .gft-public-page .about-preview {
+
+            background: #fff;
+
+            border:
+                1px solid #fde5c8;
+
+            border-radius: 16px;
+
+            padding: 20px;
+
+            margin: 18px 0;
+
+        }
+
+
+        .gft-public-page .about-preview h3 {
+
+            margin: 0 0 8px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            color: #1e293b;
+
+        }
+
+
+        .gft-public-page .about-preview h3 .mi {
+
+            color: #7a1a24;
+
+        }
+
+
+        /* =====================================================
+           REGISTRATION CARD
+        ====================================================== */
+
+        .gft-public-page .new-reg-card {
+
+            background: #0f172a;
+
+            color: #fff;
+
+            border-radius: 18px;
+
+            padding: 24px;
+
+            margin: 18px 0;
+
+            position: relative;
+
+            overflow: hidden;
+
+        }
+
+
+        .gft-public-page .new-reg-card::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 150px;
+
+            height: 150px;
+
+            border-radius: 50%;
+
+            right: -60px;
+
+            top: -70px;
+
+            background: #16a34a;
+
+            opacity: .12;
+
+        }
+
+
+        .gft-public-page .new-reg-card h3,
+        .gft-public-page .new-reg-card p {
+
+            position: relative;
+
+            z-index: 1;
+
+        }
+
+
+        .gft-public-page .badge-green {
+
+            display: inline-flex;
+
+            padding: 6px 11px;
+
+            border-radius: 20px;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            background: #dcfce7;
+
+            color: #166534;
+
+        }
+
+
+        .gft-public-page .btn-go-reg {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 11px 17px;
+
+            border-radius: 10px;
+
+            background: #16a34a;
+
+            color: #fff;
+
+            text-decoration: none;
+
+            font-weight: 800;
+
+            font-size: 12px;
+
+            position: relative;
+
+            z-index: 1;
+
+        }
+
+
+        .gft-public-page .btn-go-reg:hover {
+
+            background: #15803d;
+
+        }
+
+
+        /* =====================================================
+           FOUNDER-MANAGED HOMEPAGE CONTROLS
+        ====================================================== */
+
+        .gft-public-page .founder-announcement {
+            display: none;
+            background: #7a1a24;
+            color: #fff;
+            padding: 10px 18px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .gft-public-page .hero-cta {
+            display: none;
+            margin-top: 14px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            background: #fff;
+            color: #7a1a24;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 800;
+            box-shadow: 0 4px 14px rgba(0,0,0,.18);
+            transition: .2s;
+        }
+
+        .gft-public-page .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0,0,0,.22);
+        }
+
+        /* =====================================================
+           MOBILE
+        ====================================================== */
+
+        @media(max-width:700px) {
+
+            .gft-public-page .header-actions {
+
+                top: 8px;
+
+                right: 8px;
+
+                gap: 6px;
+
+            }
+
+
+            .gft-public-page .header-actions a {
+
+                padding: 6px 10px;
+
+                font-size: 10px;
+
+            }
+
+
+            .gft-public-page .header-content {
+
+                flex-direction: column;
+
+                text-align: center;
+
+                padding-top: 28px;
+
+            }
+
+
+            .gft-public-page .header-text {
+
+                text-align: center;
+
+            }
+
+
+            .gft-public-page header h1 {
+
+                justify-content: center;
+
+                font-size: 26px;
+
+            }
+
+
+            .gft-public-page header p {
+
+                font-size: 14px;
+
+            }
+
+
+            .gft-public-page #heroLogo {
+
+                width: 70px;
+
+                height: 70px;
+
+            }
+
+
+            .gft-public-page .trust-highlights {
+
+                grid-template-columns: 1fr;
+
+            }
+
+
+            .gft-public-page .library-feature {
+
+                flex-direction: column;
+
+                align-items: flex-start;
+
+            }
+
+
+            .gft-public-page .library-btn {
+
+                width: 100%;
+
+                justify-content: center;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body class="gft-public-page">
+
+
+<!-- =====================================================
+     MAIN NAVIGATION
+====================================================== -->
+
+<nav class="top-menu">
+
+    <a
+        href="index.html"
+        class="active"
+    >
+        Home
+    </a>
+
+    <a href="register.html">
+        Register
+    </a>
+
+    <a href="about.html">
+        About
+    </a>
+
+    <a href="companies.html">
+        Companies
+    </a>
+
+    <a href="library.html">
+        Library
+    </a>
+
+    <a href="contact.html">
+        Contact
+    </a>
+
+</nav>
+
+<!-- =====================================================
+     FOUNDER-MANAGED ANNOUNCEMENT
+====================================================== -->
+
+<div
+    id="founderAnnouncement"
+    class="founder-announcement"
+    role="status"
+    aria-live="polite"
+></div>
+
+
+<!-- =====================================================
+     HERO
+====================================================== -->
+
+<header>
+
+    <img
+        id="heroBgImg"
+        src=""
+        alt="Guvaza Family Trust"
+    >
+
+
+    <div class="header-actions">
+
+        <a
+            href="beneficiary-login.html?login=1"
+            class="btn-beneficiary"
+            id="beneficiaryLoginBtn"
+        >
+
+            <span class="mi">
+                person
+            </span>
+
+            Beneficiary Login
+
+        </a>
+
+
+        <a
+            href="admin.html?login=1"
+            class="btn-admin"
+            id="adminTopBtn"
+        >
+
+            <span class="mi">
+                admin_panel_settings
+            </span>
+
+            Admin Login
+
+        </a>
+
+    </div>
+
+
+    <div class="header-content">
+
+        <img
+            id="heroLogo"
+            src=""
+            alt="Guvaza Family Trust Logo"
+        >
+
+
+        <div class="header-text">
+
+            <h1>
+
+                <span
+                    class="mi"
+                    id="secretShield"
+                >
+                    shield
+                </span>
+
+                <span id="heroTitle">
+                    The Guvaza Family Trust
+                </span>
+
+            </h1>
+
+
+            <p id="heroSubtitle">
+                Building Wealth Together For The Rising Generations
+            </p>
+
+            <a
+                id="heroCta"
+                class="hero-cta"
+                href="#"
+            ></a>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- =====================================================
+     MAIN
+====================================================== -->
+
+<main>
+
+
+    <!-- =================================================
+         WELCOME
+    ================================================== -->
+
+    <section
+        class="welcome-panel"
+        aria-labelledby="welcomeHeading"
+    >
+
+        <h2 id="welcomeHeading">
+
+            <span class="mi">
+                waving_hand
+            </span>
+
+            Welcome to the Guvaza Family Trust
+
+        </h2>
+
+
+        <p>
+
+            A place where family, heritage, opportunity and
+            future generations come together. Explore our
+            family story, discover our growing enterprises,
+            connect with us, register as a beneficiary, and
+            soon enter our expanding world of books and
+            knowledge through the Guvaza Library.
+
+        </p>
+
+    </section>
+
+
+    <!-- =================================================
+         TRUST HIGHLIGHTS
+    ================================================== -->
+
+    <section
+        class="trust-highlights"
+        aria-label="Trust highlights"
+    >
+
+        <div class="highlight">
+
+            <div class="highlight-icon">
+
+                <span class="mi">
+                    account_tree
+                </span>
+
+            </div>
+
+            <div>
+
+                <h4>
+                    Family Heritage
+                </h4>
+
+                <p>
+                    Preserving our lineage and family identity.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="highlight">
+
+            <div class="highlight-icon">
+
+                <span class="mi">
+                    trending_up
+                </span>
+
+            </div>
+
+            <div>
+
+                <h4>
+                    Shared Growth
+                </h4>
+
+                <p>
+                    Building opportunities for generations to come.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="highlight">
+
+            <div class="highlight-icon">
+
+                <span class="mi">
+                    auto_stories
+                </span>
+
+            </div>
+
+            <div>
+
+                <h4>
+                    Knowledge
+                </h4>
+
+                <p>
+                    Creating a place for learning, reading and ideas.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         ADMIN-MANAGED HOMEPAGE CARDS
+    ================================================== -->
+
+    <section
+        class="blocks-container"
+        id="blocksContainer"
+        aria-label="Guvaza Family Trust sections"
+    ></section>
+
+
+    <!-- =================================================
+         LIBRARY ENTRANCE
+    ================================================== -->
+
+    <section
+        class="library-feature"
+        aria-labelledby="libraryHeading"
+    >
+
+        <div class="library-content">
+
+            <h3 id="libraryHeading">
+
+                <span class="mi">
+                    local_library
+                </span>
+
+                Welcome to the Guvaza Library
+
+            </h3>
+
+
+            <p>
+
+                A growing world of books, knowledge and original
+                compositions. Some works will be freely available,
+                while selected publications will be available for
+                purchase. The Library will grow into its own dedicated
+                reading world.
+
+            </p>
+
+        </div>
+
+
+        <a
+            href="library.html"
+            class="library-btn"
+        >
+
+            <span class="mi">
+                menu_book
+            </span>
+
+            Enter Library
+
+        </a>
+
+    </section>
+
+
+    <!-- =================================================
+         ABOUT PREVIEW
+    ================================================== -->
+
+    <section class="about-preview">
+
+        <h3>
+
+            <span class="mi">
+                info
+            </span>
+
+            About Our Roots
+
+        </h3>
+
+
+        <p
+            style="
+                font-size:13px;
+                color:#475569;
+                line-height:1.6;
+                margin-bottom:0;
+            "
+        >
+
+            Root | Guvaza: The Guvaza Family Trust was established
+            to honor this lineage and create a foundation for
+            preserving family identity, developing opportunities
+            and building towards the rising generations...
+
+            <a
+                href="about.html"
+                style="
+                    color:var(--maroon,#7a1a24);
+                    font-weight:bold;
+                "
+            >
+                Read full about
+            </a>
+
+        </p>
+
+    </section>
+
+
+    <!-- =================================================
+         REGISTRATION
+    ================================================== -->
+
+    <section class="new-reg-card">
+
+        <span
+            class="badge-green"
+            id="homeCountBadge"
+        >
+            System Ready
+        </span>
+
+
+        <h3>
+
+            <span class="mi">
+                how_to_reg
+            </span>
+
+            Register as Beneficiary
+
+        </h3>
+
+
+        <p
+            style="
+                color:#94a3b8;
+                font-size:13px;
+            "
+        >
+
+            Secure verification for Guvaza descendants.
+
+        </p>
+
+
+        <a
+            href="register.html"
+            class="btn-go-reg"
+        >
+
+            Go to Full Registration
+
+        </a>
+
+    </section>
+
+</main>
+
+
+<!-- =====================================================
+     FOOTER
+====================================================== -->
+
+<footer>
+
+    <p>
+        &copy; 2026 The Guvaza Family Trust.
+        All Rights Reserved.
+    </p>
+
+
+    <p
+        style="
+            margin-top:8px;
+            font-size:11px;
+            opacity:.6;
+        "
+    >
+        Beneficiary Portal • Secure • GFT- IDs
+    </p>
+
+</footer>
+
+
+<!-- =====================================================
+     HOMEPAGE RENDER ENGINE
+====================================================== -->
+
+<script>
+
+(function () {
+
+    "use strict";
+
+
+    /*
+       Founder-managed public configuration
+       ------------------------------------
+       config.js remains the public fallback.
+       Founder saves are stored in guvaza_custom_config.
+       When both exist, the saved Founder homepage values
+       take precedence for this public page.
+    */
+    const baseCfg =
+        window.TRUST_CONFIG || {};
+
+    let founderCfg = {};
+    try {
+        founderCfg = JSON.parse(
+            localStorage.getItem("guvaza_custom_config") || "{}"
+        ) || {};
+    } catch (e) {
+        founderCfg = {};
+    }
+
+    const cfg = Object.assign(
+        {},
+        baseCfg,
+        founderCfg,
+        {
+            homepage: Object.assign(
+                {},
+                baseCfg.homepage || {},
+                founderCfg.homepage || {}
+            )
+        }
+    );
+
+    const homepage =
+        cfg.homepage || {};
+
+
+    /* =====================================================
+       HERO
+    ====================================================== */
+
+    const imgEl =
+        document.getElementById("heroBgImg");
+
+    const logoEl =
+        document.getElementById("heroLogo");
+
+
+    if (imgEl) {
+
+        imgEl.src =
+            homepage.heroImage ||
+            DEFAULT_HERO;
+
+
+        imgEl.onerror =
+            function () {
+
+                if (
+                    this.dataset.fallbackApplied === "1"
+                ) {
+                    return;
+                }
+
+                this.dataset.fallbackApplied =
+                    "1";
+
+                this.src =
+                    DEFAULT_HERO;
+
+            };
+
+    }
+
+
+    if (logoEl) {
+
+        logoEl.src =
+            cfg.logo ||
+            DEFAULT_LOGO;
+
+
+        logoEl.onerror =
+            function () {
+
+                if (
+                    this.dataset.fallbackApplied === "1"
+                ) {
+                    return;
+                }
+
+                this.dataset.fallbackApplied =
+                    "1";
+
+                this.src =
+                    DEFAULT_LOGO;
+
+            };
+
+    }
+
+
+    /* =====================================================
+       HERO TEXT
+    ====================================================== */
+
+    const heroTitle =
+        document.getElementById("heroTitle");
+
+    const heroSubtitle =
+        document.getElementById("heroSubtitle");
+
+
+    if (
+        heroTitle &&
+        homepage.heroTitle
+    ) {
+
+        heroTitle.textContent =
+            homepage.heroTitle;
+
+    }
+
+
+    if (
+        heroSubtitle &&
+        homepage.heroSubtitle
+    ) {
+
+        heroSubtitle.textContent =
+            homepage.heroSubtitle;
+
+    }
+
+
+    /* =====================================================
+       FOUNDER-MANAGED ANNOUNCEMENT
+    ====================================================== */
+
+    const announcementEl =
+        document.getElementById("founderAnnouncement");
+
+    if (announcementEl) {
+
+        const announcement =
+            typeof homepage.announcement === "string"
+                ? homepage.announcement.trim()
+                : "";
+
+        if (announcement) {
+            announcementEl.textContent = announcement;
+            announcementEl.style.display = "block";
+        } else {
+            announcementEl.textContent = "";
+            announcementEl.style.display = "none";
+        }
+
+    }
+
+
+    /* =====================================================
+       FOUNDER-MANAGED CTA
+    ====================================================== */
+
+    const ctaEl =
+        document.getElementById("heroCta");
+
+    if (ctaEl) {
+
+        const ctaText =
+            typeof homepage.ctaButtonText === "string"
+                ? homepage.ctaButtonText.trim()
+                : "";
+
+        const ctaLink =
+            typeof homepage.ctaButtonLink === "string"
+                ? homepage.ctaButtonLink.trim()
+                : "";
+
+        if (ctaText && ctaLink) {
+            ctaEl.textContent = ctaText;
+            ctaEl.href = ctaLink;
+            ctaEl.style.display = "inline-flex";
+        } else {
+            ctaEl.textContent = "";
+            ctaEl.removeAttribute("href");
+            ctaEl.style.display = "none";
+        }
+
+    }
+
+
+    /* =====================================================
+       HOMEPAGE CARDS
+    ====================================================== */
+
+    const container =
+        document.getElementById(
+            "blocksContainer"
+        );
+
+
+    if (container) {
+
+        const cards =
+            Array.isArray(homepage.cards)
+                ? homepage.cards
+                : DEFAULT_CARDS;
+
+
+        container.replaceChildren();
+
+
+        cards
+            .filter(function (card) {
+
+                return card &&
+                       card.visible !== false;
+
+            })
+            .forEach(function (card) {
+
+                const div =
+                    document.createElement("div");
+
+
+                div.className =
+                    "block";
+
+
+                const color =
+                    typeof card.color === "string" &&
+                    card.color.trim()
+                        ? card.color.trim()
+                        : "#4ade80";
+
+
+                if (card.image) {
+
+                    div.style.background =
+                        "linear-gradient(" +
+                        "135deg," +
+                        color + "E6 0%," +
+                        color + "B3 100%" +
+                        ")," +
+                        "url('" +
+                        String(card.image).replace(
+                            /'/g,
+                            "\\'"
+                        ) +
+                        "')";
+
+                } else {
+
+                    div.style.background =
+                        "linear-gradient(" +
+                        "135deg," +
+                        color + " 0%," +
+                        color + "CC 100%" +
+                        ")";
+
+                }
+
+
+                const icon =
+                    document.createElement("span");
+
+                icon.className =
+                    "mi lg";
+
+                icon.textContent =
+                    card.icon ||
+                    "dashboard";
+
+
+                const title =
+                    document.createElement("h2");
+
+                title.textContent =
+                    card.title ||
+                    "Trust Section";
+
+
+                const subtitle =
+                    document.createElement("small");
+
+                subtitle.textContent =
+                    card.subtitle ||
+                    "";
+
+
+                div.appendChild(icon);
+
+                div.appendChild(title);
+
+                div.appendChild(subtitle);
+
+
+                if (card.link) {
+
+                    div.addEventListener(
+                        "click",
+                        function () {
+
+                            window.location.href =
+                                card.link;
+
+                        }
+                    );
+
+                } else {
+
+                    div.style.cursor =
+                        "default";
+
+                }
+
+
+                container.appendChild(div);
+
+            });
+
+    }
+
+
+    /* =====================================================
+       SYSTEM STATUS
+    ====================================================== */
+
+    const badge =
+        document.getElementById(
+            "homeCountBadge"
+        );
+
+
+    if (badge) {
+
+        badge.textContent =
+            "System Ready";
+
+    }
+
+
+})();
+
+</script>
+
+
+<!-- =====================================================
+     AUTHENTICATION ENTRY POINTS
+====================================================== -->
+
+<script>
+
+(function () {
+
+    "use strict";
+
+
+    const beneficiaryBtn =
+        document.getElementById(
+            "beneficiaryLoginBtn"
+        );
+
+
+    const adminBtn =
+        document.getElementById(
+            "adminTopBtn"
+        );
+
+
+    /*
+       These listeners do NOT authenticate anyone.
+
+       They simply ensure the buttons always enter
+       through the appropriate login page.
+    */
+
+
+    if (beneficiaryBtn) {
+
+        beneficiaryBtn.addEventListener(
+            "click",
+            function () {
+
+                window.location.href =
+                    "beneficiary-login.html?login=1";
+
+            }
+        );
+
+    }
+
+
+    if (adminBtn) {
+
+        adminBtn.addEventListener(
+            "click",
+            function () {
+
+                window.location.href =
+                    "admin.html?login=1";
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       PRIVATE SHIELD ENTRY
+       -----------------------------------------------------
+       Five clicks open Founder Login.
+       It NEVER bypasses authentication.
+    ====================================================== */
+
+    let clickCount = 0;
+
+    let clickTimer = null;
+
+
+    const shield =
+        document.getElementById(
+            "secretShield"
+        );
+
+
+    if (shield) {
+
+        shield.addEventListener(
+            "click",
+            function () {
+
+                clickCount++;
+
+
+                clearTimeout(clickTimer);
+
+
+                if (clickCount >= 5) {
+
+                    clickCount = 0;
+
+                    window.location.href =
+                        "founder.html?login=1";
+
+                    return;
+
+                }
+
+
+                clickTimer =
+                    setTimeout(
+                        function () {
+
+                            clickCount = 0;
+
+                        },
+                        2000
+                    );
+
+            }
+        );
+
+    }
+
+})();
+
+</script>
+<div id="gft-public-footer"></div>
+<script src="public-footer.js"></script>
+
+</body>
+
+</html>

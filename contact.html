@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+>
+
+<title>Contact - The Guvaza Family Trust</title>
+
+
+<!-- Material Icons -->
+<link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+    rel="stylesheet"
+>
+
+<!-- Inter -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
+    rel="stylesheet"
+>
+
+<!-- Public configuration -->
+<script src="config.js"></script>
+<link rel="stylesheet" href="public-footer.css">
+
+
+<style>
+
+/* ============================================================
+   CONTACT PAGE
+   ------------------------------------------------------------
+   Layout intentionally preserved from the original page.
+============================================================ */
+
+:root{
+    --peach:#FFF5EB;
+    --peach-deep:#FFEDD5;
+    --card:#1e293b;
+    --border:#334155;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:'Inter',system-ui;
+    background:var(--peach);
+    color:#1e293b;
+}
+
+.mi{
+    font-family:'Material Icons Round';
+    font-size:22px;
+    vertical-align:middle;
+    margin-right:8px;
+}
+
+.top-menu{
+    display:flex;
+    gap:18px;
+    padding:14px 20px;
+    background:#ffffff;
+    position:sticky;
+    top:0;
+    z-index:10;
+    border-bottom:1px solid #fde5c8;
+    box-shadow:0 2px 10px rgba(0,0,0,.04);
+    overflow:auto;
+}
+
+.top-menu a{
+    color:#57534e;
+    text-decoration:none;
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    white-space:nowrap;
+    padding:7px 12px;
+    border-radius:8px;
+}
+
+.top-menu a.active{
+    color:#ea580c;
+    background:#FFF7ED;
+    border:1px solid #fed7aa;
+}
+
+.content{
+    max-width:1000px;
+    margin:0 auto;
+    padding:20px;
+}
+
+.hero{
+    background:#ffffff;
+    border:1px solid #fde5c8;
+    border-radius:20px;
+    padding:28px;
+    margin-bottom:20px;
+    box-shadow:0 4px 20px rgba(251,146,60,.08);
+}
+
+.hero h1{
+    margin:0;
+    font-size:28px;
+    color:#1c1917;
+    display:flex;
+    align-items:center;
+}
+
+.hero p{
+    margin:8px 0 0 0;
+    color:#78716c;
+    font-size:13px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+}
+
+@media(max-width:700px){
+
+    .grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+.card{
+    background:#ffffff;
+    border:1px solid #fde5c8;
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,.03);
+}
+
+.card.dark{
+    background:#1e293b;
+    border:1px solid #334155;
+    color:#e2e8f0;
+}
+
+.btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:14px 18px;
+    border-radius:12px;
+    font-weight:800;
+    font-size:14px;
+    text-decoration:none;
+    color:#fff;
+    margin-bottom:12px;
+    transition:.2s;
+    cursor:pointer;
+    border:0;
+    width:100%;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(0,0,0,.15);
+}
+
+.btn.call{
+    background:#10b981;
+}
+
+.btn.email{
+    background:#3b82f6;
+}
+
+.btn.whatsapp{
+    background:#25D366;
+}
+
+.social-grid{
+    display:grid;
+    grid-template-columns:
+        repeat(auto-fill,minmax(140px,1fr));
+    gap:12px;
+    margin-top:12px;
+}
+
+.social-btn{
+    padding:14px;
+    border-radius:12px;
+    font-weight:700;
+    font-size:13px;
+    text-decoration:none;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    transition:.2s;
+    text-align:center;
+}
+
+.social-btn:hover{
+    transform:translateY(-2px);
+    filter:brightness(1.1);
+}
+
+.info-box{
+    background:#FFF7ED;
+    border:1px solid #fed7aa;
+    border-radius:12px;
+    padding:14px;
+    margin-top:12px;
+    font-size:13px;
+    color:#78350f;
+}
+
+</style>
+
+</head>
+
+
+<body class="gft-public-page">
+
+
+<!-- ==========================================================
+     NAVIGATION
+=========================================================== -->
+
+<nav class="top-menu">
+
+    <a href="index.html">
+        Home
+    </a>
+
+    <a href="register.html">
+        Register
+    </a>
+
+    <a href="about.html">
+        About
+    </a>
+
+    <a href="companies.html">
+        Companies
+    </a>
+
+    <a
+        href="contact.html"
+        class="active"
+    >
+        Contact
+    </a>
+
+</nav>
+
+
+<!-- ==========================================================
+     MAIN CONTENT
+=========================================================== -->
+
+<div class="content">
+
+
+    <!-- ======================================================
+         HERO
+    ======================================================= -->
+
+    <div class="hero">
+
+        <h1>
+
+            <span
+                class="mi"
+                style="color:#ea580c"
+            >
+                contact_support
+            </span>
+
+            <span id="contactTitle">
+                Contact Us
+            </span>
+
+        </h1>
+
+        <p id="contactSub">
+            Get in touch with The Guvaza Family Trust —
+            We are here to help.
+        </p>
+
+    </div>
+
+
+    <!-- ======================================================
+         TWO-CARD LAYOUT
+    ======================================================= -->
+
+    <div class="grid">
+
+
+        <!-- ==================================================
+             DIRECT CONTACT
+        =================================================== -->
+
+        <div class="card">
+
+            <h3>
+
+                <span
+                    class="mi"
+                    style="color:#ea580c"
+                >
+                    phone
+                </span>
+
+                Direct Contact
+
+            </h3>
+
+
+            <p
+                style="
+                    font-size:12px;
+                    color:#78716c;
+                    margin-bottom:16px
+                "
+            >
+                We'd love to hear from you —
+                Reach us instantly via call,
+                email or WhatsApp
+            </p>
+
+
+            <a
+                id="callBtn"
+                href="#"
+                class="btn call"
+            >
+
+                <span class="mi">
+                    call
+                </span>
+
+                Call Now
+
+            </a>
+
+
+            <a
+                id="emailBtn"
+                href="#"
+                class="btn email"
+            >
+
+                <span class="mi">
+                    email
+                </span>
+
+                Send Email
+
+            </a>
+
+
+            <a
+                id="waBtn"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn whatsapp"
+            >
+
+                <span class="mi">
+                    chat
+                </span>
+
+                WhatsApp Us
+
+            </a>
+
+
+            <div class="info-box">
+
+                <div>
+
+                    <span
+                        class="mi"
+                        style="font-size:16px"
+                    >
+                        location_on
+                    </span>
+
+                    <span id="addressText">
+                        Harare, Zimbabwe
+                    </span>
+
+                </div>
+
+
+                <div style="margin-top:6px">
+
+                    <span
+                        class="mi"
+                        style="font-size:16px"
+                    >
+                        business
+                    </span>
+
+                    <span id="trustNameText">
+                        The Guvaza Family Trust
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+             SOCIAL COMMUNITY
+        =================================================== -->
+
+        <div class="card dark">
+
+            <h3>
+
+                <span
+                    class="mi"
+                    style="color:#fbbf24"
+                >
+                    share
+                </span>
+
+                Join Our Family Community
+
+            </h3>
+
+
+            <p
+                style="
+                    font-size:12px;
+                    color:#94a3b8;
+                    margin-bottom:12px
+                "
+            >
+                Stay connected — Be part of our journey
+                building wealth for the rising generations
+            </p>
+
+
+            <div
+                class="social-grid"
+                id="socialGrid"
+            >
+                Loading...
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================================
+     CONTACT PAGE ENGINE
+     ----------------------------------------------------------
+     Uses config.js only.
+
+     Does NOT:
+     - read custom localStorage configuration
+     - modify trust configuration
+     - load family data
+     - access beneficiary records
+     - perform registration
+=========================================================== -->
+
+<script>
+
+"use strict";
+
+
+/* ============================================================
+   CONFIGURATION
+============================================================ */
+
+const CFG =
+    window.TRUST_CONFIG || {};
+
+
+/* ============================================================
+   SAFE TEXT SETTER
+============================================================ */
+
+function setContactText(
+    id,
+    value,
+    fallback
+){
+
+    const element =
+        document.getElementById(id);
+
+    if(!element){
+        return;
+    }
+
+    const finalValue =
+        value !== undefined &&
+        value !== null &&
+        String(value).trim() !== ""
+            ? value
+            : fallback;
+
+    element.textContent =
+        finalValue;
+}
+
+
+/* ============================================================
+   PHONE NORMALIZATION
+============================================================ */
+
+function cleanPhone(
+    value
+){
+
+    return String(value || "")
+        .replace(/\s+/g,"")
+        .replace(/[()-]/g,"");
+}
+
+
+/* ============================================================
+   WHATSAPP NUMBER
+============================================================ */
+
+function cleanWhatsAppNumber(
+    value
+){
+
+    return String(value || "")
+        .replace(/\+/g,"")
+        .replace(/\s+/g,"")
+        .replace(/-/g,"")
+        .replace(/[()]/g,"");
+}
+
+
+/* ============================================================
+   CREATE SOCIAL BUTTON
+============================================================ */
+
+function createSocialButton(
+    social
+){
+
+    const link =
+        document.createElement("a");
+
+    link.className =
+        "social-btn";
+
+    link.target =
+        "_blank";
+
+    link.rel =
+        "noopener noreferrer";
+
+
+    link.href =
+        social.url || "#";
+
+
+    link.style.background =
+        social.color || "#334155";
+
+
+    const icon =
+        document.createElement("span");
+
+    icon.className =
+        "mi";
+
+    icon.textContent =
+        social.icon || "link";
+
+
+    const label =
+        document.createTextNode(
+            social.platform || "Social"
+        );
+
+
+    link.appendChild(icon);
+
+    link.appendChild(label);
+
+
+    return link;
+}
+
+
+/* ============================================================
+   RENDER CONTACT PAGE
+============================================================ */
+
+function renderContact(){
+
+    const contact =
+        CFG.contact || {};
+
+
+    const phone =
+        contact.phone ||
+        "";
+
+
+    const whatsapp =
+        contact.whatsapp ||
+        phone ||
+        "";
+
+
+    const email =
+        CFG.email ||
+        contact.email ||
+        "";
+
+
+    const address =
+        contact.address ||
+        "";
+
+
+    const trustName =
+        CFG.name ||
+        "The Guvaza Family Trust";
+
+
+    /* --------------------------------------------------------
+       Page title
+    -------------------------------------------------------- */
+
+    document.title =
+        "Contact - " +
+        trustName;
+
+
+    /* --------------------------------------------------------
+       Header
+    -------------------------------------------------------- */
+
+    setContactText(
+        "contactTitle",
+        "Contact " + trustName,
+        "Contact Us"
+    );
+
+
+    /* --------------------------------------------------------
+       Trust name
+    -------------------------------------------------------- */
+
+    setContactText(
+        "trustNameText",
+        trustName,
+        "The Guvaza Family Trust"
+    );
+
+
+    /* --------------------------------------------------------
+       Address
+    -------------------------------------------------------- */
+
+    setContactText(
+        "addressText",
+        address,
+        "Contact address not configured"
+    );
+
+
+    /* --------------------------------------------------------
+       Call button
+    -------------------------------------------------------- */
+
+    const callBtn =
+        document.getElementById(
+            "callBtn"
+        );
+
+
+    if(callBtn){
+
+        if(phone){
+
+            callBtn.href =
+                "tel:" +
+                cleanPhone(phone);
+
+            callBtn.replaceChildren();
+
+
+            const icon =
+                document.createElement("span");
+
+            icon.className =
+                "mi";
+
+            icon.textContent =
+                "call";
+
+
+            callBtn.appendChild(icon);
+
+            callBtn.appendChild(
+                document.createTextNode(
+                    "Call " + phone
+                )
+            );
+
+        }
+        else{
+
+            callBtn.removeAttribute(
+                "href"
+            );
+
+            callBtn.replaceChildren();
+
+            const icon =
+                document.createElement("span");
+
+            icon.className =
+                "mi";
+
+            icon.textContent =
+                "phone_disabled";
+
+
+            callBtn.appendChild(icon);
+
+            callBtn.appendChild(
+                document.createTextNode(
+                    "Phone Not Available"
+                )
+            );
+
+        }
+
+    }
+
+
+    /* --------------------------------------------------------
+       Email button
+    -------------------------------------------------------- */
+
+    const emailBtn =
+        document.getElementById(
+            "emailBtn"
+        );
+
+
+    if(emailBtn){
+
+        if(email){
+
+            emailBtn.href =
+                "mailto:" + email;
+
+            emailBtn.replaceChildren();
+
+
+            const icon =
+                document.createElement("span");
+
+            icon.className =
+                "mi";
+
+            icon.textContent =
+                "email";
+
+
+            emailBtn.appendChild(icon);
+
+            emailBtn.appendChild(
+                document.createTextNode(
+                    email
+                )
+            );
+
+        }
+        else{
+
+            emailBtn.removeAttribute(
+                "href"
+            );
+
+            emailBtn.replaceChildren();
+
+
+            const icon =
+                document.createElement("span");
+
+            icon.className =
+                "mi";
+
+            icon.textContent =
+                "email";
+
+
+            emailBtn.appendChild(icon);
+
+            emailBtn.appendChild(
+                document.createTextNode(
+                    "Email Not Available"
+                )
+            );
+
+        }
+
+    }
+
+
+    /* --------------------------------------------------------
+       WhatsApp
+    -------------------------------------------------------- */
+
+    const waBtn =
+        document.getElementById(
+            "waBtn"
+        );
+
+
+    if(waBtn){
+
+        if(whatsapp){
+
+            const number =
+                cleanWhatsAppNumber(
+                    whatsapp
+                );
+
+
+            const message =
+                "Hello " +
+                trustName;
+
+
+            waBtn.href =
+                "https://wa.me/" +
+                number +
+                "?text=" +
+                encodeURIComponent(
+                    message
+                );
+
+
+            waBtn.replaceChildren();
+
+
+            const icon =
+                document.createElement("span");
+
+            icon.className =
+                "mi";
+
+            icon.textContent =
+                "chat";
+
+
+            waBtn.appendChild(icon);
+
+            waBtn.appendChild(
+                document.createTextNode(
+                    "WhatsApp " +
+                    whatsapp
+                )
+            );
+
+        }
+        else{
+
+            waBtn.removeAttribute(
+                "href"
+            );
+
+            waBtn.replaceChildren();
+
+
+            const icon =
+                document.createElement("span");
+
+            icon.className =
+                "mi";
+
+            icon.textContent =
+                "chat_off";
+
+
+            waBtn.appendChild(icon);
+
+            waBtn.appendChild(
+                document.createTextNode(
+                    "WhatsApp Not Available"
+                )
+            );
+
+        }
+
+    }
+
+
+    /* --------------------------------------------------------
+       Social media
+    -------------------------------------------------------- */
+
+    const socialGrid =
+        document.getElementById(
+            "socialGrid"
+        );
+
+
+    if(!socialGrid){
+        return;
+    }
+
+
+    socialGrid.replaceChildren();
+
+
+    const socials =
+        Array.isArray(CFG.social)
+            ? CFG.social
+            : [];
+
+
+    if(
+        socials.length === 0
+    ){
+
+        const empty =
+            document.createElement("p");
+
+        empty.style.color =
+            "#94a3b8";
+
+        empty.style.fontSize =
+            "12px";
+
+        empty.textContent =
+            "Follow our journey — Exciting updates coming soon across all platforms";
+
+
+        socialGrid.appendChild(
+            empty
+        );
+
+        return;
+    }
+
+
+    socials.forEach(
+        function(social){
+
+            if(!social){
+                return;
+            }
+
+            socialGrid.appendChild(
+                createSocialButton(
+                    social
+                )
+            );
+
+        }
+    );
+
+}
+
+
+/* ============================================================
+   INITIALIZE ONCE
+   ------------------------------------------------------------
+   No 2-second polling is necessary because config.js is
+   static public configuration.
+============================================================ */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    renderContact
+);
+
+</script>
+<div id="gft-public-footer"></div>
+<script src="public-footer.js"></script>
+
+</body>
+</html>

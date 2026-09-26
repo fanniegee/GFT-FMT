@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>GFT - 224 Drilldown - Guvaza Clan</title>
+
+<link
+  href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+  rel="stylesheet"
+>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui;
+  background:#f5f1f1;
+  padding:12px
+}
+
+.top{
+  max-width:1100px;
+  margin:0 auto 12px;
+  background:#7a1a24;
+  color:#fff;
+  padding:12px 16px;
+  border-radius:12px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-weight:800;
+  font-size:16px
+}
+
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 2px 10px rgba(0,0,0,.06);
+  max-width:1100px;
+  margin:0 auto
+}
+
+.household{
+  display:flex;
+  flex-direction:row;
+  border:3px solid #23395d;
+  border-radius:14px;
+  overflow:hidden;
+  min-height:280px
+}
+
+.parent-left{
+  width:32%;
+  min-width:32%;
+  color:#fff;
+  padding:14px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:6px;
+  font-weight:800
+}
+
+.wives-right{
+  width:68%;
+  padding:10px;
+  background:#fffef5;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px
+}
+
+.person-btn{
+  padding:12px;
+  border-radius:10px;
+  border:2.5px solid #23395d;
+  background:#fff;
+  font-weight:700;
+  font-size:12px;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  min-height:62px;
+  text-align:left;
+  transition:.1s;
+  border-style:solid!important
+}
+
+.person-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(0,0,0,.1)
+}
+
+.person-btn.ghost{
+  opacity:.85;
+  background:#fffdf7
+}
+
+.person-btn.isPlaceholder{
+  border-style:dashed!important;
+  background:#fffbe6
+}
+
+.mi{
+  font-family:'Material Icons Round';
+  font-size:20px
+}
+
+.backRow{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:10px
+}
+
+.backBtn{
+  padding:8px 12px;
+  border:1px solid #ddd;
+  background:#fff;
+  border-radius:8px;
+  font-weight:700;
+  font-size:12px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:4px
+}
+
+.badge{
+  font-size:9px;
+  padding:4px 8px;
+  border-radius:10px;
+  color:#fff;
+  font-weight:800
+}
+
+/* Kept only as a legacy visual class.
+   It is no longer used as a surname field. */
+.secondBadge{
+  font-size:8px;
+  padding:2px 6px;
+  border-radius:8px;
+  background:#7a1a24;
+  color:#fff;
+  margin-left:4px
+}
+
+.statusNote{
+  margin-top:10px;
+  padding:8px 10px;
+  border-radius:8px;
+  background:#fff8e1;
+  border:1px solid #f0d98c;
+  color:#795548;
+  font-size:10px;
+  line-height:1.4
+}
+
+@media(max-width:768px){
+
+  .household{
+    flex-direction:column!important
+  }
+
+  .parent-left{
+    width:100%!important;
+    min-width:100%!important
+  }
+
+  .wives-right{
+    width:100%!important;
+    grid-template-columns:1fr!important
+  }
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="top" id="mainHeader">
+  Whole Guvaza Clan Tree - 224
+</div>
+
+<div class="card">
+
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+
+    <button
+      class="backBtn"
+      onclick="location.href='beneficiary-portal.html'"
+      style="background:#7a1a24;color:#fff;border-color:#7a1a24"
+    >
+      <span class="mi">arrow_back</span>
+      Back to Portal
+    </button>
+
+  </div>
+
+  <div class="backRow" id="crumbRow"></div>
+
+  <div id="mainHousehold"></div>
+
+  <div
+    style="
+      margin-top:14px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px
+    "
+  >
+
+    <div>
+
+      <h4 style="margin:0 0 8px 0;font-size:13px">
+        Children (Click to drill) - Grouped by Wife
+      </h4>
+
+      <div
+        id="branchList"
+        style="display:flex;flex-direction:column;gap:8px"
+      ></div>
+
+    </div>
+
+    <div>
+
+      <h4 style="margin:0 0 8px 0;font-size:13px">
+        Flat List - 224
+      </h4>
+
+      <div
+        id="flatList"
+        style="
+          max-height:400px;
+          overflow:auto;
+          border:1px solid #eee;
+          border-radius:8px;
+          padding:6px;
+          background:#fcfcfc
+        "
+      ></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     CANONICAL GFT DATA CHAIN
+     ========================================================= -->
+
+<script src="trustRules.js"></script>
+<script src="guvazaTree.js"></script>
+<script src="guvazaMainTree.js"></script>
+
+
+<script>
+
+(function(){
+
+  "use strict";
+
+
+  // ==========================================================
+  // BASIC SAFETY CHECKS
+  // ==========================================================
+
+  if(typeof TRUST_RULES === "undefined"){
+    throw new Error(
+      "beneficiary-gen-drilldown.html requires trustRules.js."
+    );
+  }
+
+  if(typeof guvazaTree === "undefined"){
+    throw new Error(
+      "beneficiary-gen-drilldown.html requires guvazaTree.js."
+    );
+  }
+
+  if(typeof GUVAZA_MAIN_TREE === "undefined"){
+    throw new Error(
+      "beneficiary-gen-drilldown.html requires guvazaMainTree.js."
+    );
+  }
+
+
+  // ==========================================================
+  // EXISTING COLOR SYSTEM
+  //
+  // THESE VALUES ARE PRESERVED EXACTLY.
+  // ==========================================================
+
+  const BRANCH_COLORS = {
+
+    "BRANCH_ROOT":"#23395d",
+    "ROOT":"#23395d",
+
+    "BRANCH_RUTAMBO":"#1b5e20",
+    "RUTAMBO":"#1b5e20",
+
+    "BRANCH_VURAYAI":"#e67e22",
+    "VURAYAI":"#e67e22",
+
+    "BRANCH_SVUSVU":"#1e40af",
+    "SVUSVU":"#1e40af",
+
+    "BRANCH_VAFONJO":"#ad1457",
+    "VAFONJO":"#ad1457",
+
+    "BRANCH_DAUGHTER2":"#6b21a8",
+    "DAUGHTER2":"#6b21a8",
+
+    "BRANCH_SECOND_DAUGHTER":"#6b21a8"
+
+  };
+
+
+  // ==========================================================
+  // CANONICAL DATA
+  //
+  // guvazaTree is the source of identity and lineage.
+  // No localStorage family-tree reconstruction is performed.
+  // ==========================================================
+
+  const allRegs = Array.isArray(guvazaTree)
+    ? guvazaTree.slice()
+    : [];
+
+
+  // ==========================================================
+  // INDEX BY SYSTEM ID
+  //
+  // SYSTEM ID IS THE IDENTITY KEY.
+  //
+  // Names are display information only.
+  // ==========================================================
+
+  const mapById = {};
+
+  const mapByParentId = {};
+
+
+  allRegs.forEach(function(member){
+
+    if(!member || !member.systemId){
+      return;
+    }
+
+    const id = String(member.systemId)
+      .trim()
+      .toUpperCase();
+
+    mapById[id] = member;
+
+
+    const parentId = String(member.parentId || "")
+      .trim()
+      .toUpperCase();
+
+    if(parentId){
+
+      if(!mapByParentId[parentId]){
+        mapByParentId[parentId] = [];
+      }
+
+      mapByParentId[parentId].push(member);
+
+    }
+
+  });
+
+
+  // Make the indexes available to other GFT pages if needed.
+  window.mapById = mapById;
+  window.mapByParentId = mapByParentId;
+
+
+  // ==========================================================
+  // SORTING
+  //
+  // GFT-GENX-XXX is sorted numerically rather than
+  // alphabetically.
+  // ==========================================================
+
+  function getGftNumericSuffix(systemId){
+
+    if(!systemId){
+      return Number.MAX_SAFE_INTEGER;
+    }
+
+    const match = String(systemId).match(
+      /^GFT-GEN\d+-(\d+)$/
+    );
+
+    if(!match){
+      return Number.MAX_SAFE_INTEGER;
+    }
+
+    return parseInt(match[1],10);
+
+  }
+
+
+  function getGenerationNumber(systemId){
+
+    if(!systemId){
+      return Number.MAX_SAFE_INTEGER;
+    }
+
+    const match = String(systemId).match(
+      /^GFT-GEN(\d+)-\d+$/
+    );
+
+    if(!match){
+      return Number.MAX_SAFE_INTEGER;
+    }
+
+    return parseInt(match[1],10);
+
+  }
+
+
+  function sortMembers(a,b){
+
+    const genA = getGenerationNumber(a.systemId);
+    const genB = getGenerationNumber(b.systemId);
+
+    if(genA !== genB){
+      return genA - genB;
+    }
+
+    return (
+      getGftNumericSuffix(a.systemId) -
+      getGftNumericSuffix(b.systemId)
+    );
+
+  }
+
+
+  allRegs.sort(sortMembers);
+
+
+  Object.keys(mapByParentId).forEach(function(parentId){
+
+    mapByParentId[parentId].sort(sortMembers);
+
+  });
+
+
+  // ==========================================================
+  // BRANCH COLOR INHERITANCE
+  //
+  // Existing visual colors are preserved.
+  // ==========================================================
+
+  function getInheritedColor(member, depth){
+
+    depth = depth || 0;
+
+    if(!member){
+      return BRANCH_COLORS.BRANCH_ROOT;
+    }
+
+    if(depth > 20){
+      return BRANCH_COLORS.BRANCH_ROOT;
+    }
+
+
+    let branch = String(member.branch || "")
+      .toUpperCase()
+      .trim();
+
+
+    if(BRANCH_COLORS[branch]){
+      return BRANCH_COLORS[branch];
+    }
+
+
+    if(branch.includes("RUTAMBO")){
+      return BRANCH_COLORS.BRANCH_RUTAMBO;
+    }
+
+
+    if(branch.includes("VURAYAI")){
+      return BRANCH_COLORS.BRANCH_VURAYAI;
+    }
+
+
+    if(
+      branch.includes("SVUSVU") ||
+      branch.includes("VUSVU")
+    ){
+      return BRANCH_COLORS.BRANCH_SVUSVU;
+    }
+
+
+    if(
+      branch.includes("VAFONJO") ||
+      branch.includes("FONJO")
+    ){
+      return BRANCH_COLORS.BRANCH_VAFONJO;
+    }
+
+
+    if(
+      branch.includes("DAUGHTER2") ||
+      branch.includes("SECOND") ||
+      branch === "BRANCH_DAUGHTER2"
+    ){
+      return BRANCH_COLORS.BRANCH_DAUGHTER2;
+    }
+
+
+    // If the person does not carry a branch value,
+    // inherit from the verified biological parent.
+
+    if(member.parentId){
+
+      const parentId = String(member.parentId)
+        .trim()
+        .toUpperCase();
+
+      const parent = mapById[parentId];
+
+      if(parent){
+        return getInheritedColor(
+          parent,
+          depth + 1
+        );
+      }
+
+    }
+
+
+    return BRANCH_COLORS.BRANCH_ROOT;
+
+  }
+
+
+  // ==========================================================
+  // CANONICAL MEMBER LOOKUP
+  // ==========================================================
+
+  function getMemberById(id){
+
+    if(!id){
+      return null;
+    }
+
+    const normalizedId = String(id)
+      .trim()
+      .toUpperCase();
+
+    return mapById[normalizedId] || null;
+
+  }
+
+
+  // ==========================================================
+  // CHILDREN
+  //
+  // Parent-child relationship comes ONLY from parentId.
+  //
+  // No root fallback is used.
+  // ==========================================================
+
+  function getChildrenById(parentId){
+
+    if(!parentId){
+      return [];
+    }
+
+    const normalizedParentId = String(parentId)
+      .trim()
+      .toUpperCase();
+
+    return (
+      mapByParentId[normalizedParentId] || []
+    ).slice().sort(sortMembers);
+
+  }
+
+
+  // ==========================================================
+  // DISPLAY NAME
+  // ==========================================================
+
+  function getDisplayName(member){
+
+    if(!member){
+      return "Unknown";
+    }
+
+    return member.fullName || "Unnamed Beneficiary";
+
+  }
+
+
+  // ==========================================================
+  // CURRENT SURNAME DISPLAY
+  //
+  // No secondSurname is used.
+  // ==========================================================
+
+  function getCurrentSurnameDisplay(member){
+
+    if(!member){
+      return "";
+    }
+
+    const currentSurname = String(
+      member.currentSurname || ""
+    ).trim();
+
+    const rootSurname = String(
+      member.rootSurname || ""
+    ).trim();
+
+
+    if(
+      currentSurname &&
+      currentSurname !== rootSurname &&
+      currentSurname !== "Guvaza"
+    ){
+
+      return `
+        <span style="font-size:9px;opacity:.7">
+          (${escapeHtml(currentSurname)})
+        </span>
+      `;
+
+    }
+
+    return "";
+
+  }
+
+
+  // ==========================================================
+  // ESCAPE HTML
+  // ==========================================================
+
+  function escapeHtml(value){
+
+    return String(value == null ? "" : value)
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+
+  }
+
+
+  // ==========================================================
+  // SAFE ID FOR HTML ATTRIBUTES
+  // ==========================================================
+
+  function safeId(value){
+
+    return String(value || "")
+      .replace(/\\/g,"\\\\")
+      .replace(/'/g,"\\'");
+
+  }
+
+
+  // ==========================================================
+  // NAVIGATION STATE
+  // ==========================================================
+
+  let currentParentId = "GFT-GEN1-01";
+
+  let historyStack = [];
+
+
+  // ==========================================================
+  // MAIN RENDER
+  // ==========================================================
+
+  function render(){
+
+    const parent =
+      getMemberById(currentParentId);
+
+
+    // If an ID cannot be resolved, stop instead of
+    // silently showing Guvaza as a fallback.
+
+    if(!parent){
+
+      document.getElementById(
+        "mainHousehold"
+      ).innerHTML = `
+        <div class="statusNote">
+          This GFT record could not be resolved from the
+          canonical family tree. No alternative parent was
+          assigned automatically.
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    const children =
+      getChildrenById(parent.systemId);
+
+
+    const col =
+      getInheritedColor(parent);
+
+
+    // ========================================================
+    // BREADCRUMBS
+    // ========================================================
+
+    let crumb = "";
+
+
+    if(historyStack.length > 0){
+
+      crumb += `
+        <button
+          class="backBtn"
+          onclick="goBack()"
+        >
+          <span class="mi">arrow_back</span>
+          Back
+        </button>
+      `;
+
+    }
+
+
+    crumb += `
+      <button
+        class="backBtn"
+        onclick="goHome()"
+      >
+        <span class="mi">home</span>
+        Guvaza GFT-GEN1-01
+      </button>
+    `;
+
+
+    historyStack.forEach(function(h,i){
+
+      crumb += `
+        <button
+          class="backBtn"
+          onclick="jumpTo(${i})"
+        >
+          ${escapeHtml(h.name)}
+        </button>
+      `;
+
+    });
+
+
+    crumb += `
+      <button
+        class="backBtn"
+        style="
+          background:${col};
+          color:#fff;
+          border-color:${col}
+        "
+      >
+        <span class="mi">person</span>
+        ${escapeHtml(getDisplayName(parent))}
+      </button>
+    `;
+
+
+    document.getElementById(
+      "crumbRow"
+    ).innerHTML = crumb;
+
+
+    // ========================================================
+    // GROUP CHILDREN BY WIFE NUMBER
+    // ========================================================
+
+    const grouped = {};
+
+
+    children.forEach(function(child){
+
+      const wifeKey =
+        child.wifeNo || "MAIN";
+
+      if(!grouped[wifeKey]){
+        grouped[wifeKey] = [];
+      }
+
+      grouped[wifeKey].push(child);
+
+    });
+
+
+    const groupKeys =
+      Object.keys(grouped);
+
+
+    // ========================================================
+    // HOUSEHOLD PANEL
+    // ========================================================
+
+    let html = `
+
+      <div
+        class="household"
+        style="border-color:${col}"
+      >
+
+        <div
+          class="parent-left"
+          style="background:${col}"
+        >
+
+          <span
+            class="mi"
+            style="font-size:32px"
+          >
+            military_tech
+          </span>
+
+          <div>
+            ${escapeHtml(
+              getDisplayName(parent)
+            )}
+          </div>
+
+          <div
+            style="
+              font-size:10px;
+              border:1px solid #ffffff60;
+              padding:3px 8px;
+              border-radius:10px
+            "
+          >
+            ${escapeHtml(parent.systemId)}
+          </div>
+
+          <div
+            style="
+              font-size:10px;
+              opacity:.9
+            "
+          >
+            GEN${parent.generation || 1}
+            • ${children.length} children
+            • Root: ${escapeHtml(
+                parent.rootSurname || "Guvaza"
+              )}
+          </div>
+
+          ${
+            parent.currentSurname &&
+            parent.currentSurname !==
+              parent.rootSurname &&
+            parent.currentSurname !== "Guvaza"
+
+            ? `
+              <div
+                style="
+                  font-size:9px;
+                  opacity:.9
+                "
+              >
+                Current surname:
+                ${escapeHtml(
+                  parent.currentSurname
+                )}
+              </div>
+            `
+            : ""
+          }
+
+          ${
+            parent.isPlaceholder
+
+            ? `
+              <div
+                style="
+                  font-size:9px;
+                  background:#fbbf24;
+                  color:#000;
+                  padding:2px 6px;
+                  border-radius:8px
+                "
+              >
+                PLACEHOLDER - Admin Edit
+              </div>
+            `
+            : ""
+          }
+
+        </div>
+
+        <div class="wives-right">
+    `;
+
+
+    // ========================================================
+    // NO CHILDREN
+    // ========================================================
+
+    if(children.length === 0){
+
+      html += `
+
+        <div
+          style="
+            grid-column:1/-1;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            color:#94a3b8;
+            height:180px
+          "
+        >
+
+          <span class="mi">
+            child_care
+          </span>
+
+          <div>
+            End of Branch
+          </div>
+
+          <div style="font-size:10px">
+            ${
+              parent.isPlaceholder
+              ? "Admin to add children"
+              : ""
+            }
+          </div>
+
+        </div>
+
+      `;
+
+    }
+
+
+    // ========================================================
+    // CHILDREN GROUPED BY WIFE
+    // ========================================================
+
+    else{
+
+      groupKeys.forEach(function(wifeKey){
+
+        const group =
+          grouped[wifeKey];
+
+
+        if(groupKeys.length > 1){
+
+          html += `
+
+            <div
+              style="
+                grid-column:1/-1;
+                font-size:10px;
+                font-weight:800;
+                color:${col};
+                border-bottom:1px dashed ${col};
+                padding:4px 0;
+                margin-top:6px
+              "
+            >
+              ${escapeHtml(wifeKey)}
+            </div>
+
+          `;
+
+        }
+
+
+        group.forEach(function(child){
+
+          const childColor =
+            getInheritedColor(child);
+
+
+          const currentSurname =
+            getCurrentSurnameDisplay(child);
+
+
+          const childId =
+            safeId(child.systemId);
+
+
+          html += `
+
+            <button
+              class="
+                person-btn
+                ${child.isPlaceholder
+                  ? "isPlaceholder"
+                  : ""}
+              "
+              style="
+                border-color:${childColor};
+                color:${childColor}
+              "
+              onclick="openChild('${childId}')"
+            >
+
+              <div
+                style="
+                  display:flex;
+                  flex-direction:column
+                "
+              >
+
+                <span
+                  style="
+                    display:flex;
+                    align-items:center;
+                    gap:6px;
+                    flex-wrap:wrap
+                  "
+                >
+
+                  <span
+                    class="mi"
+                    style="
+                      background:${childColor};
+                      color:#fff;
+                      border-radius:50%;
+                      padding:4px;
+                      font-size:16px
+                    "
+                  >
+                    person
+                  </span>
+
+                  ${escapeHtml(
+                    getDisplayName(child)
+                  )}
+
+                  ${currentSurname}
+
+                  ${
+                    child.isPlaceholder
+
+                    ? `
+                      <span
+                        style="
+                          font-size:8px;
+                          background:#fef3c7;
+                          padding:2px 4px;
+                          border-radius:6px
+                        "
+                      >
+                        PLACEHOLDER
+                      </span>
+                    `
+                    : ""
+                  }
+
+                </span>
+
+
+                <span
+                  class="badge"
+                  style="
+                    background:${childColor};
+                    margin-top:5px
+                  "
+                >
+                  ${escapeHtml(child.systemId)}
+                  ${
+                    child.wifeNo
+                    ? ` • ${escapeHtml(child.wifeNo)}`
+                    : ""
+                  }
+                </span>
+
+              </div>
+
+              <span class="mi">
+                chevron_right
+              </span>
+
+            </button>
+
+          `;
+
+        });
+
+      });
+
+    }
+
+
+    html += `
+        </div>
+      </div>
+    `;
+
+
+    document.getElementById(
+      "mainHousehold"
+    ).innerHTML = html;
+
+
+    // ========================================================
+    // BRANCH LIST
+    // ========================================================
+
+    let listHtml = "";
+
+
+    groupKeys.forEach(function(wifeKey){
+
+      if(groupKeys.length > 1){
+
+        listHtml += `
+
+          <div
+            style="
+              font-size:10px;
+              font-weight:800;
+              margin:8px 0 4px 0;
+              color:#7a1a24
+            "
+          >
+            ${escapeHtml(wifeKey)}
+          </div>
+
+        `;
+
+      }
+
+
+      grouped[wifeKey].forEach(function(child){
+
+        const childColor =
+          getInheritedColor(child);
+
+        const childId =
+          safeId(child.systemId);
+
+        const childCount =
+          getChildrenById(
+            child.systemId
+          ).length;
+
+
+        listHtml += `
+
+          <button
+            class="
+              person-btn
+              ${child.isPlaceholder
+                ? "isPlaceholder"
+                : ""}
+            "
+            style="
+              border-color:${childColor};
+              color:${childColor}
+            "
+            onclick="openChild('${childId}')"
+          >
+
+            <span
+              style="
+                display:flex;
+                align-items:center;
+                gap:6px
+              "
+            >
+
+              <span
+                style="
+                  width:12px;
+                  height:12px;
+                  border-radius:50%;
+                  background:${childColor};
+                  display:inline-block
+                "
+              ></span>
+
+              ${escapeHtml(
+                getDisplayName(child)
+              )}
+
+              <span
+                style="
+                  font-size:9px;
+                  opacity:.6
+                "
+              >
+                ${escapeHtml(child.systemId)}
+              </span>
+
+            </span>
+
+            <span
+              class="badge"
+              style="
+                background:${childColor}
+              "
+            >
+              ${childCount}
+            </span>
+
+          </button>
+
+        `;
+
+      });
+
+    });
+
+
+    document.getElementById(
+      "branchList"
+    ).innerHTML =
+      listHtml ||
+      '<div style="color:#999">No children</div>';
+
+
+    // ========================================================
+    // FLAT LIST
+    //
+    // Uses canonical members.
+    // No secondSurname.
+    // ========================================================
+
+    let flat = `
+
+      <div style="font-size:11px">
+
+        <b>
+          Whole Guvaza Clan —
+          ${allRegs.length} members
+        </b>
+
+        <div style="margin-top:8px">
+
+    `;
+
+
+    allRegs.slice(0,500).forEach(function(member){
+
+      const memberColor =
+        getInheritedColor(member);
+
+
+      const currentSurname =
+        member.currentSurname &&
+        member.currentSurname !== "Guvaza"
+
+        ? `
+          <span
+            style="
+              color:#e67e22;
+              font-size:9px
+            "
+          >
+            ${escapeHtml(
+              member.currentSurname
+            )}
+          </span>
+        `
+        : "";
+
+
+      const placeholder =
+        member.isPlaceholder
+
+        ? `
+          <span
+            style="
+              background:#fef3c7;
+              padding:1px 4px;
+              border-radius:6px;
+              font-size:8px
+            "
+          >
+            PLACEHOLDER
+          </span>
+        `
+        : "";
+
+
+      flat += `
+
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            padding:6px;
+            border-bottom:1px solid #f1f5f9
+          "
+        >
+
+          <span
+            style="
+              display:flex;
+              gap:6px;
+              align-items:center;
+              flex-wrap:wrap
+            "
+          >
+
+            <span
+              style="
+                background:${memberColor};
+                color:#fff;
+                padding:2px 6px;
+                border-radius:10px;
+                font-size:8px
+              "
+            >
+              ${escapeHtml(
+                String(
+                  member.branch || ""
+                ).replace(
+                  "BRANCH_",
+                  ""
+                )
+              )}
+            </span>
+
+            ${escapeHtml(
+              getDisplayName(member)
+            )}
+
+            ${currentSurname}
+
+            ${placeholder}
+
+          </span>
+
+
+          <span
+            style="
+              color:#64748b;
+              font-size:9px
+            "
+          >
+            ${escapeHtml(member.systemId)}
+          </span>
+
+        </div>
+
+      `;
+
+    });
+
+
+    flat += `
+        </div>
+      </div>
+    `;
+
+
+    document.getElementById(
+      "flatList"
+    ).innerHTML = flat;
+
+
+    // ========================================================
+    // HEADER
+    // ========================================================
+
+    document.getElementById(
+      "mainHeader"
+    ).innerText =
+      `Whole Guvaza Clan Tree - ${allRegs.length} (Root: Guvaza)`;
+
+  }
+
+
+  // ==========================================================
+  // OPEN CHILD
+  // ==========================================================
+
+  window.openChild = function(systemId){
+
+    const member =
+      getMemberById(systemId);
+
+
+    if(!member){
+      return;
+    }
+
+
+    historyStack.push({
+
+      id: currentParentId,
+
+      name: getDisplayName(
+        getMemberById(
+          currentParentId
+        )
+      )
+
+    });
+
+
+    currentParentId =
+      member.systemId;
+
+
+    render();
+
+
+    window.scrollTo({
+      top:0,
+      behavior:"smooth"
+    });
+
+  };
+
+
+  // ==========================================================
+  // BACK
+  // ==========================================================
+
+  window.goBack = function(){
+
+    if(historyStack.length === 0){
+      return;
+    }
+
+
+    const previous =
+      historyStack.pop();
+
+
+    currentParentId =
+      previous.id;
+
+
+    render();
+
+  };
+
+
+  // ==========================================================
+  // HOME
+  // ==========================================================
+
+  window.goHome = function(){
+
+    historyStack = [];
+
+    currentParentId =
+      "GFT-GEN1-01";
+
+
+    render();
+
+  };
+
+
+  // ==========================================================
+  // JUMP TO BREADCRUMB
+  // ==========================================================
+
+  window.jumpTo = function(index){
+
+    if(
+      index < 0 ||
+      index >= historyStack.length
+    ){
+      return;
+    }
+
+
+    const target =
+      historyStack[index];
+
+
+    currentParentId =
+      target.id;
+
+
+    historyStack =
+      historyStack.slice(0,index);
+
+
+    render();
+
+  };
+
+
+  // ==========================================================
+  // INITIAL RENDER
+  // ==========================================================
+
+  render();
+
+
+})();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guvaza Family Trust — Beneficiary Login</title>
+<meta name="description" content="Secure Guvaza Family Trust beneficiary login">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+:root{
+  --maroon:#7a1731;
+  --maroon-dark:#5c1025;
+  --blue:#183b66;
+  --blue-2:#285b8f;
+  --green:#2f7048;
+  --ink:#18222d;
+  --muted:#65717d;
+  --line:#dce2e8;
+  --soft:#f5f7f9;
+  --danger:#a82b35;
+  --shadow:0 12px 35px rgba(20,35,50,.10);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--ink);background:#f7f8fa;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:18px;
+}
+.card{
+  width:100%;max-width:430px;background:#fff;border:1px solid var(--line);
+  border-radius:18px;box-shadow:var(--shadow);overflow:hidden;
+}
+.top{
+  height:7px;background:linear-gradient(110deg,var(--maroon),#8b2340 48%,var(--blue));
+}
+.content{padding:29px}
+.logo{
+  width:76px;height:76px;border-radius:50%;object-fit:cover;
+  border:3px solid var(--maroon);display:block;margin:0 auto 13px;
+  background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+h1{margin:0;text-align:center;color:var(--maroon);font-size:21px}
+.sub{text-align:center;font-size:12px;color:var(--muted);margin:6px 0 18px}
+.badge{
+  display:flex;width:max-content;margin:0 auto 20px;padding:5px 11px;
+  border-radius:99px;background:#eaf5ee;color:#2d6944;
+  font-size:11px;font-weight:800;align-items:center;gap:5px;
+}
+.field{margin-top:15px}
+label{display:block;font-size:12px;font-weight:800;color:#334155;margin-bottom:7px}
+.input-wrap{position:relative}
+.input-wrap .mi{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  color:#71808d;font-size:19px;pointer-events:none;
+}
+input{
+  width:100%;padding:12px 13px 12px 40px;border:1px solid #cbd3db;
+  border-radius:9px;background:#fff;color:var(--ink);font:inherit;font-size:14px;
+}
+input:focus{
+  outline:3px solid rgba(40,91,143,.12);border-color:var(--blue-2);
+}
+.btn{
+  width:100%;margin-top:21px;padding:13px 16px;border:0;border-radius:9px;
+  background:var(--maroon);color:#fff;font:inherit;font-weight:800;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.btn:hover{background:var(--maroon-dark)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.msg{
+  min-height:18px;margin-top:12px;text-align:center;font-size:11px;
+  line-height:1.5
+}
+.note{
+  margin:15px 0 0;padding:12px;border-radius:9px;background:var(--soft);
+  color:var(--muted);font-size:11px;line-height:1.55;text-align:center;
+}
+.back{
+  display:block;text-align:center;margin-top:16px;color:var(--maroon);
+  text-decoration:none;font-size:12px;font-weight:800;
+}
+.back:hover{text-decoration:underline}
+.mi{font-family:'Material Icons Round';font-size:18px;vertical-align:middle}
+@media(max-width:460px){.content{padding:23px}}
+</style>
+</head>
+<body>
+
+<main class="card">
+  <div class="top"></div>
+  <div class="content">
+
+    <img src="assets/gft.png"
+         class="logo"
+         alt="Guvaza Family Trust logo"
+         onerror="this.src='assets/logo.png';this.onerror=function(){this.style.display='none'}">
+
+    <h1>Beneficiary Login</h1>
+    <p class="sub">Guvaza Family Trust • GFT Secure Access</p>
+
+    <div class="badge">
+      <span class="mi">verified_user</span>
+      GFT Beneficiary Access
+    </div>
+
+    <div class="field">
+      <label for="loginIdentifier">Email / Username / Phone Number</label>
+      <div class="input-wrap">
+        <span class="mi">person</span>
+        <input id="loginIdentifier"
+               type="text"
+               placeholder="Enter email, username or phone"
+               autocomplete="username"
+               autocapitalize="none"
+               spellcheck="false">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="idInput">GFT ID / Registered ID Number</label>
+      <div class="input-wrap">
+        <span class="mi">badge</span>
+        <input id="idInput"
+               type="text"
+               placeholder="e.g. GFT-GEN4-054 or registered ID"
+               autocomplete="off"
+               autocapitalize="characters"
+               spellcheck="false">
+      </div>
+    </div>
+
+    <button id="loginBtn" class="btn" type="button">
+      <span class="mi">fingerprint</span>
+      Login Securely
+    </button>
+
+    <div id="loginMsg" class="msg" aria-live="polite"></div>
+
+    <div class="note">
+      Use any one registered login identifier — <b>email, username or phone</b> —
+      together with your <b>GFT ID or registered identity/document number</b>.
+      Both credentials must belong to the same beneficiary record.
+    </div>
+
+    <a class="back" href="index.html">Back to Home</a>
+
+  </div>
+</main>
+
+<script>
+"use strict";
+
+/*
+  GFT BENEFICIARY LOGIN
+  ======================
+
+  Canonical registration source:
+    gft_canonical_beneficiaries
+
+  First credential:
+    email OR username OR phone
+
+  Second credential:
+    systemId (permanent GFT ID) OR documentNumber
+
+  Session keys:
+    guvaza_current_user
+    guvaza_beneficiary_session
+
+  Prototype note:
+    localStorage is browser-side and is NOT production authentication.
+    Production access control must be enforced by the backend.
+*/
+
+const STORAGE_KEY = "gft_canonical_beneficiaries";
+const CURRENT_USER_KEY = "guvaza_current_user";
+const SESSION_KEY = "guvaza_beneficiary_session";
+const PORTAL_URL = "beneficiary-portal.html";
+
+const $ = id => document.getElementById(id);
+
+function safeArray(key){
+  try{
+    const raw = localStorage.getItem(key);
+    if(!raw) return [];
+    const value = JSON.parse(raw);
+    return Array.isArray(value) ? value : [];
+  }catch(error){
+    return [];
+  }
+}
+
+function normalize(value){
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g," ");
+}
+
+function compact(value){
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g,"");
+}
+
+function normalizeEmail(value){
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function normalizePhone(value){
+  let digits = String(value ?? "").replace(/\D/g,"");
+
+  if(digits.startsWith("00")){
+    digits = digits.slice(2);
+  }
+
+  /*
+    Zimbabwe/South Africa-friendly normalization:
+    +27xxxxxxxxx / 27xxxxxxxxx -> 0xxxxxxxxx
+    Other numbers remain digit-normalized.
+  */
+  if(digits.startsWith("27") && digits.length === 11){
+    return "0" + digits.slice(2);
+  }
+
+  return digits;
+}
+
+function normalizeCredential(value){
+  return compact(value);
+}
+
+function setMessage(message, color){
+  const el = $("loginMsg");
+  el.innerHTML = message;
+  el.style.color = color;
+}
+
+function escapeHtml(value){
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  }[char]));
+}
+
+function getRecords(){
+  return safeArray(STORAGE_KEY);
+}
+
+function matchesEmail(record, entered){
+  const stored = normalizeEmail(record.email);
+  const value = normalizeEmail(entered);
+  return Boolean(stored && value && stored === value);
+}
+
+function matchesUsername(record, entered){
+  const stored = normalize(record.username);
+  const value = normalize(entered);
+  return Boolean(stored && value && stored === value);
+}
+
+function matchesPhone(record, entered){
+  const stored = normalizePhone(record.phone);
+  const value = normalizePhone(entered);
+
+  if(!stored || !value) return false;
+
+  return stored === value;
+}
+
+function identifierMatches(record, entered){
+  return (
+    matchesEmail(record, entered) ||
+    matchesUsername(record, entered) ||
+    matchesPhone(record, entered)
+  );
+}
+
+function credentialMatches(record, entered){
+  const supplied = normalizeCredential(entered);
+  if(!supplied) return false;
+
+  const candidates = [
+    record.systemId,
+    record.documentNumber
+  ];
+
+  return candidates.some(value =>
+    value && normalizeCredential(value) === supplied
+  );
+}
+
+function determineLoginMethod(record, entered){
+  if(matchesEmail(record, entered)) return "EMAIL";
+  if(matchesUsername(record, entered)) return "USERNAME";
+  if(matchesPhone(record, entered)) return "PHONE";
+  return "UNKNOWN";
+}
+
+function beneficiaryName(record){
+  return record.fullName ||
+         record.currentSurname ||
+         record.username ||
+         "Beneficiary";
+}
+
+function clearSession(){
+  localStorage.removeItem(CURRENT_USER_KEY);
+  localStorage.removeItem(SESSION_KEY);
+}
+
+function createSession(record, loginMethod){
+  /*
+    Preserve the canonical beneficiary record.
+    The additional fields identify how the current prototype login was made.
+  */
+  return {
+    ...record,
+    loginAuthenticated: true,
+    loginAuthenticatedAt: new Date().toISOString(),
+    loginMethod
+  };
+}
+
+function doLogin(){
+  const identifier = $("loginIdentifier").value;
+  const suppliedCredential = $("idInput").value;
+  const button = $("loginBtn");
+
+  if(!normalize(identifier)){
+    setMessage(
+      "Please enter your email, username or phone number.",
+      "var(--maroon)"
+    );
+    $("loginIdentifier").focus();
+    return;
+  }
+
+  if(!normalizeCredential(suppliedCredential)){
+    setMessage(
+      "Please enter your GFT ID or registered identity/document number.",
+      "var(--maroon)"
+    );
+    $("idInput").focus();
+    return;
+  }
+
+  /*
+    Clear an old session before attempting a new login.
+    This prevents a previous beneficiary remaining active after a failed
+    login attempt.
+  */
+  clearSession();
+
+  const records = getRecords();
+
+  if(!records.length){
+    setMessage(
+      "❌ No beneficiary registration record is available in this browser.<br>" +
+      "Please complete registration first.",
+      "var(--danger)"
+    );
+    return;
+  }
+
+  /*
+    SECURITY RULE:
+    Both credentials must match the SAME canonical beneficiary.
+    We deliberately do NOT find an email/phone/username from one record
+    and an ID from another record.
+  */
+  const found = records.find(record =>
+    record &&
+    identifierMatches(record, identifier) &&
+    credentialMatches(record, suppliedCredential)
+  );
+
+  if(!found){
+    setMessage(
+      "❌ Login details could not be verified.<br>" +
+      "Please check your email/username/phone and GFT ID or registered ID number.",
+      "var(--danger)"
+    );
+    return;
+  }
+
+  const loginMethod = determineLoginMethod(found, identifier);
+  const session = createSession(found, loginMethod);
+
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(session));
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+  button.disabled = true;
+
+  setMessage(
+    "✓ Login verified. Welcome " +
+    escapeHtml(beneficiaryName(found)) +
+    ".<br><small>Opening your GFT Beneficiary Portal…</small>",
+    "var(--green)"
+  );
+
+  window.setTimeout(() => {
+    window.location.href = PORTAL_URL;
+  }, 700);
+}
+
+$("loginBtn").addEventListener("click", doLogin);
+
+$("loginIdentifier").addEventListener("keydown", event => {
+  if(event.key === "Enter") doLogin();
+});
+
+$("idInput").addEventListener("keydown", event => {
+  if(event.key === "Enter") doLogin();
+});
+</script>
+
+</body>
+</html>

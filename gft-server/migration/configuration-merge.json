@@ -1,0 +1,500 @@
+{
+  "preparedAt": "2026-09-25T23:39:33.398Z",
+  "strategy": "field-level-merge",
+  "sourceKeys": [
+    "guvaza_custom_config",
+    "guvaza_about_title",
+    "guvaza_about_text",
+    "aboutTitle",
+    "aboutText",
+    "aboutRoots"
+  ],
+  "mergedConfig": {
+    "name": "The Guvaza Family Trust",
+    "tagline": "Building Wealth Together For The Rising Generations",
+    "email": "infor@guvazafamilytrust.com",
+    "logo": "assets/gf_trust.png",
+    "footerText": "© 2026 The Guvaza Family Trust - All Rights Reserved",
+    "caps": {
+      "funeral": 6000,
+      "school": 5000,
+      "funeralPayout": 600,
+      "schoolPayout": 5000
+    },
+    "rules": {
+      "expansion": 70,
+      "pool": 30,
+      "admin": 2,
+      "need5Man": true
+    },
+    "companies": [
+      {
+        "id": 1,
+        "name": "The Guvaza Imperial Institute | TGII",
+        "profit": 0,
+        "logo": "assets/company1.png",
+        "banner": "assets/banner1.jpg",
+        "color": "#10b981",
+        "info": "Education",
+        "description": "Where Future Leardes Begin Their Journey ",
+        "gallery": [
+          {
+            "url": "assets/tgii.jpg",
+            "tag": "Agmission | 2027",
+            "caption": "Hurry and Register While On Time"
+          },
+          {
+            "url": "assets/tgii2.jpg",
+            "tag": "Fees Structure",
+            "caption": "Affordable Prices | Best Educatin Quality"
+          },
+          {
+            "url": "assets/tgii1.jpg",
+            "tag": "Admission | 2027",
+            "caption": "Begin Your Journey With Excellence"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Mining",
+        "profit": 0,
+        "logo": "assets/company2.png",
+        "banner": "assets/banner2.jpg",
+        "color": "#f59e0b",
+        "info": "Mining Operations",
+        "description": "Mining operations focusing on gold, chrome and lithium.",
+        "gallery": []
+      },
+      {
+        "id": 3,
+        "name": "Property",
+        "profit": 0,
+        "logo": "assets/company3.png",
+        "banner": "assets/banner3.jpg",
+        "color": "#3b82f6",
+        "info": "Property Development",
+        "description": "Residential stands, housing development and commercial property management.",
+        "gallery": []
+      },
+      {
+        "id": 4,
+        "name": "Logistics",
+        "profit": 0,
+        "logo": "assets/company4.png",
+        "banner": "assets/banner4.jpg",
+        "color": "#06b6d4",
+        "info": "Supply Chain",
+        "description": "Warehousing, distribution and supply chain optimization.",
+        "gallery": []
+      },
+      {
+        "id": 5,
+        "name": "Agriculture",
+        "profit": 0,
+        "logo": "assets/company5.png",
+        "banner": "assets/banner5.jpg",
+        "color": "#84cc16",
+        "info": "Farming & Agric",
+        "description": "Commercial farming, poultry, livestock and agro-processing.",
+        "gallery": []
+      },
+      {
+        "id": 6,
+        "name": "Retail",
+        "profit": 0,
+        "logo": "assets/company6.png",
+        "banner": "assets/banner6.jpg",
+        "color": "#ef4444",
+        "info": "Retail & Trading",
+        "description": "Retail shops, supermarkets and general trading.",
+        "gallery": []
+      },
+      {
+        "id": 7,
+        "name": "Tech",
+        "profit": 0,
+        "logo": "assets/company7.png",
+        "banner": "assets/banner7.jpg",
+        "color": "#8b5cf6",
+        "info": "Technology Solutions",
+        "description": "Software, websites, POS systems and digital solutions.",
+        "gallery": []
+      },
+      {
+        "id": 8,
+        "name": "Energy",
+        "profit": 0,
+        "logo": "assets/company8.png",
+        "banner": "assets/banner8.jpg",
+        "color": "#eab308",
+        "info": "Energy & Power",
+        "description": "Solar installations, fuel supply and alternative energy.",
+        "gallery": []
+      },
+      {
+        "id": 9,
+        "name": "Construction",
+        "profit": 0,
+        "logo": "assets/company9.png",
+        "banner": "assets/banner9.jpg",
+        "color": "#f97316",
+        "info": "Construction",
+        "description": "Building, renovations, civil works and infrastructure development.",
+        "gallery": []
+      },
+      {
+        "id": 10,
+        "name": "Import/Export",
+        "profit": 0,
+        "logo": "assets/company10.png",
+        "banner": "assets/banner10.jpg",
+        "color": "#14b8a6",
+        "info": "Import Export Business",
+        "description": "Import and export of goods, vehicles, machinery.",
+        "gallery": []
+      },
+      {
+        "id": 11,
+        "name": "Finance",
+        "profit": 0,
+        "logo": "assets/company11.png",
+        "banner": "assets/banner11.jpg",
+        "color": "#a855f7",
+        "info": "Finance & Savings",
+        "description": "Savings, micro-finance and investment advisory for family.",
+        "gallery": []
+      },
+      {
+        "id": 12,
+        "name": "Education",
+        "profit": 0,
+        "logo": "assets/company12.png",
+        "banner": "assets/banner12.jpg",
+        "color": "#ec4899",
+        "info": "Education & Training",
+        "description": "Scholarships, skills training and education support.",
+        "gallery": []
+      }
+    ],
+    "homepage": {
+      "heroTitle": "The Guvaza Family Trust",
+      "heroSubtitle": "Building Wealth Together For The Rising Generations",
+      "heroImage": "assets/trust5.png",
+      "announcement": "8th Day Sweep Active - Auto Payouts Enabled",
+      "showWallets": true,
+      "showCompanies": true,
+      "showBeneficiariesCount": true,
+      "ctaButtonText": "Join Trust",
+      "ctaButtonLink": "register.html",
+      "cards": [
+        {
+          "id": "companies",
+          "title": "Family Companies",
+          "subtitle": "Our Growing Business Portfolio",
+          "icon": "business",
+          "color": "#4ade80",
+          "image": "assets/companies.jpg",
+          "link": "companies.html"
+        },
+        {
+          "id": "contact",
+          "title": "Contact Us",
+          "subtitle": "We Are Here To Assist You",
+          "icon": "contact_mail",
+          "color": "#38bdf8",
+          "image": "assets/contact.png",
+          "link": "contact.html"
+        },
+        {
+          "id": "about",
+          "title": "About Us",
+          "subtitle": "Know Our Roots & Family",
+          "icon": "groups",
+          "color": "#fbbf24",
+          "image": "assets/elder.png",
+          "link": "about.html"
+        }
+      ]
+    },
+    "about": {
+      "title": "About Our Family: One Root | One Vision",
+      "story": "Our story begins with our foundation, our Root: The Great Ancestor - Guvaza.\n\nGuvaza is the father and founder of our house. From his strength, values and name, our family was born.\n\nFrom Guvaza came his children: Rutambo, Vurayai, Svusvu, VaFonjo and many more - forgotten and unrecorded at this point - who continued the bloodline and carried our heritage forward. This is the sacred lineage that connects us all - from the root to the branches, we are one.\n\nThe Guvaza Family Trust was established to honor this lineage. Our mission is threefold:\n\n1. To Preserve Our Heritage - To never forget who we are and where we come from.\n\n2. To Build Wealth Together - Through our family companies, we create financial security and opportunity for every member.\n\n3. To Keep Our Family United - To ensure that no matter where we are, we remain united under one vision, one trust, and one\n   name.\n\nThis Trust is our promise to the past and our gift to the future. We are the Guvaza Family.",
+      "bannerImage": "assets/elder.png",
+      "familyMembers": [
+        {
+          "name": "Guvaza",
+          "caption": "The Great Ancestor - Root of the family",
+          "image": "assets/guv.jpg"
+        },
+        {
+          "name": "Rutambo",
+          "caption": "First Son of Guvaza",
+          "image": "assets/ruu.jpg"
+        },
+        {
+          "name": "Vurayai",
+          "caption": "Second Son o Guaza",
+          "image": "assets/vry.jpg"
+        },
+        {
+          "name": "Svusvu",
+          "caption": "Third Son of Guvaza",
+          "image": "assets/svsv.jpg"
+        },
+        {
+          "name": "VaFonjo",
+          "caption": "First Daughter of Guvaza",
+          "image": "assets/ffj.jpg"
+        },
+        {
+          "name": "Daughter 2",
+          "caption": "Second Daughter of Guvaza",
+          "image": "assets/dht.png"
+        },
+        {
+          "name": "Fannie Gee",
+          "caption": "Grandson: Founder of The Trust",
+          "image": "assets/guvaza.jpg"
+        },
+        {
+          "name": "Priscilla Svusvu Guvaza",
+          "caption": "Great Granddaughter: The Trust Executive Assistant",
+          "image": "assets/pee.jpg"
+        },
+        {
+          "name": "Blessing Batsirai Guvaza",
+          "caption": "Great Grandson: The Trust Accountant",
+          "image": "assets/guvaza.jpg"
+        },
+        {
+          "name": "Tadiwa Allen Guvaza",
+          "caption": "Trustee 02",
+          "image": "assets/guvaza.jpg"
+        },
+        {
+          "name": "John Rangarirai Guvaza",
+          "caption": "Trustee 01",
+          "image": "assets/jr.jpg"
+        },
+        {
+          "name": "Joram Guvaza",
+          "caption": "Trustee 03",
+          "image": "assets/guvaza.jpg"
+        },
+        {
+          "name": "Deigratia Guvaza",
+          "caption": "FanniGee Princess",
+          "image": "assets/prsc.jpg"
+        },
+        {
+          "name": "Mary Guvaza",
+          "caption": "Pristine Glow Lab CEO",
+          "image": "assets/prsc.jpg"
+        }
+      ],
+      "sections": [
+        {
+          "title": "About Our Family: One Root | One Vision",
+          "story": "Our story begins with our foundation, our Root: The Great Ancestor - Guvaza.\n\nGuvaza is the father and founder of our house. From his strength, values and name, our family was born.\n\nFrom Guvaza came his children: Rutambo, Vurayai, Svusvu, VaFonjo and many more - forgotten and unrecorded at this point - who continued the bloodline and carried our heritage forward. This is the sacred lineage that connects us all - from the root to the branches, we are one.\n\nThe Guvaza Family Trust was established to honor this lineage. Our mission is threefold:\n\n1. To Preserve Our Heritage - To never forget who we are and where we come from.\n\n2. To Build Wealth Together - Through our family companies, we create financial security and opportunity for every member.\n\n3. To Keep Our Family United - To ensure that no matter where we are, we remain united under one vision, one trust, and one\n   name.\n\nThis Trust is our promise to the past and our gift to the future. We are the Guvaza Family.",
+          "gallery": [
+            {
+              "name": "Guvaza",
+              "caption": "The Great Ancestor - Root of the family",
+              "image": "assets/guv.jpg"
+            },
+            {
+              "name": "Rutambo",
+              "caption": "First Son of Guvaza",
+              "image": "assets/ruu.jpg"
+            },
+            {
+              "name": "Svusvu",
+              "caption": "Third Son of Guvaza",
+              "image": "assets/svsv.jpg"
+            },
+            {
+              "name": "VaFonjo",
+              "caption": "First Daughter of Guvaza",
+              "image": "assets/ffj.jpg"
+            },
+            {
+              "name": "Daughter 2",
+              "caption": "Second Daughter of Guvaza",
+              "image": "assets/dht.png"
+            },
+            {
+              "name": "Vurayai",
+              "caption": "The Second Son of Guvaza",
+              "image": "assets/vry.jpg"
+            }
+          ],
+          "galleryTitle": "Family Members Gallery",
+          "edgeColor": "#7a1a24"
+        },
+        {
+          "title": "Our Family Legacy",
+          "story": "Founders of The Trust | Keepers of The Promise ",
+          "gallery": [
+            {
+              "name": "Fannie Gee",
+              "caption": "Grandson: Founder of The Trust",
+              "image": "assets/guvaza.jpg"
+            },
+            {
+              "name": "Priscilla Svusvu Guvaza",
+              "caption": "Great Granddaughter: The Trust Executive Assistant",
+              "image": "assets/pee.jpg"
+            },
+            {
+              "name": "Blessing Batsirai Guvaza",
+              "caption": "Great Grandson: The Trust Accountant",
+              "image": "assets/guvaza.jpg"
+            },
+            {
+              "name": "Tadiwa Allen Guvaza",
+              "caption": "Trustee 02",
+              "image": "assets/guvaza.jpg"
+            },
+            {
+              "name": "Joram Guvaza",
+              "caption": "Trustee 03",
+              "image": "assets/guvaza.jpg"
+            },
+            {
+              "name": "Tawanda Vurayai",
+              "caption": "Trustee 04",
+              "image": "assets/guvaza.jpg"
+            },
+            {
+              "name": "Josias Guvaza",
+              "caption": "Trustee 05",
+              "image": "assets/guvaza.jpg"
+            },
+            {
+              "name": "John Rangarirai Guvaza",
+              "caption": "Trustee 01",
+              "image": "assets/jr.jpg"
+            },
+            {
+              "name": "Mary Guvaza",
+              "caption": "Pristine Glow Lab CEO",
+              "image": "assets/prsc.jpg"
+            },
+            {
+              "name": "Tawanda Vurayai",
+              "caption": "G-Tech Auto Lab CEO",
+              "image": "assets/guvaza.jpg"
+            },
+            {
+              "name": "Joram Guvaza",
+              "caption": "Beverage Specialist",
+              "image": "assets/guvaza.jpg"
+            },
+            {
+              "name": "Tawananyasha Dyke Chikamhi",
+              "caption": "AMA-2K Commercial Faming CEO",
+              "image": "assets/guvaza.jpg"
+            },
+            {
+              "name": "Jefta Mapfurire",
+              "caption": "Guvaza Pitstop Grill - CHEF",
+              "image": "assets/guvaza.jpg"
+            }
+          ],
+          "galleryTitle": "Family Members Gallery",
+          "edgeColor": "#3b82f6"
+        },
+        {
+          "title": "Rutambo Family Crew :",
+          "story": "We are The First Seed of The Great Ancestor | Guvaza",
+          "gallery": [
+            {
+              "name": "Rutambo:",
+              "caption": "Carried Forward with The Integrity of a Firstborn Child",
+              "image": "assets/ruu.jpg"
+            },
+            {
+              "name": "Hwangwa Guvaza",
+              "caption": "First Grandson",
+              "image": "assets/guvaza.jpg"
+            },
+            {
+              "name": "Venganai  Guvaza",
+              "caption": "Pioneered The Music Talent in The Family",
+              "image": "assets/guvaza.jpg"
+            },
+            {
+              "name": "Third Son Guvaza",
+              "caption": "History Missing",
+              "image": "assets/guvaza.jpg"
+            }
+          ],
+          "galleryTitle": "Family Members Gallery",
+          "edgeColor": "#19a91c"
+        }
+      ],
+      "aboutText": "Our story begins with our foundation, our Root: The Great Ancestor - Guvaza.\n\nGuvaza is the father and founder of our house. From his strength, values and name, our family was born.\n\nFrom Guvaza came his children: Rutambo, Vurayai, Svusvu, VaFonjo and many more - forgotten and unrecorded at this point - who continued the bloodline and carried our heritage forward. This is the sacred lineage that connects us all - from the root to the branches, we are one.\n\nThe Guvaza Family Trust was established to honor this lineage. Our mission is threefold:\n\n1. To Preserve Our Heritage - To never forget who we are and where we come from.\n\n2. To Build Wealth Together - Through our family companies, we create financial security and opportunity for every member.\n\n3. To Keep Our Family United - To ensure that no matter where we are, we remain united under one vision, one trust, and one\n   name.\n\nThis Trust is our promise to the past and our gift to the future. We are the Guvaza Family.",
+      "text": "Our story begins with our foundation, our Root: The Great Ancestor - Guvaza.\n\nGuvaza is the father and founder of our house. From his strength, values and name, our family was born.\n\nFrom Guvaza came his children: Rutambo, Vurayai, Svusvu, VaFonjo and many more - forgotten and unrecorded at this point - who continued the bloodline and carried our heritage forward. This is the sacred lineage that connects us all - from the root to the branches, we are one.\n\nThe Guvaza Family Trust was established to honor this lineage. Our mission is threefold:\n\n1. To Preserve Our Heritage - To never forget who we are and where we come from.\n\n2. To Build Wealth Together - Through our family companies, we create financial security and opportunity for every member.\n\n3. To Keep Our Family United - To ensure that no matter where we are, we remain united under one vision, one trust, and one\n   name.\n\nThis Trust is our promise to the past and our gift to the future. We are the Guvaza Family.",
+      "description": "Our story begins with our foundation, our Root: The Great Ancestor - Guvaza.\n\nGuvaza is the father and founder of our house. From his strength, values and name, our family was born.\n\nFrom Guvaza came his children: Rutambo, Vurayai, Svusvu, VaFonjo and many more - forgotten and unrecorded at this point - who continued the bloodline and carried our heritage forward. This is the sacred lineage that connects us all - from the root to the branches, we are one.\n\nThe Guvaza Family Trust was established to honor this lineage. Our mission is threefold:\n\n1. To Preserve Our Heritage - To never forget who we are and where we come from.\n\n2. To Build Wealth Together - Through our family companies, we create financial security and opportunity for every member.\n\n3. To Keep Our Family United - To ensure that no matter where we are, we remain united under one vision, one trust, and one\n   name.\n\nThis Trust is our promise to the past and our gift to the future. We are the Guvaza Family.",
+      "aboutRoots": "Our story begins with our foundation, our Root: The Great Ancestor - Guvaza.\n\nGuvaza is the father and founder of our house. From his strength, values and name, our family was born.\n\nFrom Guvaza came his children: Rutambo, Vurayai, Svusvu, VaFonjo and many more - forgotten and unrecorded at this point - who continued the bloodline and carried our heritage forward. This is the sacred lineage that connects us all - from the root to the branches, we are one.\n\nThe Guvaza Family Trust was established to honor this lineage. Our mission is threefold:\n\n1. To Preserve Our Heritage - To never forget who we are and where we come from.\n\n2. To Build Wealth Together - Through our family companies, we create financial security and opportunity for every member.\n\n3. To Keep Our Family United - To ensure that no matter where we are, we remain united under one vision, one trust, and one\n   name.\n\nThis Trust is our promise to the past and our gift to the future. We are the Guvaza Family.",
+      "roots": "Our story begins with our foundation, our Root: The Great Ancestor - Guvaza.\n\nGuvaza is the father and founder of our house. From his strength, values and name, our family was born.\n\nFrom Guvaza came his children: Rutambo, Vurayai, Svusvu, VaFonjo and many more - forgotten and unrecorded at this point - who continued the bloodline and carried our heritage forward. This is the sacred lineage that connects us all - from the root to the branches, we are one.\n\nThe Guvaza Family Trust was established to honor this lineage. Our mission is threefold:\n\n1. To Preserve Our Heritage - To never forget who we are and where we come from.\n\n2. To Build Wealth Together - Through our family companies, we create financial security and opportunity for every member.\n\n3. To Keep Our Family United - To ensure that no matter where we are, we remain united under one vision, one trust, and one\n   name.\n\nThis Trust is our promise to the past and our gift to the future. We are the Guvaza Family."
+    },
+    "branding": {
+      "primaryColor": "#10b981",
+      "secondaryColor": "#3b82f6",
+      "accentColor": "#f59e0b",
+      "backgroundColor": "#0f172a",
+      "cardBackground": "#1e293b"
+    },
+    "contact": {
+      "phone": "+263773550670",
+      "whatsapp": "+27616035517",
+      "email": "infor@guvazafamilytrust.com",
+      "address": "Harare, Zimbabwe"
+    },
+    "social": [
+      {
+        "platform": "Facebook",
+        "url": "https://facebook.com/guvazafamilytrust",
+        "icon": "facebook",
+        "color": "#1877F2"
+      },
+      {
+        "platform": "Instagram",
+        "url": "https://instagram.com/guvazafamilytrust",
+        "icon": "photo_camera",
+        "color": "#E4405F"
+      },
+      {
+        "platform": "Twitter / X",
+        "url": "https://twitter.com/guvazafamilytrust",
+        "icon": "flutter_dash",
+        "color": "#000000"
+      },
+      {
+        "platform": "LinkedIn",
+        "url": "https://linkedin.com/company/guvazafamilytrust",
+        "icon": "work",
+        "color": "#0A66C2"
+      },
+      {
+        "platform": "YouTube",
+        "url": "https://youtube.com/@guvazafamilytrust",
+        "icon": "play_circle",
+        "color": "#FF0000"
+      },
+      {
+        "platform": "TikTok",
+        "url": "https://tiktok.com/@guvazafamilytrust",
+        "icon": "music_note",
+        "color": "#000000"
+      }
+    ]
+  },
+  "notes": [
+    "Canonical family data is not sourced from custom configuration.",
+    "Legacy About fields are merged only when corresponding nested fields are absent.",
+    "No beneficiaries or finance data are migrated."
+  ]
+}

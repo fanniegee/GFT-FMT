@@ -1,0 +1,45 @@
+{
+  "status": "PRE_MIGRATION_REVIEW",
+  "postgresWritesAuthorized": false,
+  "safeToMigrate": [
+    "224 shared canonical family records, subject to canonical-source authority"
+  ],
+  "founderReviewRequired": [
+    {
+      "systemId": "GFT-GEN4-182",
+      "name": "Deigratia Nyasha Guvaza",
+      "reason": "Present in LocalStorage but absent from the 224-record canonical family source"
+    }
+  ],
+  "mergeReconcile": [
+    "Beneficiary-source overlaps for GFT-GEN3-011 and GFT-GEN4-182",
+    "guvaza_custom_config and legacy About configuration keys"
+  ],
+  "openingBalanceReview": [
+    "Distribution 900",
+    "Beneficiary Pool 0",
+    "Funeral 3800",
+    "School 2100",
+    "Trust 24000",
+    "FPB 0",
+    "Reserve 900",
+    "GFT-GEN4-057 wallet 1200",
+    "GFT-GEN4-182 wallet 1200",
+    "GFT-GEN3-011 wallet 1200",
+    "Aggregate payout 3600 for 3 people at 1200 each"
+  ],
+  "doNotMigrate": [
+    "Plaintext passwords",
+    "Browser current-user/session keys",
+    "Temporary 2FA codes",
+    "DIPVTC LocalStorage data",
+    "UI/cache/version-only keys"
+  ],
+  "nextGate": [
+    "Founder decision on GFT-GEN4-182",
+    "Beneficiary reconciliation",
+    "Finance opening-balance reconciliation",
+    "Configuration merge plan",
+    "Server-side security enrollment/reset plan"
+  ]
+}

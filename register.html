@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guvaza Family Trust — Beneficiary Registration</title>
+<meta name="description" content="Guvaza Family Trust beneficiary registration">
+
+<link rel="stylesheet" href="public-footer.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+
+:root{
+  --maroon:#7a1731;
+  --maroon-dark:#5c1025;
+  --blue:#183b66;
+  --blue-2:#285b8f;
+  --green:#477d5c;
+  --ink:#18222d;
+  --muted:#65717d;
+  --line:#dce2e8;
+  --soft:#f5f7f9;
+  --white:#fff;
+  --danger:#a82b35;
+  --warn:#9a6810;
+  --ok:#2f7048;
+  --shadow:0 12px 35px rgba(20,35,50,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:#f7f8fa;line-height:1.5}
+a{color:var(--blue)}
+header{background:linear-gradient(110deg,var(--maroon),#8b2340 48%,var(--blue));color:#fff}
+.nav{max-width:1180px;margin:auto;padding:17px 22px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{font-weight:800;letter-spacing:.2px}.brand small{display:block;font-weight:500;opacity:.82}
+.navlinks{display:flex;gap:18px}.navlinks a{color:#fff;text-decoration:none;font-size:.92rem}
+.hero{max-width:1180px;margin:auto;padding:28px 22px 34px}
+.hero h1{margin:0 0 8px;font-size:clamp(1.55rem,3vw,2.25rem)}
+.hero p{margin:0;max-width:760px;opacity:.92}
+.wrap{max-width:1080px;margin:-12px auto 50px;padding:0 18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.progress{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--line);background:#fff}
+.progress button{border:0;background:#fff;padding:14px 7px;color:var(--muted);font-weight:700;font-size:.76rem;cursor:pointer;border-right:1px solid var(--line)}
+.progress button:last-child{border-right:0}
+.progress button.active{color:var(--maroon);background:#fff7f9}
+.progress button.done{color:var(--green)}
+.progress button.locked{cursor:not-allowed}
+.step{display:none;padding:28px}
+.step.active{display:block}
+.step h2{margin:0 0 6px;color:var(--blue)}
+.step-intro{margin:0 0 22px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.full{grid-column:1/-1}
+label{font-weight:700;font-size:.92rem}
+.required{color:var(--danger)}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid #cbd3db;border-radius:9px;background:#fff;color:var(--ink);font:inherit}
+input:focus,select:focus,textarea:focus{outline:3px solid rgba(40,91,143,.12);border-color:var(--blue-2)}
+input[readonly]{background:#f1f4f6}
+.help{font-size:.78rem;color:var(--muted)}
+.notice{padding:13px 15px;border-radius:10px;margin:0 0 18px;border:1px solid #dce4ea;background:#f7fafc}
+.notice.ok{border-color:#c9dfd1;background:#f3faf5;color:#255b39}
+.notice.warn{border-color:#ead8a9;background:#fffaf0;color:#76500d}
+.notice.danger{border-color:#ecc8cb;background:#fff5f6;color:#7e2029}
+.badge{display:inline-flex;align-items:center;padding:4px 9px;border-radius:99px;font-size:.73rem;font-weight:800;background:#eef2f6;color:#46525e}
+.badge.ok{background:#eaf5ee;color:#2d6944}.badge.pending{background:#fff4da;color:#79540c}.badge.locked{background:#fdebec;color:#8d2731}
+.actions{display:flex;justify-content:space-between;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}
+button.primary,button.secondary,button.danger{border:0;border-radius:9px;padding:11px 18px;font:inherit;font-weight:800;cursor:pointer}
+button.primary{background:var(--maroon);color:#fff}
+button.secondary{background:#e9eef3;color:var(--blue)}
+button.danger{background:#8f2631;color:#fff}
+button:disabled{opacity:.48;cursor:not-allowed}
+.wife-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+.wife{border:1px solid #cbd3db;background:#fff;border-radius:12px;padding:14px;text-align:left;cursor:pointer;min-height:72px}
+.wife strong{display:block;color:var(--blue)}.wife small{color:var(--muted)}
+.wife.selected{border:2px solid var(--maroon);background:#fff7f9}
+.wife.locked{pointer-events:none;opacity:.55}
+.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px}
+.summary div{padding:11px 12px;background:var(--soft);border-radius:9px}.summary b{display:block;font-size:.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.review{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.review-row{display:grid;grid-template-columns:210px 1fr;border-bottom:1px solid var(--line)}.review-row:last-child{border-bottom:0}
+.review-row>*{padding:10px 12px}.review-row b{background:#f7f9fa}
+.filebox{padding:14px;border:1px dashed #bac5cf;border-radius:10px;background:#fafbfc}
+.status{padding:18px;text-align:center;border-radius:12px;background:#f5f8fa;border:1px solid var(--line)}
+.status h3{margin:0 0 8px;color:var(--blue)}
+.hidden{display:none!important}
+footer{max-width:1080px;margin:0 auto 40px;padding:0 18px;color:var(--muted);font-size:.78rem}
+@media(max-width:760px){
+  .grid,.summary{grid-template-columns:1fr}.wife-grid{grid-template-columns:repeat(2,1fr)}
+  .progress button{font-size:.65rem;padding:11px 3px}.step{padding:20px}
+  .review-row{grid-template-columns:1fr}.navlinks{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="brand">Guvaza Family Trust<small>Beneficiary Registration</small></div>
+    <nav class="navlinks"><a href="index.html">Home</a><a href="register.html">Register</a><a href="about.html">About</a></nav>
+  </div>
+  <div class="hero">
+    <h1>Beneficiary Registration</h1>
+    <p>One registration record, one verified lineage chain, and one canonical beneficiary structure for the GFT portals.</p>
+  </div>
+</header>
+
+<main class="wrap">
+<div class="card">
+  <div class="progress" id="progress">
+    <button data-step="1" class="active">1. Personal</button>
+    <button data-step="2">2. Lineage</button>
+    <button data-step="3">3. Structure</button>
+    <button data-step="4">4. Documents</button>
+    <button data-step="5">5. Email & Review</button>
+    <button data-step="6">6. Submit</button>
+  </div>
+
+  <form id="registrationForm" novalidate>
+    <!-- STEP 1 -->
+    <section class="step active" data-step="1">
+      <h2>Personal & Contact</h2>
+      <p class="step-intro">Enter the applicant's legal/current details. Root surname is derived from the verified Guvaza lineage; it is not freely editable.</p>
+      <div class="grid">
+        <div class="field full"><label>Full name <span class="required">*</span></label><input id="fullName" autocomplete="name" required></div>
+        <div class="field"><label>Date of birth <span class="required">*</span></label><input id="dateOfBirth" type="date" required></div>
+        <div class="field"><label>Gender <span class="required">*</span></label><select id="gender" required><option value="">Select gender</option><option value="MALE">Male</option><option value="FEMALE">Female</option></select></div>
+        <div class="field"><label>Root surname</label><input id="rootSurname" value="Guvaza" readonly></div>
+        <div class="field"><label>Current surname <span class="required">*</span></label><input id="currentSurname" required></div>
+        <div class="field"><label>Email <span class="required">*</span></label><input id="email" type="email" autocomplete="email" required></div>
+        <div class="field"><label>Username <span class="help">(optional)</span></label><input id="username" autocomplete="username"></div>
+        <div class="field"><label>Phone number <span class="required">*</span></label><input id="phone" type="tel" autocomplete="tel" required></div>
+        <div class="field full"><label>Applicant identity / birth-document number <span class="required">*</span></label><input id="documentNumber" required><div class="help" id="documentExpectation">Document requirement will be determined from date of birth.</div></div>
+      </div>
+      <div id="ageNotice" class="notice hidden"></div>
+      <div class="actions"><span></span><button type="button" class="primary" data-next>Continue</button></div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="step" data-step="2">
+      <h2>Family Lineage</h2>
+      <p class="step-intro">The applicant must identify the biological parent and grandparent. The system verifies the parent against the authoritative family structure and derives the actual grandparent from that parent.</p>
+      <div class="notice">Parent ID and parent supporting document are <b>optional</b>. They are quick-proof evidence only and are never the sole condition for registration.</div>
+      <div class="grid">
+        <div class="field"><label>Parent relationship <span class="required">*</span></label><select id="parentRelationship" required><option value="">Select</option><option value="FATHER">Father</option><option value="MOTHER">Mother</option></select></div>
+        <div class="field"><label>Parent full name <span class="required">*</span></label><input id="parentName" required></div>
+        <div class="field full"><label>Grandparent full name <span class="required">*</span></label><input id="grandparentName" required></div>
+        <div class="field"><label>Parent ID number <span class="help">(optional)</span></label><input id="parentIdNumber"></div>
+        <div class="field"><label>Parent supporting document <span class="help">(optional quick proof)</span></label><input id="parentDocument" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
+      </div>
+      <div id="lineageResult" class="notice hidden"></div>
+      <div class="actions"><button type="button" class="secondary" data-back>Back</button><button type="button" class="primary" id="verifyLineageBtn">Verify lineage & continue</button></div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="step" data-step="3">
+      <h2>Family Structure</h2>
+      <p class="step-intro">The system derives generation, branch and parent IDs. The applicant then selects WIFE 1–WIFE 8 manually. The correct choice is never disclosed after a failed attempt.</p>
+      <div id="structureSummary" class="summary"></div>
+      <div class="notice warn" id="wifeAttemptNotice">Two verification attempts are available. After the second incorrect attempt, family-structure verification is frozen and Founder/Admin review is required.</div>
+      <div class="wife-grid" id="wifeGrid"></div>
+      <div id="wifeResult" class="notice hidden"></div>
+      <div class="actions"><button type="button" class="secondary" id="structureBack">Back</button><button type="button" class="primary" id="continueFromStructure" disabled>Continue</button></div>
+    </section>
+
+    <!-- STEP 4 -->
+    <section class="step" data-step="4">
+      <h2>Identity & Documents</h2>
+      <p class="step-intro">The required applicant document is selected automatically from age. Generation/document-era information may help select an appropriate historical template, but age determines the registration document requirement.</p>
+      <div id="documentRule" class="notice"></div>
+      <div class="grid">
+        <div class="field"><label>Primary document type</label><input id="primaryDocumentType" readonly></div>
+        <div class="field"><label>Primary document number</label><input id="primaryDocumentNumber" readonly></div>
+        <div class="field full"><label>Applicant primary document <span class="required">*</span></label><input id="applicantDocument" type="file" accept=".pdf,.jpg,.jpeg,.png" required><div class="help">Accepted: PDF, JPG, JPEG or PNG. The browser checks file type/size/quality; OCR, authenticity and authoritative verification require the verification service.</div></div>
+        <div class="field full"><label>Additional supporting document <span class="help">(optional)</span></label><input id="additionalDocument" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
+        <div class="field" id="guardianFields"><label>Guardian full name <span class="required">*</span></label><input id="guardianName"></div>
+        <div class="field" id="guardianRelationshipField"><label>Guardian relationship <span class="required">*</span></label><input id="guardianRelationship"></div>
+        <div class="field" id="guardianPhoneField"><label>Guardian phone <span class="required">*</span></label><input id="guardianPhone" type="tel"></div>
+        <div class="field"><label>Guardian ID number <span class="help">(optional)</span></label><input id="guardianIdNumber"></div>
+      </div>
+      <div id="documentValidationResult" class="notice hidden"></div>
+      <div class="actions"><button type="button" class="secondary" id="documentsBack">Back</button><button type="button" class="primary" id="validateDocumentsBtn">Validate documents & continue</button></div>
+    </section>
+
+    <!-- STEP 5 -->
+    <section class="step" data-step="5">
+      <h2>Email Verification & Review</h2>
+      <p class="step-intro">Email ownership is a separate security gate. It does not prove lineage. OTPs must be generated, hashed, rate-limited and verified by the backend.</p>
+      <div class="notice">
+        <b>Email:</b> <span id="emailPreview"></span>
+        <button type="button" class="secondary" id="sendOtpBtn" style="float:right;padding:7px 10px">Send OTP</button>
+        <div style="clear:both"></div>
+      </div>
+      <div class="grid">
+        <div class="field"><label>Email OTP <span class="required">*</span></label><input id="otp" inputmode="numeric" maxlength="8" autocomplete="one-time-code"></div>
+        <div class="field"><label>OTP validity</label><input id="otpTimer" value="Not sent" readonly></div>
+      </div>
+      <div id="otpResult" class="notice hidden"></div>
+      <div class="review" id="reviewBox"></div>
+      <div class="field" style="margin-top:18px"><label><input id="declaration" type="checkbox" style="width:auto;margin-right:8px"> I declare that the information supplied is true and understand that registration does not by itself authorize payout. <span class="required">*</span></label></div>
+      <div class="actions"><button type="button" class="secondary" id="reviewBack">Back</button><button type="button" class="primary" id="verifyOtpBtn">Verify email & continue</button></div>
+    </section>
+
+    <!-- STEP 6 -->
+    <section class="step" data-step="6">
+      <h2>Submission & Result</h2>
+      <div id="finalStatus" class="status"></div>
+      <div id="finalDetails" class="review" style="margin-top:18px"></div>
+      <div class="actions"><button type="button" class="secondary" id="restartBtn">Start another registration</button><span></span></div>
+    </section>
+  </form>
+</div>
+</main>
+<footer>
+  Registration, lineage confirmation, identity verification and Founder payout approval are separate gates. No registration submission from this page creates payout eligibility.
+</footer>
+
+<script src="trustRules.js"></script>
+<script src="guvazaTree.js"></script>
+<script>
+"use strict";
+
+/*
+  GFT REGISTER — canonical registration front end.
+
+  Production integration points:
+    POST /api/registration/send-otp
+    POST /api/registration/verify-otp
+    POST /api/registration/submit
+
+  The browser deliberately does NOT generate/store OTPs or store document binaries.
+  The backend must perform secure OTP generation/hashing/rate limiting, OCR,
+  document authenticity checks, authoritative ID verification where available,
+  duplicate detection, and secure document storage.
+*/
+
+const GFT_CONFIG = {
+  API_BASE: "/api/registration",
+  MAX_FILE_BYTES: 10 * 1024 * 1024
+};
+
+const state = {
+  step: 1,
+  wifeAttempts: 0,
+  wifeFrozen: false,
+  wifeVerified: false,
+  emailVerified: false,
+  otpExpiresAt: null,
+  otpTimer: null,
+  lineage: null,
+  structure: null,
+  identity: null,
+  application: null,
+  lockedLineage: false
+};
+
+const $ = id => document.getElementById(id);
+
+function normalizeName(v){
+  return String(v || "").trim().replace(/\s+/g," ").toUpperCase();
+}
+function normalizeSurname(v){ return normalizeName(v); }
+function esc(v){
+  return String(v ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function daysOld(dob){
+  const d = new Date(dob + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return null;
+  const now = new Date();
+  const diff = now - d;
+  return Math.floor(diff / 86400000);
+}
+function ageYears(dob){
+  const d = new Date(dob + "T00:00:00");
+  const n = new Date();
+  let age = n.getFullYear() - d.getFullYear();
+  const beforeBirthday = (n.getMonth() < d.getMonth()) || (n.getMonth() === d.getMonth() && n.getDate() < d.getDate());
+  if (beforeBirthday) age--;
+  return age;
+}
+function expectedDocumentForAge(dob){
+  const days = daysOld(dob);
+  if (days === null) return null;
+  if (days < 1) return {code:"INVALID", label:"DOB must be at least one day old"};
+  const age = ageYears(dob);
+  if (age < 16) return {code:"BIRTH_CERTIFICATE", label:"Birth certificate + guardian"};
+  return {code:"NATIONAL_ID", label:"National identity document"};
+}
+function isDateValid(dob){
+  const d = new Date(dob + "T00:00:00");
+  return !Number.isNaN(d.getTime()) && d <= new Date() && daysOld(dob) >= 1;
+}
+
+function getTree(){
+  const candidates = [
+    window.guvazaTree,
+    window.GuvazaTree,
+    window.guvazaTreeData,
+    window.GUVAZA_TREE
+  ];
+  for (const c of candidates) if (Array.isArray(c)) return c;
+  if (window.guvazaTreeById && typeof window.guvazaTreeById === "object") return Object.values(window.guvazaTreeById);
+  return [];
+}
+function getRules(){
+  return window.GFTTrustRules || window.TrustRules || window.trustRules || window.GFT_RULES || {};
+}
+function getPersonId(p){ return p?.systemId || p?.gftId || p?.id || p?.memberId || null; }
+function getParentId(p){ return p?.parentId || p?.parentSystemId || p?.parentGftId || null; }
+function getGeneration(p){
+  const n = Number(p?.generation);
+  return Number.isFinite(n) ? n : null;
+}
+function getBranch(p){ return p?.branch || p?.familyBranch || p?.lineageBranch || null; }
+function getGender(p){
+  const g = String(p?.gender || p?.sex || "").toUpperCase();
+  if (g.startsWith("F")) return "FEMALE";
+  if (g.startsWith("M")) return "MALE";
+  return "";
+}
+function isPlaceholder(p){ return Boolean(p?.isPlaceholder); }
+function getFullName(p){ return p?.fullName || p?.name || [p?.firstName,p?.lastName].filter(Boolean).join(" "); }
+function getWifeNo(p){ return Number(p?.wifeNo || p?.wifeNumber || p?.motherWifeNo || 0) || null; }
+function getWifeName(p, no){
+  if (!p || !no) return null;
+  const sources = [p.wifeNames, p.wives, p.wifeNameByNo];
+  for (const src of sources){
+    if (src && typeof src === "object"){
+      const v = src[no] ?? src[String(no)];
+      if (typeof v === "string" && v.trim()) return v.trim();
+      if (v && typeof v === "object") return v.name || null;
+    }
+  }
+  return p.wifeName || null;
+}
+
+function allRecords(){
+  const fixed = getTree().map(p => ({
+    ...p,
+    systemId: getPersonId(p),
+    fullName: getFullName(p),
+    parentId: getParentId(p),
+    generation: getGeneration(p),
+    branch: getBranch(p),
+    gender: getGender(p),
+    rootSurname: p.rootSurname || "Guvaza",
+    currentSurname: p.currentSurname || p.rootSurname || "Guvaza",
+    wifeNo: getWifeNo(p),
+    isPlaceholder: isPlaceholder(p)
+  }));
+  let registered = [];
+  try { registered = JSON.parse(localStorage.getItem("gft_canonical_beneficiaries") || "[]"); } catch {}
+  return [...fixed, ...registered.filter(r => r?.systemId)];
+}
+
+function canonicalStatus(r){
+  return String(r?.beneficiaryStatus || r?.lineageStatus || "").toUpperCase();
+}
+function isAuthoritativeRegistered(r){
+  return ["AUTO_VERIFIED","FOUNDER_VERIFIED","LINEAGE_CONFIRMED"].includes(canonicalStatus(r));
+}
+
+function specialZekiaMatch(input, person){
+  if (getPersonId(person) !== "GFT-GEN3-010") return false;
+  const a = normalizeName(input), n = normalizeName(getFullName(person));
+  return (a === "ZEKIA GUVAZA" || a === "HESKIA GUVAZA" || a === n);
+}
+
+function resolvePersonExact(name){
+  const n = normalizeName(name);
+  if (!n) return {person:null,candidates:[]};
+  const records = allRecords();
+  let candidates = records.filter(p => normalizeName(getFullName(p)) === n);
+  if (!candidates.length) candidates = records.filter(p => specialZekiaMatch(name,p));
+  return {person:candidates.length === 1 ? candidates[0] : null,candidates};
+}
+
+function findParent(name){
+  const result = resolvePersonExact(name);
+  if (result.candidates.length !== 1) return result;
+  const p = result.person;
+  if (isPlaceholder(p) && !isAuthoritativeRegistered(p)) return {person:null,candidates:result.candidates,placeholder:true};
+  return result;
+}
+
+function deriveGrandparent(parent){
+  const pid = getParentId(parent);
+  if (!pid) return null;
+  return allRecords().find(p => getPersonId(p) === pid) || null;
+}
+
+function compareGrandparentClaim(claim, actual){
+  return normalizeName(claim) === normalizeName(getFullName(actual));
+}
+
+function evaluateFemaleGrace(parent, grandparent){
+  if (!parent || !grandparent) return {eligible:false, reason:"LINEAGE_INCOMPLETE"};
+  const parentFemale = getGender(parent) === "FEMALE";
+  const gpMale = getGender(grandparent) === "MALE";
+  const parentGuvaza = normalizeSurname(parent.rootSurname || "Guvaza") === "GUVAZA";
+  const gpGuvaza = normalizeSurname(grandparent.rootSurname || "Guvaza") === "GUVAZA";
+  if (parentFemale && gpMale && parentGuvaza && gpGuvaza)
+    return {eligible:true, reason:"DIRECT_BIOLOGICAL_CHILD_OF_GUVAZA_DAUGHTER"};
+  return {eligible:false, reason:"NOT_ALLOWED_FEMALE_GRACE_PATH"};
+}
+
+function validateIdentityNumber(v){
+  const x = String(v||"").trim().toUpperCase();
+  const patterns = [
+    /^\d{2}-\d{6}[A-Z]\d{2}$/,
+    /^\d{2}\d{6}[A-Z]\d{2}$/,
+    /^\d{2}-\d{7}\s[A-Z]\s\d{2}$/,
+    /^\d{2}-\d{7}[A-Z]\d{2}$/,
+    /^\d{2}-\d{6}\s[A-Z]\s\d{2}$/
+  ];
+  return patterns.some(r => r.test(x));
+}
+
+function showStep(n){
+  if (n < 1 || n > 6) return;
+  state.step = n;
+  document.querySelectorAll(".step").forEach(s => s.classList.toggle("active", Number(s.dataset.step) === n));
+  document.querySelectorAll("#progress button").forEach(b => {
+    const x = Number(b.dataset.step);
+    b.classList.toggle("active", x === n);
+    b.classList.toggle("done", x < n);
+    b.classList.toggle("locked", x > n);
+    b.disabled = x > n || (state.wifeFrozen && x < 3);
+  });
+  if (n === 4) updateDocumentRule();
+  if (n === 5) buildReview();
+}
+
+function fieldValue(id){ return $(id).value.trim(); }
+
+function validateStep1(){
+  const name=fieldValue("fullName"), dob=fieldValue("dateOfBirth"), gender=fieldValue("gender"),
+        surname=fieldValue("currentSurname"), email=fieldValue("email"), phone=fieldValue("phone"), doc=fieldValue("documentNumber");
+  if (!name || !dob || !gender || !surname || !email || !phone || !doc) return "Please complete all required fields.";
+  if (!isDateValid(dob)) return "The applicant must be at least one day old and the date of birth cannot be in the future.";
+  const rule=expectedDocumentForAge(dob);
+  if (rule.code==="INVALID") return rule.label;
+  if (rule.code==="NATIONAL_ID" && !validateIdentityNumber(doc)) return "The applicant's National ID number does not match the accepted Zimbabwe ID formats.";
+  return null;
+}
+
+function updateAgeNotice(){
+  const el=$("ageNotice"), dob=fieldValue("dateOfBirth");
+  if (!dob){el.classList.add("hidden");$("documentExpectation").textContent="Document requirement will be determined from date of birth.";return;}
+  const rule=expectedDocumentForAge(dob);
+  el.classList.remove("hidden");
+  if (!rule || rule.code==="INVALID"){el.className="notice danger";el.textContent=rule?.label||"Invalid date.";return;}
+  el.className="notice ok";
+  el.textContent=`Age-based requirement: ${rule.label}. The applicant's generation/document era may affect which historical template is checked, but does not remove the age requirement.`;
+  $("documentExpectation").textContent=rule.label;
+}
+$("dateOfBirth").addEventListener("change",updateAgeNotice);
+
+function verifyLineage(){
+  if (state.lockedLineage) return;
+  const parentName=fieldValue("parentName"), gpClaim=fieldValue("grandparentName"), rel=fieldValue("parentRelationship");
+  const result=$("lineageResult");
+  if (!parentName || !gpClaim || !rel){result.className="notice danger";result.textContent="Parent relationship, parent full name and grandparent full name are required.";result.classList.remove("hidden");return;}
+  const found=findParent(parentName);
+  if (found.candidates.length !== 1 || !found.person){
+    result.className="notice warn";result.textContent="The named parent could not be uniquely established from the authoritative family records. Registration can continue only as a Founder/Admin lineage review case; the system will not substitute the root as a parent.";result.classList.remove("hidden");
+    state.lineage={status:"LINEAGE_REVIEW_REQUIRED",parent:null,grandparent:null};
+    state.lockedLineage=true;
+    $("structureSummary").innerHTML="";
+    renderWives(null);
+    showStep(3);
+    return;
+  }
+  const parent=found.person;
+  const gp=deriveGrandparent(parent);
+  if (!gp){
+    result.className="notice warn";result.textContent="The parent is known, but the system cannot derive the grandparent from the authoritative parent record. Founder/Admin review is required.";result.classList.remove("hidden");
+    state.lineage={status:"LINEAGE_REVIEW_REQUIRED",parent,grandparent:null};
+    state.lockedLineage=true; showStep(3); return;
+  }
+  if (!compareGrandparentClaim(gpClaim,gp)){
+    result.className="notice danger";result.textContent="The supplied grandparent does not match the derived family relationship. The correct grandparent is not disclosed. Founder/Admin verification is required.";result.classList.remove("hidden");
+    state.lineage={status:"LINEAGE_REVIEW_REQUIRED",parent,grandparent:gp,claimedGrandparent:gpClaim};
+    state.lockedLineage=true; showStep(3); return;
+  }
+  const femaleGrace=evaluateFemaleGrace(parent,gp);
+  state.lineage={status:"LINEAGE_CONFIRMED",parent,grandparent:gp,femaleGrace};
+  state.lockedLineage=true;
+  result.className="notice ok";result.textContent="Parent and grandparent relationship accepted against the authoritative family structure.";result.classList.remove("hidden");
+  prepareStructure();
+  showStep(3);
+}
+
+function prepareStructure(){
+  const parent=state.lineage?.parent,gp=state.lineage?.grandparent;
+  const gen=parent ? ((getGeneration(parent) ?? 0)+1) : null;
+  const branch=getBranch(parent) || getBranch(gp) || "REVIEW REQUIRED";
+  state.structure={
+    generation:gen,branch,parentId:getPersonId(parent),grandparentId:getPersonId(gp),
+    expectedWifeNo: getWifeNo(parent), expectedWifeName:getWifeName(parent,getWifeNo(parent)),
+    femaleGrace:state.lineage?.femaleGrace || {eligible:false}
+  };
+  $("structureSummary").innerHTML=[
+    ["Generation",gen ? "GEN"+gen : "Review required"],
+    ["Branch",branch],
+    ["Parent ID",getPersonId(parent)||"Review required"],
+    ["Grandparent ID",getPersonId(gp)||"Review required"],
+    ["Female grace",state.structure.femaleGrace.eligible ? "Eligible path" : "Not applicable / not eligible"],
+    ["Lineage status",state.lineage?.status||"PENDING"]
+  ].map(x=>`<div><b>${esc(x[0])}</b>${esc(x[1])}</div>`).join("");
+  renderWives(parent);
+}
+
+function renderWives(parent){
+  const grid=$("wifeGrid"); grid.innerHTML="";
+  for(let i=1;i<=8;i++){
+    const name=getWifeName(parent,i);
+    const b=document.createElement("button");
+    b.type="button";b.className="wife";
+    b.innerHTML=`<strong>WIFE ${i}</strong><small>${esc(name||"Name unknown")}</small>`;
+    b.addEventListener("click",()=>selectWife(i));
+    grid.appendChild(b);
+  }
+  $("continueFromStructure").disabled=true;
+}
+
+function selectWife(no){
+  if (state.wifeFrozen || state.wifeVerified) return;
+  state.wifeAttempts++;
+  const expected=state.structure?.expectedWifeNo;
+  document.querySelectorAll(".wife").forEach((b,i)=>b.classList.toggle("selected",i===no-1));
+  const result=$("wifeResult");
+  if (!expected){
+    result.className="notice warn";result.textContent="This family structure does not contain a sufficiently authoritative wife-number mapping for automatic verification. The selection has been recorded for Founder/Admin review.";result.classList.remove("hidden");
+    state.structure.wifeNo=no;state.structure.wifeName=getWifeName(state.lineage?.parent,no);
+    state.wifeVerified=false;state.wifeFrozen=true;state.lockedLineage=true;
+    $("continueFromStructure").disabled=false;
+    return;
+  }
+  if (no===expected){
+    state.wifeVerified=true;state.structure.wifeNo=no;state.structure.wifeName=getWifeName(state.lineage.parent,no);
+    result.className="notice ok";result.textContent="Family-structure selection accepted.";result.classList.remove("hidden");
+    document.querySelectorAll(".wife").forEach(b=>b.classList.add("locked"));
+    $("continueFromStructure").disabled=false;
+    return;
+  }
+  if (state.wifeAttempts===1){
+    result.className="notice warn";result.textContent="That selection could not be verified. One verification attempt remains. The correct choice is not disclosed.";result.classList.remove("hidden");
+  } else {
+    state.wifeFrozen=true;state.structure.wifeNo=no;state.structure.wifeName=getWifeName(state.lineage?.parent,no);
+    result.className="notice danger";result.textContent="Family-structure verification is now frozen. No third attempt or backtracking is allowed. Founder/Admin review is required.";result.classList.remove("hidden");
+    document.querySelectorAll(".wife").forEach(b=>b.classList.add("locked"));
+    $("continueFromStructure").disabled=false;
+  }
+  $("wifeAttemptNotice").textContent=`Attempts used: ${state.wifeAttempts}/2.`;
+}
+
+function validateFile(file, required=true){
+  if (!file) return required ? "Required document has not been selected." : null;
+  const allowed=["application/pdf","image/jpeg","image/png"];
+  if (!allowed.includes(file.type) && !/\.(pdf|jpe?g|png)$/i.test(file.name)) return "Unsupported file type. Use PDF, JPG, JPEG or PNG.";
+  if (file.size > GFT_CONFIG.MAX_FILE_BYTES) return "Document is larger than the 10 MB browser limit.";
+  if (file.size < 10240) return "Document file is unusually small; please provide a clearer original.";
+  return null;
+}
+
+function updateDocumentRule(){
+  const dob=fieldValue("dateOfBirth"), rule=expectedDocumentForAge(dob), age=dob?ageYears(dob):null;
+  $("primaryDocumentType").value=rule?.code==="BIRTH_CERTIFICATE" ? "Zimbabwe Birth Certificate" : rule?.code==="NATIONAL_ID" ? "Zimbabwe National Identity Document" : "";
+  $("primaryDocumentNumber").value=fieldValue("documentNumber");
+  $("documentRule").textContent=rule ? `Applicant age: ${age} years. Required primary document: ${rule.label}. Passport/other documents may be submitted as additional evidence but do not silently replace the required document rule.` : "Complete date of birth first.";
+  const under16=rule?.code==="BIRTH_CERTIFICATE";
+  ["guardianFields","guardianRelationshipField","guardianPhoneField"].forEach(id=>$(id).classList.toggle("hidden",!under16));
+  $("guardianName").required=under16;$("guardianRelationship").required=under16;$("guardianPhone").required=under16;
+}
+
+function validateDocuments(){
+  updateDocumentRule();
+  const rule=expectedDocumentForAge(fieldValue("dateOfBirth"));
+  const applicantFile=$("applicantDocument").files[0];
+  const parentFile=$("parentDocument").files[0];
+  const additional=$("additionalDocument").files[0];
+  let err=validateFile(applicantFile,true) || validateFile(additional,false) || validateFile(parentFile,false);
+  if (err){showDocResult(err,"danger");return;}
+  if (rule.code==="NATIONAL_ID" && !validateIdentityNumber(fieldValue("documentNumber"))){showDocResult("The applicant's National ID number is not in an accepted format.","danger");return;}
+  if (rule.code==="BIRTH_CERTIFICATE" && (!fieldValue("guardianName") || !fieldValue("guardianRelationship") || !fieldValue("guardianPhone"))){showDocResult("Under-16 registration requires guardian details in addition to the birth certificate.","danger");return;}
+  state.identity={
+    expectedDocument:rule.code,
+    primaryFileName:applicantFile.name,
+    parentDocumentProvided:Boolean(parentFile),
+    additionalDocumentProvided:Boolean(additional),
+    status:"PENDING_DOCUMENT_VERIFICATION",
+    clientChecks:["FILE_TYPE","FILE_SIZE","BASIC_FILE_PRESENCE"]
+  };
+  showDocResult("Basic document checks passed. OCR, document structure, duplicate detection, tamper screening and authoritative verification remain backend verification tasks.","ok");
+  setTimeout(()=>showStep(5),350);
+}
+function showDocResult(msg,type){
+  const e=$("documentValidationResult");e.className=`notice ${type}`;e.textContent=msg;e.classList.remove("hidden");
+}
+
+function buildReview(){
+  $("emailPreview").textContent=fieldValue("email");
+  const p=state.lineage?.parent,g=state.lineage?.grandparent,s=state.structure;
+  const rows=[
+    ["Full name",fieldValue("fullName")],["Date of birth",fieldValue("dateOfBirth")],["Gender",fieldValue("gender")],
+    ["Root surname","Guvaza"],["Current surname",fieldValue("currentSurname")],["Email",fieldValue("email")],
+    ["Parent",p?getFullName(p):fieldValue("parentName")],["Grandparent",g?getFullName(g):fieldValue("grandparentName")],
+    ["Generation",s?.generation ? "GEN"+s.generation : "Review required"],["Branch",s?.branch||"Review required"],
+    ["Wife choice",s?.wifeNo ? `WIFE ${s.wifeNo}` : "Not automatically verified"],["Lineage status",state.lineage?.status||"PENDING"],
+    ["Family structure",state.wifeFrozen?"FAMILY_STRUCTURE_FROZEN":state.wifeVerified?"VERIFIED":"PENDING"],
+    ["Identity status",state.identity?.status||"PENDING"]
+  ];
+  $("reviewBox").innerHTML=rows.map(r=>`<div class="review-row"><b>${esc(r[0])}</b><span>${esc(r[1])}</span></div>`).join("");
+}
+
+async function api(path,options={}){
+  const res=await fetch(`${GFT_CONFIG.API_BASE}${path}`,{
+    ...options,headers:{"Content-Type":"application/json",...(options.headers||{})}
+  });
+  let data={};try{data=await res.json()}catch{}
+  if(!res.ok) throw new Error(data.message||`Verification service returned HTTP ${res.status}`);
+  return data;
+}
+
+async function sendOtp(){
+  const email=fieldValue("email");
+  if(!email){showOtpResult("Enter an email address first.","danger");return;}
+  $("sendOtpBtn").disabled=true;
+  try{
+    const data=await api("/send-otp",{method:"POST",body:JSON.stringify({email})});
+    state.otpExpiresAt=Date.now()+180000;
+    startOtpTimer();
+    showOtpResult(data.message||"OTP sent. It expires in 180 seconds.","ok");
+  }catch(e){
+    showOtpResult("Email verification service is not configured or could not be reached. No client-side OTP is generated because doing so would expose the verification secret.","danger");
+  }finally{setTimeout(()=>$("sendOtpBtn").disabled=false,15000);}
+}
+function startOtpTimer(){
+  clearInterval(state.otpTimer);
+  const tick=()=>{
+    const left=Math.max(0,state.otpExpiresAt-Date.now());
+    $("otpTimer").value=left?`${Math.ceil(left/1000)} seconds remaining`:"Expired";
+    if(!left) clearInterval(state.otpTimer);
+  };
+  tick();state.otpTimer=setInterval(tick,500);
+}
+function showOtpResult(msg,type){const e=$("otpResult");e.className=`notice ${type}`;e.textContent=msg;e.classList.remove("hidden");}
+
+async function verifyOtp(){
+  if(!$("declaration").checked){showOtpResult("Please accept the declaration before continuing.","danger");return;}
+  const code=fieldValue("otp");
+  if(!code){showOtpResult("Enter the OTP sent to the applicant's email.","danger");return;}
+  try{
+    const data=await api("/verify-otp",{method:"POST",body:JSON.stringify({email:fieldValue("email"),otp:code})});
+    if(!data.verified) throw new Error("Email verification failed.");
+    state.emailVerified=true;
+    showOtpResult("Email ownership verified.","ok");
+    await submitRegistration();
+  }catch(e){showOtpResult(e.message||"Email verification failed.","danger");}
+}
+
+function nextGftId(generation){
+  const records=allRecords();
+  const prefix=`GFT-GEN${generation}-`;
+  let max=0;
+  records.forEach(r=>{
+    const id=getPersonId(r)||"";
+    if(id.startsWith(prefix)){
+      const n=parseInt(id.slice(prefix.length),10);if(Number.isFinite(n))max=Math.max(max,n);
+    }
+  });
+  return `${prefix}${String(max+1).padStart(3,"0")}`;
+}
+
+function createCanonicalRecord(){
+  const gen=state.structure?.generation || ((getGeneration(state.lineage?.parent)||0)+1);
+  const systemId=nextGftId(gen);
+  const parent=state.lineage?.parent,gp=state.lineage?.grandparent;
+  const femaleGrace=state.structure?.femaleGrace || {eligible:false};
+  const structureNeedsReview=state.wifeFrozen || !state.wifeVerified || state.lineage?.status!=="LINEAGE_CONFIRMED";
+  return {
+  systemId,
+  fullName:fieldValue("fullName"),
+  dateOfBirth:fieldValue("dateOfBirth"),
+  gender:fieldValue("gender"),
+  rootSurname:"Guvaza",
+  currentSurname:fieldValue("currentSurname"),
+  documentNumber:fieldValue("documentNumber"),
+
+    parentId:getPersonId(parent),
+    parentName:parent?getFullName(parent):fieldValue("parentName"),
+    grandparentId:getPersonId(gp),
+    grandparentName:gp?getFullName(gp):fieldValue("grandparentName"),
+    generation:gen,
+    branch:state.structure?.branch||null,
+    wifeNo:state.structure?.wifeNo||null,
+    wifeName:state.structure?.wifeName||null,
+    email:fieldValue("email"),
+    emailVerified:state.emailVerified,
+    username:fieldValue("username")||null,
+    phone:fieldValue("phone"),
+    identityStatus:state.identity?.status||"PENDING_DOCUMENT_VERIFICATION",
+    lineageStatus:state.lineage?.status||"PENDING_VERIFICATION",
+    founderVerificationStatus:"PENDING",
+    beneficiaryStatus:structureNeedsReview ? "PENDING_VERIFICATION" : "AUTO_VERIFIED",
+    walletEligible:false,
+    payoutEligible:false,
+    femaleGraceEligible:Boolean(femaleGrace.eligible),
+    familyStructureStatus:state.wifeFrozen?"FAMILY_STRUCTURE_FROZEN":state.wifeVerified?"VERIFIED":"PENDING",
+    parentDocumentProvided:Boolean($("parentDocument").files[0]),
+    createdAt:new Date().toISOString()
+  };
+}
+
+async function submitRegistration(){
+  if(!state.emailVerified){
+    throw new Error("Email must be verified.");
+  }
+
+  const record = createCanonicalRecord();
+  state.application = record;
+
+  const payload = {
+    record: record,
+    parentDocumentProvided: Boolean(
+      $("#parentDocument")?.files?.[0]
+    ),
+    applicantDocumentName:
+      $("#applicantDocument")?.files?.[0]?.name || null,
+    additionalDocumentName:
+      $("#additionalDocument")?.files?.[0]?.name || null
+  };
+
+  try{
+    const response = await fetch("http://localhost:3000/api/registrations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if(!response.ok){
+      throw new Error(
+        result.message ||
+        result.error ||
+        "Registration could not be submitted."
+      );
+    }
+
+    record.storageMode = "SERVER";
+    record.registrationStatus =
+      result.registrationStatus ||
+      "PENDING_REVIEW";
+
+    if(result.systemId){
+      record.systemId = result.systemId;
+    }
+
+    state.application = record;
+
+    renderFinal();
+    showStep(6);
+
+  }catch(error){
+    console.error("GFT registration submission failed:", error);
+
+    alert(
+      "Registration was not submitted to the Trust server.\n\n" +
+      "Please check your connection and try again.\n\n" +
+      "No beneficiary record was saved locally."
+    );
+  }
+}
+
+function renderFinal(){
+  const r=state.application;
+  const review = r.beneficiaryStatus==="AUTO_VERIFIED" ? "AUTO_VERIFIED" : "PENDING_VERIFICATION";
+  $("finalStatus").innerHTML=`<h3>Registration received</h3><p>Your permanent GFT system ID is <b>${esc(r.systemId)}</b>.</p><span class="badge ${review==="AUTO_VERIFIED"?"ok":"pending"}">${esc(review)}</span><p style="margin-bottom:0">Registration does <b>not</b> authorize payout. Wallet and payout eligibility remain false until the required Founder approval process is completed.</p>`;
+  const rows=[
+    ["GFT ID",r.systemId],["Lineage status",r.lineageStatus],["Identity status",r.identityStatus],
+    ["Founder verification","PENDING"],["Beneficiary status",r.beneficiaryStatus],
+    ["Wallet eligible",String(r.walletEligible)],["Payout eligible",String(r.payoutEligible)]
+  ];
+  $("finalDetails").innerHTML=rows.map(x=>`<div class="review-row"><b>${esc(x[0])}</b><span>${esc(x[1])}</span></div>`).join("");
+}
+
+function resetForm(){
+  location.reload();
+}
+
+document.querySelectorAll("[data-next]").forEach(b=>b.addEventListener("click",()=>{
+  const err=validateStep1();if(err){alert(err);return;}showStep(2);
+}));
+$("verifyLineageBtn").addEventListener("click",verifyLineage);
+$("continueFromStructure").addEventListener("click",()=>showStep(4));
+$("validateDocumentsBtn").addEventListener("click",validateDocuments);
+$("sendOtpBtn").addEventListener("click",sendOtp);
+$("verifyOtpBtn").addEventListener("click",verifyOtp);
+$("restartBtn").addEventListener("click",resetForm);
+$("structureBack").addEventListener("click",()=>{if(!state.lockedLineage)showStep(2)});
+$("documentsBack").addEventListener("click",()=>{if(!state.wifeFrozen)showStep(3)});
+$("reviewBack").addEventListener("click",()=>showStep(4));
+document.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>{if(!state.lockedLineage)showStep(Math.max(1,state.step-1))}));
+
+// Prevent progress buttons from bypassing validation/locks.
+document.querySelectorAll("#progress button").forEach(b=>b.addEventListener("click",()=>{
+  const target=Number(b.dataset.step);
+  if(target===state.step || target>state.step || (state.wifeFrozen && target<3)) return;
+  showStep(target);
+}));
+
+// Initial state.
+$("rootSurname").value="Guvaza";
+updateAgeNotice();
+updateDocumentRule();
+showStep(1);
+</script>
+
+<div id="gft-public-footer"></div>
+<script src="config.js"></script>
+<script src="public-footer.js"></script>
+
+</body>
+</html>
