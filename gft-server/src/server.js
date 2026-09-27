@@ -9,6 +9,8 @@ import { query } from './db.js';
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 const PORT = Number(process.env.PORT || 3000);
 
 const __filename = fileURLToPath(import.meta.url);
