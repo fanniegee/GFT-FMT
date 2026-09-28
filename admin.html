@@ -363,11 +363,11 @@ const ROLE_MANUALS={
   'Support':{purpose:'Assist beneficiaries and administrative operations using limited deployed access.',duties:['Handle assigned support requests','Review permitted beneficiary information','Escalate unresolved cases'],mustNot:['Approve restricted actions'],escalate:'Founder / assigned supervisor'}
 };
 function safeParseJSON(v,fallback){try{return JSON.parse(v);}catch(e){return fallback;}}
+
 function getCurrentAdminFresh(){
-  const list=safeParseJSON(localStorage.getItem('guvaza_admins')||'[]',[]);
-  if(!currentAdmin) return list.find(a=>a.email===safeParseJSON(localStorage.getItem('guvaza_current_admin')||'null',{})?.email)||null;
-  return list.find(a=>a.email===currentAdmin.email)||currentAdmin;
+  return currentAdmin || null;
 }
+
 function getEffectiveAccess(){
   const a=currentAdmin||{};
   const roleDef=ROLE_DEFS[a.role]||{perms:['dashboard'],label:a.role||'Admin',color:'#3b82f6'};
@@ -540,8 +540,9 @@ async function doAdminLogin(){
 }
 
 function showAdminApp(){
- if(!currentAdmin){let saved=safeParseJSON(localStorage.getItem('guvaza_current_admin')||'null',null); if(saved) currentAdmin=saved; else return;}
- const fresh=getCurrentAdminFresh(); if(fresh) currentAdmin=fresh;
+
+if(!currentAdmin) return;
+ 
  if(currentAdmin.active===false || ['PENDING','SUSPENDED','REVOKED','TEMPORARILY_LOCKED','EXPIRED'].includes(String(currentAdmin.status||'').toUpperCase())){ alert('This Admin account is not currently active. Contact Founder.'); return; }
  localStorage.setItem('guvaza_current_admin',JSON.stringify(currentAdmin));
  document.getElementById('loginScreen').style.display='none';
@@ -621,11 +622,52 @@ function showSec(id){
   if(id==='authority') renderAuthority();
   if(id==='tasks'){ renderTasks(); refreshAuthorityGuards(); }
 }
-function doLogout(){localStorage.removeItem('guvaza_current_admin'); currentAdmin=null; document.getElementById('adminApp').style.display='none'; document.getElementById('loginScreen').style.display='flex'; document.getElementById('loginBox').style.display='block'; document.getElementById('setPasswordBox').style.display='none';}
-(function init(){
- if(checkInviteLink()) return;
- let saved=JSON.parse(localStorage.getItem('guvaza_current_admin')||'null'); if(saved){let still=JSON.parse(localStorage.getItem('guvaza_admins')||'[]').find(a=>a.email===saved.email && a.active); if(still){currentAdmin=still; showAdminApp();}}
+
+async function doLogout(){
+  try{
+    await fetch('/api/admin/logout',{
+      method:'POST',
+      credentials:'include'
+    });
+  }catch(error){
+    console.warn('Admin logout request failed:',error);
+  }
+
+  localStorage.removeItem('guvaza_current_admin');
+  currentAdmin=null;
+
+  document.getElementById('adminApp').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginBox').style.display='block';
+  document.getElementById('setPasswordBox').style.display='none';
+}
+
+(async function init(){
+  if(checkInviteLink()) return;
+
+  try{
+    const response = await fetch('/api/admin/me',{
+      method:'GET',
+      credentials:'include'
+    });
+
+    const result = await response.json();
+
+    if(response.ok && result.ok && result.admin){
+      currentAdmin=result.admin;
+
+      localStorage.setItem(
+        'guvaza_current_admin',
+        JSON.stringify(currentAdmin)
+      );
+
+      showAdminApp();
+    }
+  }catch(error){
+    console.warn('Admin session check failed:',error);
+  }
 })();
+
 function gftDeepEqual(a,b){try{return JSON.stringify(a)===JSON.stringify(b);}catch(e){return a===b;}}
 function gftMergeConcurrent(base, local, latest){
   if(gftDeepEqual(local,base)) return latest;
