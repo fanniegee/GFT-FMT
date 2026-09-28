@@ -476,22 +476,69 @@ function doSetOwnPassword(){
  window.history.replaceState({},document.title, window.location.pathname);
  showAdminApp();
 }
-function doAdminLogin(){
- let email=document.getElementById('loginEmail').value.trim().toLowerCase();
- let pw=document.getElementById('loginPassword').value.trim();
- let msg=document.getElementById('loginMsg');
- if(!email||!pw){msg.innerText='Enter email + password';return;}
- admins=JSON.parse(localStorage.getItem('guvaza_admins')||'[]');
- let found=admins.find(a=>a.email.toLowerCase()===email && a.active && (a.passwordPlain===pw || a.passwordHash===hashPw(pw)));
- if(!found){
-   let pending=admins.find(a=>a.email.toLowerCase()===email &&!a.active);
-   if(pending){msg.innerText='You have not set your password yet. Use the invite link sent to your WhatsApp/Email: admin.html?invite='+email+'&code='+pending.inviteCode;return;}
-   msg.innerText='Invalid email or password or not active. Ask Founder to invite you in founder.html';return;
- }
- currentAdmin=found;
- localStorage.setItem('guvaza_current_admin', JSON.stringify(found));
- showAdminApp();
+
+async function doAdminLogin(){
+  const email =
+    document.getElementById('loginEmail').value.trim().toLowerCase();
+
+  const pw =
+    document.getElementById('loginPassword').value;
+
+  const msg =
+    document.getElementById('loginMsg');
+
+  if(!email || !pw){
+    msg.innerText = 'Enter email + password';
+    return;
+  }
+
+  msg.innerText = 'Signing in...';
+
+  try{
+    const response = await fetch('/api/admin/login',{
+      method:'POST',
+      credentials:'include',
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        email,
+        password:pw
+      })
+    });
+
+    const result = await response.json();
+
+    if(!response.ok || !result.ok){
+      msg.innerText =
+        result.error ||
+        'Invalid email or password';
+      return;
+    }
+
+    currentAdmin = result.admin;
+
+    /*
+      Keep only the non-sensitive current Admin profile
+      temporarily for the existing dashboard UI.
+      Authentication itself is now handled by the server.
+    */
+    localStorage.setItem(
+      'guvaza_current_admin',
+      JSON.stringify(currentAdmin)
+    );
+
+    msg.innerText = '';
+
+    showAdminApp();
+
+  }catch(error){
+    console.error('Admin login error:',error);
+    msg.innerText =
+      'Unable to connect to the Admin server. Please try again.';
+  }
 }
+
 function showAdminApp(){
  if(!currentAdmin){let saved=safeParseJSON(localStorage.getItem('guvaza_current_admin')||'null',null); if(saved) currentAdmin=saved; else return;}
  const fresh=getCurrentAdminFresh(); if(fresh) currentAdmin=fresh;
