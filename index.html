@@ -1538,7 +1538,7 @@
 
 <script>
 
-(function () {
+(async function () {
 
     "use strict";
 
@@ -1563,7 +1563,7 @@
         founderCfg = {};
     }
 
-    const cfg = Object.assign(
+    let cfg = Object.assign(
         {},
         baseCfg,
         founderCfg,
@@ -1575,6 +1575,17 @@
             )
         }
     );
+
+try {
+    const response = await fetch('/api/config/public');
+    const result = await response.json();
+
+    if (response.ok && result.ok && result.config) {
+        cfg = result.config;
+    }
+} catch (error) {
+    console.warn('Using static homepage configuration:', error);
+}
 
     const homepage =
         cfg.homepage || {};
