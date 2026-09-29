@@ -253,6 +253,94 @@ app.get('/api/config/public', async (_req, res) => {
 });
 
 // ------------------------------------------------------------
+// ADMIN PUBLIC-SITE CONFIGURATION
+// ------------------------------------------------------------
+
+app.put('/api/admin/config/public', requireAdmin, async (req, res) => {
+  try {
+    const config = req.body?.config;
+
+    if (!config || typeof config !== 'object' || Array.isArray(config)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Configuration object is required'
+      });
+    }
+
+    const result = await query(
+      `INSERT INTO configuration (
+         config_key,
+         config_value,
+         version
+       )
+       VALUES (
+         'public_site',
+         $1::jsonb,
+         1
+       )
+       ON CONFLICT (config_key)
+       DO UPDATE SET
+         config_value = EXCLUDED.config_value,
+         version = configuration.version + 1,
+         updated_at = NOW()
+       RETURNING
+         config_key,
+         config_value,
+         version,
+         updated_at`,
+      [JSON.stringify(config)]
+    );
+
+    await query(
+      `INSERT INTO gft_admin_audit_events (
+         event_id,
+         admin_id,
+         admin_email,
+         action,
+         details,
+         ip_address,
+         user_agent
+       )
+       VALUES (
+         $1,
+         $2,
+         $3,
+         'PUBLIC_CONFIG_UPDATED',
+         $4::jsonb,
+         $5,
+         $6
+       )`,
+      [
+        `AUD-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        req.admin.admin_id,
+        req.admin.email,
+        JSON.stringify({
+          configKey: 'public_site',
+          version: result.rows[0].version
+        }),
+        req.ip || null,
+        req.get('user-agent') || null
+      ]
+    );
+
+    return res.json({
+      ok: true,
+      config: result.rows[0].config_value,
+      version: result.rows[0].version,
+      updatedAt: result.rows[0].updated_at
+    });
+
+  } catch (error) {
+    console.error('Admin public configuration update error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to save public configuration'
+    });
+  }
+});
+
+// ------------------------------------------------------------
 // REGISTRATION SUBMISSION
 //
 // Registration goes into PostgreSQL as PENDING.

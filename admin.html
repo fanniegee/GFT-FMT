@@ -317,7 +317,36 @@ Founded on Guvaza. Carried by Rutambo. Built for the rising generations.</textar
 <script>
 if(typeof TRUST_CONFIG==='undefined'){window.TRUST_CONFIG={name:"The Guvaza Family Trust",caps:{funeral:6000,school:5000,funeralPayout:600},companies:[],homepage:{cards:[]},about:{familyMembers:[]}};}
 const CFG=TRUST_CONFIG;
+
 let customConfig = JSON.parse(localStorage.getItem('guvaza_custom_config')||'null') || JSON.parse(JSON.stringify(CFG));
+let customConfigLoadedFromServer = false;
+
+async function loadCustomConfigFromServer(){
+  try{
+    const response = await fetch('/api/config/public', {
+      credentials: 'include'
+    });
+
+    const result = await response.json();
+
+    if(!response.ok || !result.ok || !result.config){
+      throw new Error(result.error || 'Unable to load public configuration');
+    }
+
+    customConfig = result.config;
+    customConfigLoadedFromServer = true;
+
+  }catch(error){
+    console.warn('Using local configuration fallback:', error);
+  }
+
+  if(!customConfig.about) customConfig.about={familyMembers:[], sections:[]};
+  if(!customConfig.about.familyMembers) customConfig.about.familyMembers=[];
+  if(!customConfig.about.sections) customConfig.about.sections=[];
+  if(!customConfig.homepage) customConfig.homepage={cards:[]};
+
+  customConfigBaseline = JSON.parse(JSON.stringify(customConfig));
+}
 let customConfigBaseline = null;
 
 if(!customConfig.about) customConfig.about={familyMembers:[], sections:[]};
@@ -539,9 +568,10 @@ async function doAdminLogin(){
   }
 }
 
-function showAdminApp(){
+async function showAdminApp(){
 
 if(!currentAdmin) return;
+await loadCustomConfigFromServer();
  
  if(currentAdmin.active===false || ['PENDING','SUSPENDED','REVOKED','TEMPORARILY_LOCKED','EXPIRED'].includes(String(currentAdmin.status||'').toUpperCase())){ alert('This Admin account is not currently active. Contact Founder.'); return; }
  localStorage.setItem('guvaza_current_admin',JSON.stringify(currentAdmin));
@@ -696,10 +726,36 @@ function mergeLatestCustomConfigBeforeSave(){
     }
   }catch(e){ console.warn('GFT concurrent config merge failed',e); }
 }
-function saveCustomConfig(){
-  mergeLatestCustomConfigBeforeSave();
-  localStorage.setItem('guvaza_custom_config', JSON.stringify(customConfig));
-  customConfigBaseline=JSON.parse(JSON.stringify(customConfig));
+
+async function saveCustomConfig(){
+  try {
+    const response = await fetch('/api/admin/config/public', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        config: customConfig
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || 'Unable to save configuration');
+    }
+
+    customConfig = result.config;
+    customConfigBaseline = JSON.parse(JSON.stringify(customConfig));
+
+    return true;
+
+  } catch (error) {
+    console.error('Admin configuration save failed:', error);
+    alert('Unable to save homepage changes to the server.');
+    return false;
+  }
 }
 
 function renderAboutRoot(){
@@ -708,7 +764,7 @@ function renderAboutRoot(){
  document.getElementById('editAboutStoryRoot').value=ab.story||document.getElementById('editAboutStoryRoot').value;
  document.getElementById('aboutRootPreview').innerText=(ab.title||'')+"\n\n"+(ab.story||'');
 }
-function saveAboutRootEdits(){
+async function saveAboutRootEdits(){
  customConfig.about=customConfig.about||{};
  let titleVal=document.getElementById('editAboutTitleRoot').value.trim();
  let storyVal=document.getElementById('editAboutStoryRoot').value.trim();
@@ -729,9 +785,11 @@ function saveAboutRootEdits(){
    customConfig.about.sections[0].title=titleVal;
    customConfig.about.sections[0].story=storyVal;
  }
- saveCustomConfig();
- document.getElementById('aboutRootPreview').innerText=titleVal+"\n\n"+storyVal;
- alert('Guvaza Root story + Title saved!');
+const saved = await saveCustomConfig();
+if(!saved) return;
+document.getElementById('aboutRootPreview').innerText=titleVal+"\n\n"+storyVal;
+alert('Guvaza Root story + Title saved!');  
+
 }
 function previewRoot(){
  let t=document.getElementById('editAboutTitleRoot').value;
@@ -789,7 +847,7 @@ function renderHomeEdit(){
  let img=document.getElementById('homePrevImg'); if(hp.heroImage){img.src=hp.heroImage; img.style.display='block';}
  renderHomeCardsAdmin();
 }
-function saveHomeEdits(){
+async function saveHomeEdits(){
  customConfig.homepage=customConfig.homepage||{};
  let file=document.getElementById('editHeroImageFile').files[0];
  let save=(imgVal)=>{
@@ -802,8 +860,13 @@ function saveHomeEdits(){
   customConfig.homepage.showWallets=document.getElementById('editShowWallets').checked;
   customConfig.homepage.showCompanies=document.getElementById('editShowCompanies').checked;
   customConfig.homepage.showBeneficiariesCount=document.getElementById('editShowBen').checked;
-  saveCustomConfig(); renderHomeEdit(); alert('Home view saved!');
- };
+  
+const saved = await saveCustomConfig();
+if(!saved) return;
+renderHomeEdit();
+alert('Home view saved!');
+ 
+};
  if(file){let r=new FileReader(); r.onload=e=>save(e.target.result); r.readAsDataURL(file);} else {save(document.getElementById('editHeroImage').value.trim());}
 }
 function renderHomeCardsAdmin(){
@@ -813,10 +876,15 @@ function renderHomeCardsAdmin(){
   wrap.innerHTML+=`<div class="ben-item" style="display:block;border-left:4px solid ${c.color};border-right:4px solid ${c.color}"><input id="admCardTitle_${i}" value="${c.title}" placeholder="Title"><input id="admCardSub_${i}" value="${c.subtitle}" placeholder="Subtitle"><input id="admCardImg_${i}" value="${c.image||''}" placeholder="Banner image"></div>`;
  });
 }
-function saveHomeCardsAdmin(){
+async function saveHomeCardsAdmin(){
  let cards=customConfig.homepage.cards||[];
  cards=cards.map((c,i)=>{return{...c, title:document.getElementById(`admCardTitle_${i}`)?.value||c.title, subtitle:document.getElementById(`admCardSub_${i}`)?.value||c.subtitle, image:document.getElementById(`admCardImg_${i}`)?.value||c.image}});
- customConfig.homepage.cards=cards; saveCustomConfig(); renderHomeCardsAdmin(); alert('Cards saved!');
+ customConfig.homepage.cards=cards;
+const saved = await saveCustomConfig();
+if(!saved) return;
+renderHomeCardsAdmin();
+alert('Cards saved!');
+
 }
 function renderAboutEdit(){
  let ab=customConfig.about||{};
@@ -825,7 +893,7 @@ function renderAboutEdit(){
  renderAdminFamily();
  renderAboutSectionsAdmin();
 }
-function saveAboutEdits(){
+async function saveAboutEdits(){
  customConfig.about=customConfig.about||{};
  let titleVal=document.getElementById('editAboutTitle').value.trim();
  let storyVal=document.getElementById('editAboutStory').value.trim();
@@ -846,8 +914,9 @@ function saveAboutEdits(){
    customConfig.about.sections[0].title=titleVal;
    customConfig.about.sections[0].story=storyVal;
  }
- saveCustomConfig();
- alert('About saved!');
+ const saved = await saveCustomConfig();
+if(!saved) return;
+alert('About saved!');
 }
 function renderAdminFamily(){
  let list=document.getElementById('adminFamilyList'); let badge=document.getElementById('adminFamilyCount');
@@ -855,16 +924,33 @@ function renderAdminFamily(){
  if(members.length===0){list.innerHTML='<p style="color:var(--muted)">No family - add Guvaza etc</p>';return;}
  list.innerHTML=''; members.forEach((m,i)=>{list.innerHTML+=`<div class="ben-item"><img src="${m.image}" style="width:50px;height:50px;border-radius:10px;object-fit:cover"><div class="ben-info"><b>${m.name}</b><br><small>${m.caption}</small></div><div><button class="danger" style="padding:6px 10px" onclick="adminDelFamily(${i})">Delete</button></div></div>`});
 }
-function adminAddFamily(){
+async function adminAddFamily(){
  let name=document.getElementById('adminFamilyName').value.trim(); let cap=document.getElementById('adminFamilyCaption').value.trim(); let imgPath=document.getElementById('adminFamilyImage').value.trim(); let file=document.getElementById('adminFamilyFile').files[0];
  if(!name) return alert('Name required');
- let save=(img)=>{customConfig.about.familyMembers.push({name:name,caption:cap,image:img}); saveCustomConfig(); renderAdminFamily();};
- if(file){let r=new FileReader(); r.onload=e=>save(e.target.result); r.readAsDataURL(file);} else save(imgPath||'assets/family.jpg');
+ 
+let save=async (img)=>{
+  customConfig.about.familyMembers.push({name:name,caption:cap,image:img});
+  const saved = await saveCustomConfig();
+  if(!saved) return;
+  renderAdminFamily();
+};
+ 
+if(file){let r=new FileReader(); r.onload=e=>save(e.target.result); r.readAsDataURL(file);} else save(imgPath||'assets/family.jpg');
 }
-function adminDelFamily(i){if(!confirm('Delete?')) return; customConfig.about.familyMembers.splice(i,1); saveCustomConfig(); renderAdminFamily();}
+
+async function adminDelFamily(i){
+  if(!confirm('Delete?')) return;
+
+  customConfig.about.familyMembers.splice(i,1);
+
+  const saved = await saveCustomConfig();
+  if(!saved) return;
+
+  renderAdminFamily();
+}
 
 // ===== NEW TIMELINE WITH BOTH SIDE EDGING + EDITABLE GALLERY TITLE =====
-function adminAddAboutSection(){
+async function adminAddAboutSection(){
   let title=document.getElementById('newSecTitle').value.trim();
   let story=document.getElementById('newSecStory').value.trim();
   let galleryTitle=document.getElementById('newSecGalleryTitle').value.trim()||'Family Members Gallery';
@@ -873,8 +959,10 @@ function adminAddAboutSection(){
   if(!story) return alert('Enter story for this section');
   if(!customConfig.about.sections) customConfig.about.sections=[];
   customConfig.about.sections.push({title:title, story:story, gallery:[], galleryTitle: galleryTitle, edgeColor: color});
-  saveCustomConfig();
-  document.getElementById('newSecTitle').value='';
+ const saved = await saveCustomConfig();
+ if(!saved) return;
+ document.getElementById('newSecTitle').value='';
+
   document.getElementById('newSecStory').value='';
   document.getElementById('newSecGalleryTitle').value='Family Members Gallery';
   renderAboutSectionsAdmin();
@@ -925,27 +1013,30 @@ function renderAboutSectionsAdmin(){
     `;
   });
 }
-function delSec(idx){
+async function delSec(idx){
   if(!confirm('Delete section '+(customConfig.about.sections[idx].title)+'? Its gallery will also be deleted!')) return;
   customConfig.about.sections.splice(idx,1);
-  saveCustomConfig();
-  renderAboutSectionsAdmin();
+  const saved = await saveCustomConfig();
+ if(!saved) return;
+ renderAboutSectionsAdmin();
 }
-function moveSecUp(idx){
+async function moveSecUp(idx){
   if(idx===0) return;
   let arr=customConfig.about.sections;
   [arr[idx-1], arr[idx]]=[arr[idx], arr[idx-1]];
-  saveCustomConfig();
-  renderAboutSectionsAdmin();
+ const saved = await saveCustomConfig();
+if(!saved) return;
+renderAboutSectionsAdmin();
 }
-function moveSecDown(idx){
+async function moveSecDown(idx){
   let arr=customConfig.about.sections;
   if(idx>=arr.length-1) return;
   [arr[idx], arr[idx+1]]=[arr[idx+1], arr[idx]];
-  saveCustomConfig();
-  renderAboutSectionsAdmin();
+  const saved = await saveCustomConfig();
+if(!saved) return;
+renderAboutSectionsAdmin();
 }
-function editSecTitle(idx){
+async function editSecTitle(idx){
   let sec=customConfig.about.sections[idx];
   let newTitle=prompt('Edit Section Title:', sec.title); if(newTitle===null) return;
   let newGalleryTitle=prompt('Edit Gallery Heading (editable):', sec.galleryTitle||'Family Members Gallery'); if(newGalleryTitle===null) return;
@@ -955,10 +1046,11 @@ function editSecTitle(idx){
   if(newGalleryTitle) sec.galleryTitle=newGalleryTitle;
   if(newColor) sec.edgeColor=newColor;
   if(newStory) sec.story=newStory;
-  saveCustomConfig();
-  renderAboutSectionsAdmin();
+ const saved = await saveCustomConfig();
+ if(!saved) return;
+ renderAboutSectionsAdmin();
 }
-function adminAddSecGallery(secIdx){
+async function adminAddSecGallery(secIdx){
   let name=document.getElementById(`secGalName_${secIdx}`).value.trim();
   let cap=document.getElementById(`secGalCaption_${secIdx}`).value.trim();
   let imgPath=document.getElementById(`secGalImage_${secIdx}`).value.trim();
@@ -967,18 +1059,20 @@ function adminAddSecGallery(secIdx){
   let save=(img)=>{
     if(!customConfig.about.sections[secIdx].gallery) customConfig.about.sections[secIdx].gallery=[];
     customConfig.about.sections[secIdx].gallery.push({name:name, caption:cap, image:img});
-    saveCustomConfig();
-    renderAboutSectionsAdmin();
+    const saved = await saveCustomConfig();
+if(!saved) return;
+renderAboutSectionsAdmin();
   };
   if(file){let r=new FileReader(); r.onload=e=>save(e.target.result); r.readAsDataURL(file);} else {save(imgPath||'assets/family.jpg');}
 }
-function adminDelSecGallery(secIdx, galIdx){
+async function adminDelSecGallery(secIdx, galIdx){
   if(!confirm('Delete this photo?')) return;
   customConfig.about.sections[secIdx].gallery.splice(galIdx,1);
-  saveCustomConfig();
-  renderAboutSectionsAdmin();
+  const saved = await saveCustomConfig();
+if(!saved) return;
+renderAboutSectionsAdmin();
 }
-function migrateOldToSections(){
+async function migrateOldToSections(){
   if(!confirm('Convert your current single About + old Gallery into timeline?')) return;
   if(!customConfig.about.sections) customConfig.about.sections=[];
   if(customConfig.about.sections.length>0 &&!confirm('You already have sections. Add old as new sections anyway?')) return;
@@ -991,9 +1085,10 @@ function migrateOldToSections(){
       customConfig.about.sections.splice(1,0,{title: 'Our Family Legacy', story: 'Extended family members and rising generations.', gallery: oldGallery.slice(Math.ceil(oldGallery.length/2)), galleryTitle: 'Family Members Gallery', edgeColor:'#3b82f6'});
     }
   }
-  saveCustomConfig();
-  renderAboutSectionsAdmin();
-  alert('Converted! Now about.html will show About → Gallery with both-side edging + hover');
+const saved = await saveCustomConfig();
+if(!saved) return;
+renderAboutSectionsAdmin();
+alert('Converted! Now about.html will show About → Gallery with both-side edging + hover');
 }
 
 function renderPending(){
