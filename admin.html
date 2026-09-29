@@ -1057,7 +1057,7 @@ async function adminAddSecGallery(secIdx){
   let imgPath=document.getElementById(`secGalImage_${secIdx}`).value.trim();
   let file=document.getElementById(`secGalFile_${secIdx}`).files[0];
   if(!name) return alert('Enter name for photo');
-  let save=(img)=>{
+  let save=async (img)=>{
     if(!customConfig.about.sections[secIdx].gallery) customConfig.about.sections[secIdx].gallery=[];
     customConfig.about.sections[secIdx].gallery.push({name:name, caption:cap, image:img});
     const saved = await saveCustomConfig();
