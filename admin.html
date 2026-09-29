@@ -861,10 +861,11 @@ async function saveHomeEdits(){
   customConfig.homepage.showCompanies=document.getElementById('editShowCompanies').checked;
   customConfig.homepage.showBeneficiariesCount=document.getElementById('editShowBen').checked;
   
-const saved = await saveCustomConfig();
-if(!saved) return;
-renderHomeEdit();
-alert('Home view saved!');
+saveCustomConfig().then(saved=>{
+  if(!saved) return;
+  renderHomeEdit();
+  alert('Home view saved!');
+});
  
 };
  if(file){let r=new FileReader(); r.onload=e=>save(e.target.result); r.readAsDataURL(file);} else {save(document.getElementById('editHeroImage').value.trim());}
