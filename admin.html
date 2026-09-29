@@ -571,7 +571,7 @@ async function doAdminLogin(){
 async function showAdminApp(){
 
 if(!currentAdmin) return;
-await loadCustomConfigFromServer();
+loadCustomConfigFromServer();
  
  if(currentAdmin.active===false || ['PENDING','SUSPENDED','REVOKED','TEMPORARILY_LOCKED','EXPIRED'].includes(String(currentAdmin.status||'').toUpperCase())){ alert('This Admin account is not currently active. Contact Founder.'); return; }
  localStorage.setItem('guvaza_current_admin',JSON.stringify(currentAdmin));
