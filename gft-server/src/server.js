@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { query } from './db.js';
+import { Resend } from 'resend';
 
 import {
   randomBytes,
@@ -19,6 +20,8 @@ import { promisify } from 'node:util';
 const scrypt = promisify(scryptCallback);
 
 const app = express();
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.set("trust proxy", 1);
 
@@ -336,6 +339,219 @@ app.put('/api/admin/config/public', requireAdmin, async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: 'Unable to save public configuration'
+    });
+  }
+});
+
+// ------------------------------------------------------------
+// REGISTRATION OTP
+// ------------------------------------------------------------
+
+app.post('/api/registration/send-otp', async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').trim().toLowerCase();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'A valid email address is required'
+      });
+    }
+
+    if (!process.env.RESEND_API_KEY) {
+      return res.status(503).json({
+        ok: false,
+        error: 'Email service is not configured'
+      });
+    }
+
+    if (!process.env.RESEND_FROM_EMAIL) {
+      return res.status(503).json({
+        ok: false,
+        error: 'Registration email sender is not configured'
+      });
+    }
+
+    if (!process.env.OTP_HASH_SECRET) {
+      return res.status(503).json({
+        ok: false,
+        error: 'OTP security is not configured'
+      });
+    }
+
+    const otp = String(randomBytes(4).readUInt32BE(0) % 1000000).padStart(6, '0');
+
+    const codeHash = createHash('sha256')
+      .update(`${email}:${otp}:${process.env.OTP_HASH_SECRET}`)
+      .digest('hex');
+
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await query(
+      `DELETE FROM registration_otps
+       WHERE email = $1`,
+      [email]
+    );
+
+    await query(
+      `INSERT INTO registration_otps
+       (email, code_hash, expires_at)
+       VALUES ($1, $2, $3)`,
+      [email, codeHash, expiresAt]
+    );
+
+    const { error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL,
+      to: [email],
+      subject: 'Guvaza Family Trust Registration OTP',
+      html: `
+        <p>Your Guvaza Family Trust registration verification code is:</p>
+        <p style="font-size:28px;font-weight:bold;letter-spacing:6px;">
+          ${otp}
+        </p>
+        <p>This code expires in 10 minutes.</p>
+        <p>If you did not request this code, you can ignore this email.</p>
+      `
+    });
+
+    if (error) {
+      console.error('Registration OTP email error:', error);
+
+      await query(
+        `DELETE FROM registration_otps
+         WHERE email = $1`,
+        [email]
+      );
+
+      return res.status(502).json({
+        ok: false,
+        error: 'Unable to send verification email'
+      });
+    }
+
+    return res.json({
+      ok: true,
+      expiresInSeconds: 600
+    });
+
+  } catch (error) {
+    console.error('Registration OTP error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to send verification code'
+    });
+  }
+});
+
+app.post('/api/registration/verify-otp', async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const otp = String(req.body?.otp || '').trim();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'A valid email address is required'
+      });
+    }
+
+    if (!/^\d{6}$/.test(otp)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'A valid 6-digit verification code is required'
+      });
+    }
+
+    if (!process.env.OTP_HASH_SECRET) {
+      return res.status(503).json({
+        ok: false,
+        error: 'OTP security is not configured'
+      });
+    }
+
+    const result = await query(
+      `SELECT otp_id, code_hash, expires_at, attempts, verified_at
+       FROM registration_otps
+       WHERE email = $1
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [email]
+    );
+
+    if (!result.rows.length) {
+      return res.status(400).json({
+        ok: false,
+        error: 'No verification code was found'
+      });
+    }
+
+    const record = result.rows[0];
+
+    if (record.verified_at) {
+      return res.json({
+        ok: true,
+        verified: true
+      });
+    }
+
+    if (new Date(record.expires_at).getTime() <= Date.now()) {
+      return res.status(400).json({
+        ok: false,
+        error: 'This verification code has expired'
+      });
+    }
+
+    if (Number(record.attempts) >= 5) {
+      return res.status(429).json({
+        ok: false,
+        error: 'Too many incorrect attempts. Please request a new code.'
+      });
+    }
+
+    const expectedHash = createHash('sha256')
+      .update(`${email}:${otp}:${process.env.OTP_HASH_SECRET}`)
+      .digest('hex');
+
+    const suppliedBuffer = Buffer.from(expectedHash, 'hex');
+    const storedBuffer = Buffer.from(String(record.code_hash), 'hex');
+
+    const valid =
+      suppliedBuffer.length === storedBuffer.length &&
+      timingSafeEqual(suppliedBuffer, storedBuffer);
+
+    if (!valid) {
+      await query(
+        `UPDATE registration_otps
+         SET attempts = attempts + 1
+         WHERE otp_id = $1`,
+        [record.otp_id]
+      );
+
+      return res.status(400).json({
+        ok: false,
+        error: 'Incorrect verification code'
+      });
+    }
+
+    await query(
+      `UPDATE registration_otps
+       SET verified_at = NOW()
+       WHERE otp_id = $1`,
+      [record.otp_id]
+    );
+
+    return res.json({
+      ok: true,
+      verified: true
+    });
+
+  } catch (error) {
+    console.error('Registration OTP verification error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to verify the code'
     });
   }
 });
