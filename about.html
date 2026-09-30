@@ -1181,9 +1181,20 @@
         /* Also expose a safe manual refresh for testing/debugging. */
         window.refreshGFTAboutPage = renderAboutPage;
 
-        document.addEventListener("DOMContentLoaded", function () {
-            renderAboutPage();
-        });
+        document.addEventListener("DOMContentLoaded", async function () {
+    try {
+        const response = await fetch('/api/config/public');
+        const result = await response.json();
+
+        if (response.ok && result.ok && result.config) {
+            window.TRUST_CONFIG = result.config;
+        }
+    } catch (error) {
+        console.warn('Using existing About configuration:', error);
+    }
+
+    renderAboutPage();
+});
 
     </script>
 <div id="gft-public-footer"></div>
