@@ -768,7 +768,7 @@ body{
    CONFIGURATION
 ========================================================= */
 
-const CFG =
+let CFG =
     window.TRUST_CONFIG || {
         name:"The Guvaza Family Trust",
         companies:[]
@@ -1541,7 +1541,23 @@ function renderCompany(){
 
 document.addEventListener(
     "DOMContentLoaded",
-    renderCompany
+    async function(){
+        try{
+            const response = await fetch('/api/config/public');
+            const result = await response.json();
+
+            if(response.ok && result.ok && result.config){
+                CFG = result.config;
+            }
+        }catch(error){
+            console.warn(
+                'Using existing company configuration:',
+                error
+            );
+        }
+
+        renderCompany();
+    }
 );
 
 </script>
