@@ -542,8 +542,23 @@ body{
    CANONICAL PUBLIC CONFIG
 ============================================================ */
 
-const CFG =
+let CFG =
     window.TRUST_CONFIG || {};
+
+document.addEventListener("DOMContentLoaded", async function () {
+    try {
+        const response = await fetch('/api/config/public');
+        const result = await response.json();
+
+        if (response.ok && result.ok && result.config) {
+            CFG = result.config;
+        }
+    } catch (error) {
+        console.warn('Using static company configuration:', error);
+    }
+
+    renderCompanies();
+});
 
 
 /* ============================================================
@@ -1155,10 +1170,7 @@ function openCompany(
    INITIALIZE
 ============================================================ */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    renderCompanies
-);
+// Companies page initialization is handled above
 
 </script>
 <div id="gft-public-footer"></div>
