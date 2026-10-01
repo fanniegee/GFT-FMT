@@ -901,6 +901,15 @@ if (verifiedEmailResult.rows.length === 0) {
   });
 }
 
+if (
+      record.lineageStatus !== 'LINEAGE_CONFIRMED' ||
+      record.familyStructureStatus !== 'FAMILY_STRUCTURE_CONFIRMED'
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Server-side lineage and family structure verification are required'
+      });
+    }
     const result = await query(
       `INSERT INTO registrations (
          applicant_system_id,
