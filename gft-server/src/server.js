@@ -344,6 +344,138 @@ app.put('/api/admin/config/public', requireAdmin, async (req, res) => {
 });
 
 // ------------------------------------------------------------
+// SERVER-SIDE REGISTRATION LINEAGE VERIFICATION
+// ------------------------------------------------------------
+
+app.post('/api/registration/verify-lineage', async (req, res) => {
+  try {
+    const parentName = String(req.body?.parentName || '').trim();
+    const grandparentName = String(req.body?.grandparentName || '').trim();
+
+    if (!parentName || !grandparentName) {
+      return res.status(400).json({
+        ok: false,
+        status: 'LINEAGE_REVIEW_REQUIRED',
+        error: 'Parent name and grandparent name are required'
+      });
+    }
+
+    const normalize = value =>
+      String(value || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toUpperCase();
+
+    const parentResult = await query(
+      `SELECT
+         person_id,
+         system_id,
+         parent_system_id,
+         full_name,
+         gender,
+         generation,
+         branch_code
+       FROM family_people
+       WHERE UPPER(TRIM(full_name)) = $1
+       LIMIT 2`,
+      [normalize(parentName)]
+    );
+
+    if (parentResult.rows.length !== 1) {
+      return res.json({
+        ok: true,
+        status: 'LINEAGE_REVIEW_REQUIRED',
+        reason: parentResult.rows.length === 0
+          ? 'PARENT_NOT_FOUND'
+          : 'PARENT_NOT_UNIQUE'
+      });
+    }
+
+    const parent = parentResult.rows[0];
+
+    if (!parent.parent_system_id) {
+      return res.json({
+        ok: true,
+        status: 'LINEAGE_REVIEW_REQUIRED',
+        reason: 'GRANDPARENT_NOT_LINKED',
+        parent: {
+          systemId: parent.system_id,
+          fullName: parent.full_name,
+          generation: parent.generation,
+          branch: parent.branch_code
+        }
+      });
+    }
+
+    const grandparentResult = await query(
+      `SELECT
+         person_id,
+         system_id,
+         parent_system_id,
+         full_name,
+         gender,
+         generation,
+         branch_code
+       FROM family_people
+       WHERE system_id = $1
+       LIMIT 1`,
+      [parent.parent_system_id]
+    );
+
+    if (!grandparentResult.rows.length) {
+      return res.json({
+        ok: true,
+        status: 'LINEAGE_REVIEW_REQUIRED',
+        reason: 'GRANDPARENT_NOT_FOUND'
+      });
+    }
+
+    const grandparent = grandparentResult.rows[0];
+
+    if (normalize(grandparent.full_name) !== normalize(grandparentName)) {
+      return res.json({
+        ok: true,
+        status: 'LINEAGE_REVIEW_REQUIRED',
+        reason: 'GRANDPARENT_MISMATCH',
+        parent: {
+          systemId: parent.system_id,
+          fullName: parent.full_name,
+          generation: parent.generation,
+          branch: parent.branch_code
+        }
+      });
+    }
+
+    return res.json({
+      ok: true,
+      status: 'LINEAGE_CONFIRMED',
+      parent: {
+        systemId: parent.system_id,
+        fullName: parent.full_name,
+        gender: parent.gender,
+        generation: parent.generation,
+        branch: parent.branch_code
+      },
+      grandparent: {
+        systemId: grandparent.system_id,
+        fullName: grandparent.full_name,
+        gender: grandparent.gender,
+        generation: grandparent.generation,
+        branch: grandparent.branch_code
+      }
+    });
+
+  } catch (error) {
+    console.error('Server-side lineage verification error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to verify lineage'
+    });
+  }
+});
+
+// ------------------------------------------------------------
 // REGISTRATION OTP
 // ------------------------------------------------------------
 
