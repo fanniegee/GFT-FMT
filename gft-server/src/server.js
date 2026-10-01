@@ -3,6 +3,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { query } from './db.js';
@@ -20,6 +21,27 @@ import { promisify } from 'node:util';
 const scrypt = promisify(scryptCallback);
 
 const app = express();
+
+const registrationUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+    files: 3
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowed = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png'
+    ];
+
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error('Only PDF, JPG, and PNG files are allowed'));
+    }
+
+    cb(null, true);
+  }
+});
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -813,9 +835,16 @@ app.post('/api/registration/verify-otp', async (req, res) => {
 // It does NOT create a beneficiary or wallet.
 // ------------------------------------------------------------
 
-app.post('/api/registrations', async (req, res) => {
+app.post(
+  '/api/registrations',
+  registrationUpload.fields([
+    { name: 'applicantDocument', maxCount: 1 },
+    { name: 'parentDocument', maxCount: 1 },
+    { name: 'additionalDocument', maxCount: 1 }
+  ]),
+  async (req, res) => {
   try {
-    const record = req.body?.record;
+    const record = JSON.parse(req.body?.record || '{}');
 
     if (!record || typeof record !== 'object') {
       return res.status(400).json({
@@ -901,6 +930,43 @@ if (verifiedEmailResult.rows.length === 0) {
         registrationEmail
       ]
     );
+
+    const saved = result.rows[0];
+
+const uploadedDocuments = [
+  {
+    field: 'applicantDocument',
+    type: 'APPLICANT_DOCUMENT'
+  },
+  {
+    field: 'parentDocument',
+    type: 'PARENT_DOCUMENT'
+  },
+  {
+    field: 'additionalDocument',
+    type: 'ADDITIONAL_DOCUMENT'
+  }
+];
+
+for (const document of uploadedDocuments) {
+  const file = req.files?.[document.field]?.[0];
+
+  if (!file) continue;
+
+  await query(
+    `INSERT INTO registration_documents
+       (registration_id, document_type, file_name, mime_type, file_size, file_data)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [
+      saved.registration_id,
+      document.type,
+      file.originalname,
+      file.mimetype,
+      file.size,
+      file.buffer
+    ]
+  );
+}
 
     const saved = result.rows[0];
 

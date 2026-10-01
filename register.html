@@ -454,39 +454,79 @@ function updateAgeNotice(){
 }
 $("dateOfBirth").addEventListener("change",updateAgeNotice);
 
-function verifyLineage(){
+async function verifyLineage(){
   if (state.lockedLineage) return;
-  const parentName=fieldValue("parentName"), gpClaim=fieldValue("grandparentName"), rel=fieldValue("parentRelationship");
-  const result=$("lineageResult");
-  if (!parentName || !gpClaim || !rel){result.className="notice danger";result.textContent="Parent relationship, parent full name and grandparent full name are required.";result.classList.remove("hidden");return;}
-  const found=findParent(parentName);
-  if (found.candidates.length !== 1 || !found.person){
-    result.className="notice warn";result.textContent="The named parent could not be uniquely established from the authoritative family records. Registration can continue only as a Founder/Admin lineage review case; the system will not substitute the root as a parent.";result.classList.remove("hidden");
-    state.lineage={status:"LINEAGE_REVIEW_REQUIRED",parent:null,grandparent:null};
-    state.lockedLineage=true;
-    $("structureSummary").innerHTML="";
-    renderWives(null);
-    showStep(3);
+
+  const parentName = fieldValue("parentName");
+  const grandparentName = fieldValue("grandparentName");
+  const relationship = fieldValue("parentRelationship");
+  const result = $("lineageResult");
+
+  if (!parentName || !grandparentName || !relationship) {
+    result.className = "notice danger";
+    result.textContent =
+      "Parent relationship, parent full name and grandparent full name are required.";
+    result.classList.remove("hidden");
     return;
   }
-  const parent=found.person;
-  const gp=deriveGrandparent(parent);
-  if (!gp){
-    result.className="notice warn";result.textContent="The parent is known, but the system cannot derive the grandparent from the authoritative parent record. Founder/Admin review is required.";result.classList.remove("hidden");
-    state.lineage={status:"LINEAGE_REVIEW_REQUIRED",parent,grandparent:null};
-    state.lockedLineage=true; showStep(3); return;
+
+  try {
+    const data = await api("/verify-lineage", {
+      method: "POST",
+      body: JSON.stringify({
+        parentName,
+        grandparentName,
+        parentRelationship: relationship
+      })
+    });
+
+    if (!data.ok || data.status !== "LINEAGE_CONFIRMED") {
+      result.className = "notice warn";
+      result.textContent =
+        data.message ||
+        data.error ||
+        "Founder/Admin lineage review is required.";
+      result.classList.remove("hidden");
+
+      state.lineage = {
+        status: data.status || "LINEAGE_REVIEW_REQUIRED",
+        parent: data.parent || null,
+        grandparent: data.grandparent || null
+      };
+
+      state.lockedLineage = true;
+      $("structureSummary").innerHTML = "";
+      renderWives(null);
+      showStep(3);
+      return;
+    }
+
+    state.lineage = {
+      status: "LINEAGE_CONFIRMED",
+      parent: data.parent || null,
+      grandparent: data.grandparent || null,
+      femaleGrace: data.femaleGrace || { eligible: false }
+    };
+
+    state.lockedLineage = true;
+
+    result.className = "notice ok";
+    result.textContent =
+      "Parent and grandparent relationship accepted by the Trust server.";
+    result.classList.remove("hidden");
+
+    prepareStructure();
+    showStep(3);
+
+  } catch (error) {
+    console.error("GFT server lineage verification failed:", error);
+
+    result.className = "notice danger";
+    result.textContent =
+      error.message ||
+      "Unable to verify lineage with the Trust server.";
+    result.classList.remove("hidden");
   }
-  if (!compareGrandparentClaim(gpClaim,gp)){
-    result.className="notice danger";result.textContent="The supplied grandparent does not match the derived family relationship. The correct grandparent is not disclosed. Founder/Admin verification is required.";result.classList.remove("hidden");
-    state.lineage={status:"LINEAGE_REVIEW_REQUIRED",parent,grandparent:gp,claimedGrandparent:gpClaim};
-    state.lockedLineage=true; showStep(3); return;
-  }
-  const femaleGrace=evaluateFemaleGrace(parent,gp);
-  state.lineage={status:"LINEAGE_CONFIRMED",parent,grandparent:gp,femaleGrace};
-  state.lockedLineage=true;
-  result.className="notice ok";result.textContent="Parent and grandparent relationship accepted against the authoritative family structure.";result.classList.remove("hidden");
-  prepareStructure();
-  showStep(3);
 }
 
 function prepareStructure(){
@@ -783,25 +823,31 @@ async function submitRegistration(){
   const record = createCanonicalRecord();
   state.application = record;
 
-  const payload = {
-    record: record,
-    parentDocumentProvided: Boolean(
-      $("#parentDocument")?.files?.[0]
-    ),
-    applicantDocumentName:
-      $("#applicantDocument")?.files?.[0]?.name || null,
-    additionalDocumentName:
-      $("#additionalDocument")?.files?.[0]?.name || null
-  };
+ const formData = new FormData();
 
-  try{
-    const response = await fetch("/api/registrations", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+formData.append("record", JSON.stringify(record));
+
+const applicantFile = $("#applicantDocument")?.files?.[0];
+const parentFile = $("#parentDocument")?.files?.[0];
+const additionalFile = $("#additionalDocument")?.files?.[0];
+
+if (applicantFile) {
+  formData.append("applicantDocument", applicantFile);
+}
+
+if (parentFile) {
+  formData.append("parentDocument", parentFile);
+}
+
+if (additionalFile) {
+  formData.append("additionalDocument", additionalFile);
+}
+
+try{
+  const response = await fetch("/api/registrations", {
+    method: "POST",
+    body: formData
+  });
 
     const result = await response.json().catch(() => ({}));
 
