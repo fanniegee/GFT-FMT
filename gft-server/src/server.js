@@ -968,8 +968,6 @@ for (const document of uploadedDocuments) {
   );
 }
 
-    const saved = result.rows[0];
-
     return res.status(201).json({
       ok: true,
       registrationId: saved.registration_id,
