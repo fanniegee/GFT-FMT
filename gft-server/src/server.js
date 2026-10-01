@@ -903,7 +903,7 @@ if (verifiedEmailResult.rows.length === 0) {
 
 if (
       record.lineageStatus !== 'LINEAGE_CONFIRMED' ||
-      record.familyStructureStatus !== 'FAMILY_STRUCTURE_CONFIRMED'
+      record.familyStructureStatus !== 'VERIFIED'
     ) {
       return res.status(400).json({
         ok: false,
@@ -912,32 +912,52 @@ if (
     }
     const result = await query(
       `INSERT INTO registrations (
-         applicant_system_id,
-         full_name,
-         username,
-         phone,
-         id_number,
-         parent_full_name,
-         grandparent_full_name,
-         email,
-         status
+  applicant_system_id,
+  full_name,
+  username,
+  phone,
+  id_number,
+  parent_full_name,
+  grandparent_full_name,
+  email,
+  date_of_birth,
+  gender,
+  current_surname,
+  generation,
+  branch_code,
+  wife_no,
+  parent_system_id,
+  grandparent_system_id,
+  status
+)
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING')
+      VALUES (
+  $1, $2, $3, $4, $5, $6, $7, $8, $9,
+  $10, $11, $12, $13, $14, $15, $16, 'PENDING'
+)
        RETURNING
          registration_id,
          applicant_system_id,
          status,
          submitted_at`,
-      [
-        String(record.systemId || '').trim() || null,
-        fullName,
-        username,
-        phone,
-        idNumber,
-        parentName,
-        grandparentName,
-        registrationEmail
-      ]
+     [
+  String(record.systemId || '').trim() || null,
+  fullName,
+  username,
+  phone,
+  idNumber,
+  parentName,
+  grandparentName,
+  registrationEmail,
+  record.dateOfBirth || null,
+  record.gender || null,
+  record.currentSurname || null,
+  record.generation ?? null,
+  record.branch || null,
+  record.wifeNo ?? null,
+  record.parentId || null,
+  record.grandparentId || null
+]
     );
 
     const saved = result.rows[0];
