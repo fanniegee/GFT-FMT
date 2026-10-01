@@ -476,6 +476,122 @@ app.post('/api/registration/verify-lineage', async (req, res) => {
 });
 
 // ------------------------------------------------------------
+// SERVER-SIDE FAMILY STRUCTURE / WIFE VERIFICATION
+// ------------------------------------------------------------
+
+app.post('/api/registration/verify-structure', async (req, res) => {
+  try {
+    const fullName = String(req.body?.fullName || '').trim();
+    const parentSystemId = String(req.body?.parentSystemId || '').trim();
+    const selectedWifeNo = Number(req.body?.wifeNo);
+
+    if (!fullName || !parentSystemId || !Number.isInteger(selectedWifeNo)) {
+      return res.status(400).json({
+        ok: false,
+        status: 'FAMILY_STRUCTURE_REVIEW_REQUIRED',
+        error: 'Applicant name, parent ID and wife number are required'
+      });
+    }
+
+    if (selectedWifeNo < 1 || selectedWifeNo > 8) {
+      return res.status(400).json({
+        ok: false,
+        status: 'FAMILY_STRUCTURE_REVIEW_REQUIRED',
+        error: 'Invalid wife number'
+      });
+    }
+
+    const normalize = value =>
+      String(value || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toUpperCase();
+
+    const childResult = await query(
+      `SELECT
+         system_id,
+         full_name,
+         parent_system_id,
+         generation,
+         branch_code,
+         profile->>'wifeNo' AS wife_no
+       FROM family_people
+       WHERE parent_system_id = $1
+         AND UPPER(TRIM(full_name)) = $2
+       LIMIT 10`,
+      [parentSystemId, normalize(fullName)]
+    );
+
+    if (childResult.rows.length === 0) {
+      return res.json({
+        ok: true,
+        status: 'FAMILY_STRUCTURE_REVIEW_REQUIRED',
+        reason: 'APPLICANT_NOT_FOUND_UNDER_PARENT'
+      });
+    }
+
+    if (childResult.rows.length > 1) {
+      return res.json({
+        ok: true,
+        status: 'FAMILY_STRUCTURE_REVIEW_REQUIRED',
+        reason: 'APPLICANT_RECORD_NOT_UNIQUE'
+      });
+    }
+
+    const child = childResult.rows[0];
+
+    if (!child.wife_no) {
+      return res.json({
+        ok: true,
+        status: 'FAMILY_STRUCTURE_REVIEW_REQUIRED',
+        reason: 'MOTHER_WIFE_NUMBER_NOT_RECORDED'
+      });
+    }
+
+    const wifeMatch = String(child.wife_no).match(/^WIFE(\d+)(?:_|$)/i);
+
+    if (!wifeMatch) {
+      return res.json({
+        ok: true,
+        status: 'FAMILY_STRUCTURE_REVIEW_REQUIRED',
+        reason: 'INVALID_STORED_WIFE_NUMBER'
+      });
+    }
+
+    const expectedWifeNo = Number(wifeMatch[1]);
+
+    if (selectedWifeNo !== expectedWifeNo) {
+      return res.json({
+        ok: true,
+        status: 'FAMILY_STRUCTURE_NOT_CONFIRMED',
+        reason: 'WIFE_NUMBER_MISMATCH'
+      });
+    }
+
+    return res.json({
+      ok: true,
+      status: 'FAMILY_STRUCTURE_CONFIRMED',
+      applicant: {
+        systemId: child.system_id,
+        fullName: child.full_name,
+        parentSystemId: child.parent_system_id,
+        generation: child.generation,
+        branch: child.branch_code
+      },
+      wifeNo: expectedWifeNo
+    });
+
+  } catch (error) {
+    console.error('Server-side family structure verification error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to verify family structure'
+    });
+  }
+});
+
+// ------------------------------------------------------------
 // REGISTRATION OTP
 // ------------------------------------------------------------
 
@@ -517,7 +633,7 @@ app.post('/api/registration/send-otp', async (req, res) => {
       .update(`${email}:${otp}:${process.env.OTP_HASH_SECRET}`)
       .digest('hex');
 
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
 
     await query(
       `DELETE FROM registration_otps
@@ -623,7 +739,8 @@ app.post('/api/registration/verify-otp', async (req, res) => {
     if (record.verified_at) {
       return res.json({
         ok: true,
-        verified: true
+        verified: true,
+        email
       });
     }
 
@@ -675,7 +792,8 @@ app.post('/api/registration/verify-otp', async (req, res) => {
 
     return res.json({
       ok: true,
-      verified: true
+      verified: true,
+      email
     });
 
   } catch (error) {
@@ -726,12 +844,33 @@ app.post('/api/registrations', async (req, res) => {
       });
     }
 
-    if (record.emailVerified !== true) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Email verification is required'
-      });
-    }
+    const registrationEmail =
+  String(record.email || '').trim().toLowerCase();
+
+if (!registrationEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registrationEmail)) {
+  return res.status(400).json({
+    ok: false,
+    error: 'A valid registration email is required'
+  });
+}
+
+const verifiedEmailResult = await query(
+  `SELECT otp_id
+   FROM registration_otps
+   WHERE email = $1
+     AND verified_at IS NOT NULL
+     AND expires_at > NOW()
+   ORDER BY verified_at DESC
+   LIMIT 1`,
+  [registrationEmail]
+);
+
+if (verifiedEmailResult.rows.length === 0) {
+  return res.status(400).json({
+    ok: false,
+    error: 'Email verification is required'
+  });
+}
 
     const result = await query(
       `INSERT INTO registrations (
@@ -742,9 +881,10 @@ app.post('/api/registrations', async (req, res) => {
          id_number,
          parent_full_name,
          grandparent_full_name,
+         email,
          status
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'PENDING')
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'PENDING')
        RETURNING
          registration_id,
          applicant_system_id,
@@ -757,7 +897,8 @@ app.post('/api/registrations', async (req, res) => {
         phone,
         idNumber,
         parentName,
-        grandparentName
+        grandparentName,
+        registrationEmail
       ]
     );
 

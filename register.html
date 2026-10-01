@@ -510,47 +510,111 @@ function prepareStructure(){
 }
 
 function renderWives(parent){
-  const grid=$("wifeGrid"); grid.innerHTML="";
+  const grid=$("wifeGrid");
+  grid.innerHTML="";
+
   for(let i=1;i<=8;i++){
-    const name=getWifeName(parent,i);
     const b=document.createElement("button");
-    b.type="button";b.className="wife";
-    b.innerHTML=`<strong>WIFE ${i}</strong><small>${esc(name||"Name unknown")}</small>`;
+    b.type="button";
+    b.className="wife";
+
+    b.innerHTML=`<strong>WIFE ${i}</strong>`;
+
     b.addEventListener("click",()=>selectWife(i));
     grid.appendChild(b);
   }
+
   $("continueFromStructure").disabled=true;
 }
 
-function selectWife(no){
+async function selectWife(no){
   if (state.wifeFrozen || state.wifeVerified) return;
+
   state.wifeAttempts++;
-  const expected=state.structure?.expectedWifeNo;
-  document.querySelectorAll(".wife").forEach((b,i)=>b.classList.toggle("selected",i===no-1));
+
+  document.querySelectorAll(".wife").forEach((b,i)=>
+    b.classList.toggle("selected",i===no-1)
+  );
+
   const result=$("wifeResult");
-  if (!expected){
-    result.className="notice warn";result.textContent="This family structure does not contain a sufficiently authoritative wife-number mapping for automatic verification. The selection has been recorded for Founder/Admin review.";result.classList.remove("hidden");
-    state.structure.wifeNo=no;state.structure.wifeName=getWifeName(state.lineage?.parent,no);
-    state.wifeVerified=false;state.wifeFrozen=true;state.lockedLineage=true;
-    $("continueFromStructure").disabled=false;
-    return;
-  }
-  if (no===expected){
-    state.wifeVerified=true;state.structure.wifeNo=no;state.structure.wifeName=getWifeName(state.lineage.parent,no);
-    result.className="notice ok";result.textContent="Family-structure selection accepted.";result.classList.remove("hidden");
+
+  try{
+    const parentId=state.lineage?.parent
+      ? getPersonId(state.lineage.parent)
+      : null;
+
+    const applicantName=fieldValue("fullName");
+
+    if(!parentId || !applicantName){
+      throw new Error("The applicant's verified parent could not be established.");
+    }
+
+    const data=await api("/verify-structure",{
+      method:"POST",
+      body:JSON.stringify({
+        fullName:applicantName,
+        parentSystemId:parentId,
+        wifeNo:no
+      })
+    });
+
+    if(data.status==="FAMILY_STRUCTURE_CONFIRMED"){
+      state.wifeVerified=true;
+      state.structure.wifeNo=no;
+      state.structure.wifeName=null;
+
+      result.className="notice ok";
+      result.textContent="Family-structure selection accepted.";
+      result.classList.remove("hidden");
+
+      document.querySelectorAll(".wife").forEach(b=>b.classList.add("locked"));
+      $("continueFromStructure").disabled=false;
+
+      return;
+    }
+
+    if(data.status==="FAMILY_STRUCTURE_NOT_CONFIRMED"){
+      if(state.wifeAttempts===1){
+        result.className="notice warn";
+        result.textContent="That selection could not be verified. One verification attempt remains. The correct choice is not disclosed.";
+        result.classList.remove("hidden");
+      }else{
+        state.wifeFrozen=true;
+        state.structure.wifeNo=no;
+        state.structure.wifeName=null;
+
+        result.className="notice danger";
+        result.textContent="Family-structure verification is now frozen. No third attempt or backtracking is allowed. Founder/Admin review is required.";
+        result.classList.remove("hidden");
+
+        document.querySelectorAll(".wife").forEach(b=>b.classList.add("locked"));
+        $("continueFromStructure").disabled=false;
+      }
+
+      $("wifeAttemptNotice").textContent=`Attempts used: ${state.wifeAttempts}/2.`;
+      return;
+    }
+
+    state.wifeFrozen=true;
+    state.structure.wifeNo=no;
+    state.structure.wifeName=null;
+
+    result.className="notice warn";
+    result.textContent="The family structure could not be automatically confirmed. Founder/Admin review is required.";
+    result.classList.remove("hidden");
+
     document.querySelectorAll(".wife").forEach(b=>b.classList.add("locked"));
     $("continueFromStructure").disabled=false;
-    return;
+
+  }catch(error){
+    console.error("Server-side wife verification error:",error);
+
+    state.wifeAttempts=Math.max(0,state.wifeAttempts-1);
+
+    result.className="notice danger";
+    result.textContent="The family structure could not be verified by the server. Please try again.";
+    result.classList.remove("hidden");
   }
-  if (state.wifeAttempts===1){
-    result.className="notice warn";result.textContent="That selection could not be verified. One verification attempt remains. The correct choice is not disclosed.";result.classList.remove("hidden");
-  } else {
-    state.wifeFrozen=true;state.structure.wifeNo=no;state.structure.wifeName=getWifeName(state.lineage?.parent,no);
-    result.className="notice danger";result.textContent="Family-structure verification is now frozen. No third attempt or backtracking is allowed. Founder/Admin review is required.";result.classList.remove("hidden");
-    document.querySelectorAll(".wife").forEach(b=>b.classList.add("locked"));
-    $("continueFromStructure").disabled=false;
-  }
-  $("wifeAttemptNotice").textContent=`Attempts used: ${state.wifeAttempts}/2.`;
 }
 
 function validateFile(file, required=true){

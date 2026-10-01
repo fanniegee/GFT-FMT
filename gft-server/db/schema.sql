@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS registrations (
   username TEXT,
   phone TEXT,
   id_number TEXT,
+  email TEXT,
   parent_full_name TEXT,
   grandparent_full_name TEXT,
   supporting_document_ref TEXT,
