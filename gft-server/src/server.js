@@ -828,6 +828,48 @@ app.post('/api/registration/verify-otp', async (req, res) => {
   }
 });
 
+async function generateGftSystemId(generation) {
+  const gen = Number(generation);
+
+  if (!Number.isInteger(gen) || gen < 1) {
+    throw new Error('Invalid generation for GFT System ID');
+  }
+
+  const prefix = `GFT-GEN${gen}-`;
+
+  const result = await query(
+    `
+    SELECT COALESCE(MAX(number_part), 0) AS max_number
+    FROM (
+      SELECT
+        CASE
+          WHEN system_id LIKE $1 || '%'
+          THEN NULLIF(SUBSTRING(system_id FROM LENGTH($1) + 1), '')::INTEGER
+          ELSE NULL
+        END AS number_part
+      FROM family_people
+      WHERE system_id LIKE $1 || '%'
+
+      UNION ALL
+
+      SELECT
+        CASE
+          WHEN applicant_system_id LIKE $1 || '%'
+          THEN NULLIF(SUBSTRING(applicant_system_id FROM LENGTH($1) + 1), '')::INTEGER
+          ELSE NULL
+        END AS number_part
+      FROM registrations
+      WHERE applicant_system_id LIKE $1 || '%'
+    ) ids
+    `,
+    [prefix]
+  );
+
+  const nextNumber = Number(result.rows[0]?.max_number || 0) + 1;
+
+  return `${prefix}${String(nextNumber).padStart(3, '0')}`;
+}
+
 // ------------------------------------------------------------
 // REGISTRATION SUBMISSION
 //
@@ -901,15 +943,61 @@ if (verifiedEmailResult.rows.length === 0) {
   });
 }
 
+const structureResult = await query(
+  `
+  SELECT
+    child.system_id,
+    child.parent_system_id,
+    child.generation,
+    child.branch_code,
+    child.profile->>'wifeNo' AS wife_no,
+    parent.parent_system_id AS grandparent_system_id
+  FROM family_people child
+  LEFT JOIN family_people parent
+    ON parent.system_id = child.parent_system_id
+  WHERE LOWER(TRIM(child.full_name)) = LOWER(TRIM($1))
+    AND child.parent_system_id = $2
+  LIMIT 1
+  `,
+  [
+    fullName,
+    String(record.parentId || '').trim()
+  ]
+);
+
+if (structureResult.rows.length === 0) {
+  return res.status(400).json({
+    ok: false,
+    error: 'Server-side family structure verification failed'
+  });
+}
+
+const verifiedStructure = structureResult.rows[0];
+
+const verifiedWifeNo = Number(
+  String(verifiedStructure.wife_no || '').replace(/\D/g, '')
+);
+
 if (
-      record.lineageStatus !== 'LINEAGE_CONFIRMED' ||
-      record.familyStructureStatus !== 'VERIFIED'
-    ) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Server-side lineage and family structure verification are required'
-      });
-    }
+  !Number.isInteger(verifiedWifeNo) ||
+  verifiedWifeNo !== Number(record.wifeNo)
+) {
+  return res.status(400).json({
+    ok: false,
+    error: 'Server-side wife number verification failed'
+  });
+}
+
+const verifiedGeneration = Number(verifiedStructure.generation);
+
+const verifiedBranch = verifiedStructure.branch_code || null;
+const verifiedParentId = verifiedStructure.parent_system_id || null;
+const verifiedGrandparentId =
+  verifiedStructure.grandparent_system_id || null;
+
+const serverSystemId =
+  await generateGftSystemId(verifiedGeneration);
+
     const result = await query(
       `INSERT INTO registrations (
   applicant_system_id,
@@ -941,7 +1029,7 @@ if (
          status,
          submitted_at`,
      [
-  String(record.systemId || '').trim() || null,
+ serverSystemId,
   fullName,
   username,
   phone,
@@ -952,15 +1040,25 @@ if (
   record.dateOfBirth || null,
   record.gender || null,
   record.currentSurname || null,
-  record.generation ?? null,
-  record.branch || null,
-  record.wifeNo ?? null,
-  record.parentId || null,
-  record.grandparentId || null
+  verifiedGeneration,
+  verifiedBranch,
+  verifiedWifeNo,
+  verifiedParentId,
+  verifiedGrandparentId
 ]
     );
 
     const saved = result.rows[0];
+  const serverVerification = {
+  emailStatus: 'VERIFIED',
+  lineageStatus: 'LINEAGE_CONFIRMED',
+  familyStructureStatus: 'VERIFIED',
+  identityStatus: 'PENDING_DOCUMENT_VERIFICATION',
+  beneficiaryStatus: 'PENDING_VERIFICATION',
+  founderVerificationStatus: 'PENDING',
+  walletEligible: false,
+  payoutEligible: false
+};
 
 const uploadedDocuments = [
   {
@@ -1002,7 +1100,9 @@ for (const document of uploadedDocuments) {
       registrationId: saved.registration_id,
       systemId: saved.applicant_system_id,
       registrationStatus: saved.status,
-      submittedAt: saved.submitted_at
+      submittedAt: saved.submitted_at,
+      verification: serverVerification,
+      serverAuthoritative: true,
     });
 
   } catch (error) {
