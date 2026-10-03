@@ -1571,41 +1571,7 @@ function exportFuneralCSV(){let csv='DeceasedName,Amount\n'+funeralPaid.map(r=>`
 function exportSchoolCSV(){let csv='StudentName,Amount\n'+schoolPaid.map(r=>`"${r.studentName}",${r.amount}`).join('\n');downloadCSV(csv,`School_${new Date().toISOString().slice(0,10)}.csv`);}
 function downloadCSV(csv, filename){let blob=new Blob([csv],{type:'text/csv'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
 
-const ROLE_PERMISSIONS = {
- "Trustees": ["dashboard","finances","approval","members","funeral","school","bookkeeping","companies"],
- "Family Council": ["dashboard","aboutEdit","members","approval","pending","homeEdit"],
- "Lawyer": ["lawyer","members","approval","bookkeeping","pending"],
- "Witness": ["dashboard","approval","bookkeeping","members"],
- "Founder's Executive Assistant": ["dashboard","homeEdit","aboutEdit","pending","members","companies","funeral","school","bookkeeping"],
- "Accountant": ["dashboard","finances","bookkeeping","funeral","school","companies"],
- "Secretary": ["dashboard","pending","members","companies","bookkeeping","homeEdit"],
- "Employee": ["dashboard","members","companies"],
- "Super Admin": ["dashboard","homeEdit","aboutEdit","pending","members","finances","bookkeeping","funeral","school","companies","approval","lawyer"],
- "Finance Admin": ["dashboard","finances","bookkeeping","funeral","school"],
- "Companies Admin": ["dashboard","companies","finances"],
- "Support": ["dashboard","pending","members"]
-};
-const ADMIN_MODULES = [
-  ['dashboard','Dashboard'],['pending','Registrations / Pending'],['members','Beneficiaries'],['aboutEdit','Family / About'],
-  ['familyRoot','Guvaza Root + Rutambo'],['homeEdit','Website Home'],['secondEmail','Second Email Backup'],
-  ['finances','Finance / Wallets'],['bookkeeping','Bookkeeping'],['funeral','Funeral Services'],['school','School Services'],['companies','Companies'],
-  ['approval','5-Man Approval'],['lawyer','Legal Verification'],['library','Trust Library'],['communications','Communications'],['audit','Audit / Reports']
-];
-const ADMIN_ACTIONS = ['view','create','edit','delete','approve','export','manage','configure','review','verify','recommend'];
-const ROLE_MANUALS = {
- "Trustees": {purpose:'Support Trust governance and oversight through the modules deployed to the Trustee role.',duties:['Review governance matters','Review assigned financial and beneficiary information','Participate in authorised approvals','Protect Trust decisions and records'],mustNot:['Act outside delegated authority','Bypass required approval stages'],escalate:'Founder / authorised governance workflow'},
- "Family Council": {purpose:'Support family governance, membership and family-facing decisions within deployed authority.',duties:['Review assigned family matters','Support beneficiary and family records','Participate in authorised approvals'],mustNot:['Rewrite canonical lineage without the approved correction process'],escalate:'Founder / Family governance workflow'},
- "Lawyer": {purpose:'Perform legal review and verification tasks assigned by the Trust.',duties:['Review legal matters','Verify assigned records','Provide documented legal observations'],mustNot:['Approve financial execution unless separately deployed'],escalate:'Founder / authorised legal workflow'},
- "Witness": {purpose:'Provide independent observation and participation where the Trust requires a witness.',duties:['Observe assigned approvals','Review assigned records','Maintain independence'],mustNot:['Self-approve or bypass separation of duties'],escalate:'Founder / approval workflow'},
- "Founder's Executive Assistant": {purpose:'Support Founder operations across the modules specifically deployed to the role.',duties:['Coordinate assigned Founder support work','Maintain assigned records','Prepare information for Founder decisions'],mustNot:['Exercise Founder-only authority unless explicitly deployed'],escalate:'Founder'},
- "Accountant": {purpose:'Maintain and review financial records within the authority deployed to the account.',duties:['Maintain assigned financial records','Perform bookkeeping and reconciliation','Prepare authorised reports','Escalate discrepancies'],mustNot:['Approve a transaction where separation of duties prevents it'],escalate:'Founder / Finance approval workflow'},
- "Secretary": {purpose:'Maintain administrative, membership and communication records assigned to the role.',duties:['Process assigned registrations','Maintain authorised records','Prepare administrative reports'],mustNot:['Change protected family identity without the approved workflow'],escalate:'Founder / authorised Admin'},
- "Employee": {purpose:'Perform operational staff duties within assigned modules and tasks.',duties:['Complete assigned tasks','Maintain accurate records','Escalate issues promptly'],mustNot:['Expand own access'],escalate:'Assigned supervisor / Founder'},
- "Super Admin": {purpose:'Coordinate the full Admin operating environment except Founder-only authority.',duties:['Oversee assigned Admin modules','Coordinate operational administration','Escalate Founder-only matters','Protect records and audit integrity'],mustNot:['Change Founder authority','Grant yourself permissions','Alter protected family identity outside approved workflow'],escalate:'Founder / authorised Founder delegate'},
- "Finance Admin": {purpose:'Operate assigned Trust finance services under the deployed financial controls.',duties:['Maintain assigned financial operations','Prepare financial information','Follow approval and audit requirements'],mustNot:['Bypass financial controls'],escalate:'Founder / Finance approval workflow'},
- "Companies Admin": {purpose:'Maintain Trust company information and related portal-facing records.',duties:['Maintain company records','Update authorised company information','Keep portal-facing information accurate'],mustNot:['Alter financial authority without deployment'],escalate:'Founder / Finance or Companies workflow'},
- "Support": {purpose:'Assist beneficiaries and administrative operations using limited deployed access.',duties:['Handle assigned support requests','Review permitted beneficiary information','Escalate unresolved cases'],mustNot:['Approve restricted actions'],escalate:'Founder / assigned supervisor'}
-};
+
 // ============================================================
 // FOUNDER — ADMIN CONTROL CENTRE
 // Server-backed Admin module
