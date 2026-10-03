@@ -210,7 +210,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 </div>
 <div id="sec-siteSettings" class="section">
 <h1><span class="mi lg">settings_suggest</span> Site Settings - Master CMS for config.js</h1>
-<p style="color:var(--muted);font-size:12px">Edit whole site here. Changes save to localStorage and you can export new config.js. Upload config.js to hosting to update live site.</p>
+<p style="color:var(--muted);font-size:12px">Edit the live site configuration here. Changes are saved directly to PostgreSQL through the protected Admin API. config.js export remains available as an optional backup.</p>
 <div class="grid" style="margin-top:16px">
 <div class="card" style="border-left-color:#ec4899">
 <h2><span class="mi">badge</span> <span class="title-main">Trust Identity - NOW WITH FAMILY GALLERY INSIDE (FILLS EMPTY SPACE)</span></h2>
@@ -357,8 +357,8 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 </div>
 
 <div class="card" style="margin-top:16px;border-left:4px solid #06b6d4;background:#0f172a">
-<h2><span class="mi">download</span> <span class="title-main">Export New config.js - FINAL STEP</span></h2>
-<p style="font-size:11px;color:var(--muted)">After editing, export new config.js and upload to your hosting. Whole site will update automatically.</p>
+<h2><span class="mi">download</span> <span class="title-main">Configuration Export / Backup</span></h2>
+<p style="font-size:11px;color:var(--muted)">The live configuration is already stored in PostgreSQL. Use these tools only when you need a local config.js or JSON backup.</p>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
 <button class="primary" onclick="exportNewConfigJS()" style="background:#06b6d4"><span class="mi">download</span> Download NEW config.js</button>
 <button class="blue" onclick="exportConfigJSON()"><span class="mi">code</span> Export as JSON</button>
@@ -497,13 +497,13 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 </select>
 <input id="adminTask" placeholder="Task / Notes e.g. Manage Harare region, Bookkeeping, Home site edits" style="grid-column:span 2">
 </div>
-<button class="primary" onclick="addAdminInvite()" style="margin-top:10px;background:#f59e0b;color:#000;width:100%;justify-content:center"><span class="mi">person_add</span> Invite Admin - Save for admin.html Login</button>
+<button class="primary" onclick="addAdminInvite()" style="margin-top:10px;background:#f59e0b;color:#000;width:100%;justify-content:center"><span class="mi">person_add</span> Invite Admin - Server controlled</button>
 </div>
 <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
 <span class="badge ok" id="adminCountBadge">0 Admins</span>
-<span class="badge blue" id="adminInfoBadge">Invite saves to guvaza_admins for admin.html</span>
+<span class="badge blue" id="adminInfoBadge">Server-backed Admin accounts • PostgreSQL authority</span>
 <button class="blue" onclick="renderAdmins()"><span class="mi">refresh</span> Refresh</button>
-<button class="danger" onclick="clearAllAdmins()"><span class="mi">delete_forever</span> Clear All</button>
+<button class="danger" onclick="clearAllAdmins()"><span class="mi">delete_forever</span> Clear All (Server controlled)</button>
 </div>
 <div id="adminList"></div>
 <div class="log" style="margin-top:12px;font-size:10px">
@@ -537,22 +537,92 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <script>
 function refreshConfigDisplay(){let badge=document.getElementById('configLoadedBadge');let disp=document.getElementById('configDisplay');if(badge)badge.innerHTML=`<span style="color:#10b981">✔ CONFIG.JS LOADED: ${CFG.name} - Funeral $${CFG.caps.funeral} School $${CFG.caps.school} Payout $${CFG.caps.funeralPayout} - Companies ${(CFG.companies||[]).length} - Family ${(CFG.about.familyMembers||[]).length} - Social ${(CFG.social||[]).length} - Cards ${(CFG.homepage.cards||[]).length} - FBP NEW ACTIVE</span>`;if(disp)disp.innerHTML=`Name: ${CFG.name}<br>Email: ${CFG.email}<br>Logo: ${CFG.logo||''}<br>Caps: Funeral $${CFG.caps.funeral} | School $${CFG.caps.school} | Payout $${CFG.caps.funeralPayout}<br>Companies: ${(CFG.companies||[]).length} | Family: ${(CFG.about.familyMembers||[]).length} | Social: ${(CFG.social||[]).length} | Cards: ${(CFG.homepage.cards||[]).length}<br><b>12 companies + banner + gallery + family + cards ACTIVE - FBP ACCOUNT ADDED - 7 CARDS NOW</b>`;let allocLabel=document.getElementById('allocLabel');if(allocLabel)allocLabel.innerText=`${CFG.rules.expansion} / ${CFG.rules.pool}`;let funCap=document.getElementById('funCapLabel');if(funCap)funCap.innerText=`Cap $${CFG.caps.funeral} - AUTO - 10% of Dist`;let schCap=document.getElementById('schCapLabel');if(schCap)schCap.innerText=`Cap $${CFG.caps.school} - AUTO + VERIFIED - 15% of Dist`;}
 setTimeout(refreshConfigDisplay,500);
-let customConfig = JSON.parse(localStorage.getItem('guvaza_custom_config')||'null') || JSON.parse(JSON.stringify(CFG));
-if(!customConfig.homepage) customConfig.homepage={};
-if(!customConfig.homepage.cards) customConfig.homepage.cards=JSON.parse(JSON.stringify(DEFAULT_CARDS));
-if(!customConfig.about) customConfig.about={title:"About Our Family",story:"Root: Guvaza. Rutambo is son of Guvaza.",bannerImage:"assets/about-banner.jpg",familyMembers:JSON.parse(JSON.stringify(DEFAULT_FAMILY))};
-if(!customConfig.about.bannerImage) customConfig.about.bannerImage=(CFG.about&&CFG.about.bannerImage)||"assets/about-banner.jpg";
-if(!customConfig.about.familyMembers) customConfig.about.familyMembers=JSON.parse(JSON.stringify(DEFAULT_FAMILY));
-if(customConfig.homepage.cards){
-  customConfig.homepage.cards = customConfig.homepage.cards.map(c=>{
-    if(c.color==="#16a34a") c.color="#4ade80";
-    if(c.color==="#0ea5e9") c.color="#38bdf8";
-    if(!c.image) c.image = c.id==="companies"?"assets/companies.jpg":"assets/contact.png";
-    return c;
-  });
+// ============================================================
+// FOUNDER — SITE SETTINGS / CUSTOM CONFIGURATION
+// ============================================================
+// PostgreSQL is the authoritative store for public-site config.
+// The Founder page reads from /api/config/public and saves through
+// the protected /api/admin/config/public endpoint.
+// Browser localStorage is NOT used as the configuration authority.
+// ============================================================
+
+let customConfig = JSON.parse(JSON.stringify(CFG));
+let configSaveChain = Promise.resolve();
+
+// ------------------------------------------------------------
+// SITE SETTINGS — CONFIGURATION NORMALISATION
+// ------------------------------------------------------------
+function normalizeFounderConfig(config){
+  const c = (config && typeof config === 'object' && !Array.isArray(config))
+    ? config
+    : JSON.parse(JSON.stringify(CFG));
+
+  if(!c.homepage) c.homepage={};
+  if(!c.homepage.cards) c.homepage.cards=JSON.parse(JSON.stringify(DEFAULT_CARDS));
+  if(!c.about) c.about={title:"About Our Family",story:"Root: Guvaza. Rutambo is son of Guvaza.",bannerImage:"assets/about-banner.jpg",familyMembers:JSON.parse(JSON.stringify(DEFAULT_FAMILY))};
+  if(!c.about.bannerImage) c.about.bannerImage=(c.about&&c.about.bannerImage)||(CFG.about&&CFG.about.bannerImage)||"assets/about-banner.jpg";
+  if(!c.about.familyMembers) c.about.familyMembers=JSON.parse(JSON.stringify(DEFAULT_FAMILY));
+
+  if(c.homepage.cards){
+    c.homepage.cards = c.homepage.cards.map(card=>{
+      const item={...card};
+      if(item.color==="#16a34a") item.color="#4ade80";
+      if(item.color==="#0ea5e9") item.color="#38bdf8";
+      if(!item.image) item.image=item.id==="companies"?"assets/companies.jpg":"assets/contact.png";
+      return item;
+    });
+  }
+
+  return c;
 }
-function mergeCustomConfig(){try{let c=JSON.parse(localStorage.getItem('guvaza_custom_config')||'null');if(c){Object.keys(c).forEach(k=>{if(typeof c[k]==='object' &&!Array.isArray(c[k]) && CFG[k]){CFG[k]={...CFG[k],...c[k]};}else{CFG[k]=c[k];}});refreshConfigDisplay();updateUI();}}catch(e){}}
-setTimeout(mergeCustomConfig,600);
+
+// ------------------------------------------------------------
+// SITE SETTINGS — APPLY SERVER CONFIG TO FOUNDER RUNTIME
+// ------------------------------------------------------------
+function applyFounderConfig(config){
+  customConfig=normalizeFounderConfig(config);
+
+  Object.keys(customConfig).forEach(key=>{
+    if(typeof customConfig[key]==='object' && !Array.isArray(customConfig[key]) && CFG[key]){
+      CFG[key]={...CFG[key],...customConfig[key]};
+    }else{
+      CFG[key]=customConfig[key];
+    }
+  });
+
+  refreshConfigDisplay();
+  if(typeof updateUI==='function') updateUI();
+  if(typeof renderSiteSettings==='function') renderSiteSettings();
+}
+
+// ------------------------------------------------------------
+// SITE SETTINGS — LOAD FROM POSTGRESQL
+// ------------------------------------------------------------
+async function loadServerConfig(){
+  try{
+    const response=await fetch('/api/config/public',{credentials:'include',cache:'no-store'});
+    const data=await response.json();
+
+    if(!response.ok || !data.ok || !data.config){
+      throw new Error(data.error||'Unable to load server configuration');
+    }
+
+    applyFounderConfig(data.config);
+
+    const badge=document.getElementById('configLoadedBadge');
+    if(badge){
+      badge.innerHTML=`<span style="color:#10b981">✔ SERVER CONFIG LOADED • PostgreSQL • Version ${data.version||'1'}</span>`;
+    }
+  }catch(error){
+    console.error('Founder server config load error:',error);
+    const badge=document.getElementById('configLoadedBadge');
+    if(badge){
+      badge.innerHTML='<span style="color:#f59e0b">⚠ Server configuration could not be loaded</span>';
+    }
+  }
+}
+
+loadServerConfig();
 
 function renderHomepageCardsEditor(){
  let wrap=document.getElementById('homepageCardsEditor'); if(!wrap) return;
@@ -646,7 +716,46 @@ function renderSiteSettings(){
  let ct=CFG.contact||{};document.getElementById('setPhone').value=ct.phone||'';document.getElementById('setWhatsapp').value=ct.whatsapp||'';document.getElementById('setAddress').value=ct.address||'';document.getElementById('setContactEmail').value=CFG.email||ct.email||'';
  renderCompaniesManager();renderSocialManager();renderHomepageCardsEditor();renderIdentityFamily();
 }
-function saveCustomConfig(){localStorage.setItem('guvaza_custom_config', JSON.stringify(customConfig));Object.keys(customConfig).forEach(k=>{if(typeof customConfig[k]==='object' &&!Array.isArray(customConfig[k]) && CFG[k]){CFG[k]={...CFG[k],...customConfig[k]};}else{CFG[k]=customConfig[k];}});refreshConfigDisplay();updateUI();log('Custom config saved');}
+// ------------------------------------------------------------
+// SITE SETTINGS — SAVE TO POSTGRESQL
+// ------------------------------------------------------------
+function saveCustomConfig(){
+  customConfig=normalizeFounderConfig(customConfig);
+  applyFounderConfig(customConfig);
+
+  const payload=JSON.parse(JSON.stringify(customConfig));
+
+  configSaveChain=configSaveChain.then(async()=>{
+    const response=await fetch('/api/admin/config/public',{
+      method:'PUT',
+      credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({config:payload})
+    });
+
+    const data=await response.json();
+
+    if(!response.ok || !data.ok){
+      throw new Error(data.error||'Unable to save public configuration');
+    }
+
+    applyFounderConfig(data.config||payload);
+
+    const badge=document.getElementById('configLoadedBadge');
+    if(badge){
+      badge.innerHTML=`<span style="color:#10b981">✔ SERVER CONFIG SAVED • PostgreSQL • Version ${data.version||'latest'}</span>`;
+    }
+
+    log('Public configuration saved to PostgreSQL');
+    return data;
+  }).catch(error=>{
+    console.error('Founder server config save error:',error);
+    alert('Configuration was not saved to the server: '+error.message);
+    throw error;
+  });
+
+  return configSaveChain;
+}
 function saveIdentitySettings(){customConfig.name=document.getElementById('setTrustName').value.trim()||customConfig.name;customConfig.tagline=document.getElementById('setTagline').value.trim()||customConfig.tagline;customConfig.email=document.getElementById('setEmail').value.trim()||customConfig.email;customConfig.logo=document.getElementById('setLogo').value.trim()||customConfig.logo;customConfig.footerText=document.getElementById('setFooter').value.trim()||customConfig.footerText;saveCustomConfig();renderSiteSettings();alert('Identity saved!');}
 function saveAboutBannerSettings(){
  customConfig.about=customConfig.about||{};
@@ -743,7 +852,20 @@ function exportNewConfigJS(){let js=generateConfigJSString();let blob=new Blob([
 function exportConfigJSON(){let json=JSON.stringify(customConfig,null,2);let blob=new Blob([json],{type:'application/json'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download='config_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(url);}
 function previewConfigJS(){let js=generateConfigJSString();let box=document.getElementById('configPreviewBox');box.style.display='block';box.innerText=js;}
 function importConfigJSON(){let txt=document.getElementById('importConfigTextarea').value.trim();if(!txt)return alert('Paste JSON first');try{let parsed=JSON.parse(txt);customConfig=parsed;saveCustomConfig();renderSiteSettings();alert('Config imported!');}catch(e){alert('Invalid JSON: '+e.message);}}
-function resetToDefaultConfig(){if(!confirm('Reset?'))return;localStorage.removeItem('guvaza_custom_config');customConfig=JSON.parse(JSON.stringify(TRUST_CONFIG));location.reload();}
+// ------------------------------------------------------------
+// SITE SETTINGS — RESET SERVER CONFIGURATION
+// ------------------------------------------------------------
+async function resetToDefaultConfig(){
+  if(!confirm('Reset the public site configuration to the current default configuration?')) return;
+  customConfig=normalizeFounderConfig(JSON.parse(JSON.stringify(TRUST_CONFIG)));
+  try{
+    await saveCustomConfig();
+    renderSiteSettings();
+    alert('Server configuration reset successfully.');
+  }catch(error){
+    // saveCustomConfig already reports the server error.
+  }
+}
 function hashPw(s){return btoa(s).split('').reverse().join('');}
 function saveFounderPw(){let p=document.getElementById('founderPwSet').value.trim();if(p.length<6){alert('Min 6 chars');return;}localStorage.setItem('guvaza_founder_pw', hashPw(p));document.getElementById('pwStatus').innerText='Saved '+new Date().toLocaleString();document.getElementById('founderPwSet').value='';log('Password changed');}
 function loadSecurity(){try{let en=localStorage.getItem('guvaza_2fa_enabled')==='1';let sw=document.getElementById('faSwitch'), lb=document.getElementById('faLabel'), box=document.getElementById('faSetupBox');if(sw){if(en){sw.classList.add('on'); if(lb){lb.innerText='ON'; lb.style.color='#10b981';} if(box) box.style.display='block'; let c=localStorage.getItem('guvaza_2fa_code')||''; document.getElementById('new2FACode').value=c; document.getElementById('faStatus').innerText='2FA ON: '+c;} else {sw.classList.remove('on'); if(lb){lb.innerText='OFF'; lb.style.color='#94a3b8';} if(box) box.style.display='none'; document.getElementById('faStatus').innerText='2FA OFF';}}let hasPw=localStorage.getItem('guvaza_founder_pw');let ps=document.getElementById('pwStatus');if(ps) ps.innerText= hasPw? 'Password SET' : 'No password yet';}catch(e){}}
@@ -1047,88 +1169,390 @@ const ROLE_MANUALS = {
  "Companies Admin": {purpose:'Maintain Trust company information and related portal-facing records.',duties:['Maintain company records','Update authorised company information','Keep portal-facing information accurate'],mustNot:['Alter financial authority without deployment'],escalate:'Founder / Finance or Companies workflow'},
  "Support": {purpose:'Assist beneficiaries and administrative operations using limited deployed access.',duties:['Handle assigned support requests','Review permitted beneficiary information','Escalate unresolved cases'],mustNot:['Approve restricted actions'],escalate:'Founder / assigned supervisor'}
 };
-function founderSafeParse(v,f){try{return JSON.parse(v)}catch(e){return f}}
-function defaultAdminDeployment(admin){
-  const role=admin.role||'Support', modules=(ROLE_PERMISSIONS[role]||['dashboard']).slice();
-  const permissions=[];
-  modules.forEach(m=>permissions.push(m+':view'));
-  const status=admin.status||'PENDING'; return {version:1,status,modules,permissions,tasks:Array.isArray(admin.tasks)?admin.tasks.slice():[],overrides:[],approvalLevel:'view',scope:'All Trust',deployedBy:'Founder role template',deployedAt:new Date().toISOString(),manual:ROLE_MANUALS[role]||null};
+// ============================================================
+// FOUNDER — ADMIN CONTROL CENTRE
+// Server-backed Admin module
+// ============================================================
+
+// ------------------------------------------------------------
+// ADMIN SERVER DATA
+// ------------------------------------------------------------
+let admins = [];
+let adminsLoading = false;
+let adminsLoadedAt = null;
+
+function founderSafeParse(v, f){
+  try { return JSON.parse(v); }
+  catch(e) { return f; }
 }
+
 function ensureAdminDeployment(admin){
   if(!admin) return null;
-  if(!admin.deployment || !Array.isArray(admin.deployment.modules)) admin.deployment=defaultAdminDeployment(admin);
-  if(!Array.isArray(admin.deployment.tasks)) admin.deployment.tasks=Array.isArray(admin.tasks)?admin.tasks:[];
-  if(!Array.isArray(admin.deployment.permissions)) admin.deployment.permissions=(admin.permissions||[]).map(p=>p.includes(':')?p:p+':view');
-  if(!Array.isArray(admin.deployment.overrides)) admin.deployment.overrides=[];
-  if(!admin.deployment.status) admin.deployment.status=admin.status||'PENDING';
-  if(!admin.status) admin.status=admin.deployment.status;
+
+  if(!admin.deployment){
+    admin.deployment = {};
+  }
+
+  if(!Array.isArray(admin.deployment.modules)){
+    admin.deployment.modules = Array.isArray(ROLE_PERMISSIONS[admin.role])
+      ? ROLE_PERMISSIONS[admin.role].slice()
+      : ['dashboard'];
+  }
+
+  if(!Array.isArray(admin.deployment.permissions)){
+    admin.deployment.permissions = Array.isArray(admin.permissions)
+      ? admin.permissions.map(p => p.includes(':') ? p : p + ':view')
+      : admin.deployment.modules.map(m => m + ':view');
+  }
+
+  if(!Array.isArray(admin.deployment.tasks)){
+    admin.deployment.tasks = Array.isArray(admin.tasks) ? admin.tasks.slice() : [];
+  }
+
+  if(!Array.isArray(admin.deployment.overrides)){
+    admin.deployment.overrides = [];
+  }
+
+  if(!admin.deployment.status){
+    admin.deployment.status = admin.status || 'PENDING';
+  }
+
   return admin;
 }
-function persistFounderAdmins(){localStorage.setItem('guvaza_admins',JSON.stringify(admins));}
-let admins=founderSafeParse(localStorage.getItem('guvaza_admins')||'[]',[]); admins=admins.map(ensureAdminDeployment); persistFounderAdmins();
-function addAdminInvite(){
-  let name=document.getElementById('adminName').value.trim(), email=document.getElementById('adminEmail').value.trim().toLowerCase(), phone=document.getElementById('adminPhone').value.trim(), role=document.getElementById('adminRole').value;
-  let task=document.getElementById('adminTask')?.value.trim()||'', tempPw=document.getElementById('adminPassword')?.value||'';
-  if(!name||!email||!phone||!role) return alert('Fill all');
-  let inviteCode=Date.now().toString(36), now=new Date().toISOString();
-  let a={id:Date.now(),name,email,phone,role,permissions:(ROLE_PERMISSIONS[role]||['dashboard']),tasks:task?[{id:'TASK-'+Date.now(),title:task,description:'Initial task assigned by Founder',status:'ASSIGNED',priority:'Normal'}]:[],inviteCode,dateInvited:new Date().toLocaleString(),status:'PENDING',active:false};
-  a.deployment=defaultAdminDeployment(a); if(task)a.deployment.tasks=a.tasks.slice(); if(tempPw){a.passwordPlain=tempPw;a.passwordHash=hashPw(tempPw);a.active=true;a.status='ACTIVE';a.deployment.status='ACTIVE';}
-  admins.push(a); persistFounderAdmins(); renderAdmins(); refreshAdminControlCentre(); alert(`${name} invited`);
+
+// ------------------------------------------------------------
+// ADMIN LOAD — CURRENT SERVER AUTHORITY
+// ------------------------------------------------------------
+async function loadFounderAdmins(){
+  if(adminsLoading) return;
+  adminsLoading = true;
+
+  try{
+    const response = await fetch('/api/founder/admins', {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'Accept': 'application/json' }
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if(!response.ok || !data.ok){
+      throw new Error(data.error || 'Unable to load Admin accounts');
+    }
+
+    admins = Array.isArray(data.admins)
+      ? data.admins.map(ensureAdminDeployment)
+      : [];
+
+    adminsLoadedAt = new Date();
+    renderAdmins();
+    refreshAdminControlCentre();
+
+  }catch(error){
+    console.error('Founder Admin load error:', error);
+    admins = [];
+    renderAdmins();
+    refreshAdminControlCentre();
+
+    const list = document.getElementById('adminList');
+    if(list){
+      list.innerHTML = '<p style="color:#ef4444">Unable to load Admin accounts from the server.</p>';
+    }
+
+    const empty = document.getElementById('adminControlEmpty');
+    if(empty){
+      empty.style.display = 'block';
+      empty.innerText = 'Unable to load Admin accounts from the server.';
+    }
+  }finally{
+    adminsLoading = false;
+  }
 }
-function renderAdmins(){ let list=document.getElementById('adminList'),badge=document.getElementById('adminCountBadge'); if(badge) badge.innerText=admins.length+' Admins'; if(!list)return; if(!admins.length){list.innerHTML='<p style="color:var(--muted)">No admins</p>';return;} list.innerHTML=''; admins.forEach((a,i)=>{ensureAdminDeployment(a); list.innerHTML+=`<div class="ben-item"><div class="ben-info"><b>${a.name}</b> - ${a.role}<br><small>${a.email} • ${a.deployment?.status||a.status||'ACTIVE'} • ${a.deployment?.modules?.length||0} modules</small></div><div class="ben-actions"><button class="icon-btn view" onclick="openAdminControlCentre(${i})"><span class="mi">admin_panel_settings</span> Control</button><button class="icon-btn del" onclick="delAdmin(${i})">Delete</button></div></div>`;}); refreshAdminControlCentre();}
-function delAdmin(i){if(!confirm('Delete?'))return;admins.splice(i,1);persistFounderAdmins();renderAdmins();}
-function resetAdminPw(i){let newPw=prompt('New pw:');if(!newPw)return;admins[i].passwordPlain=newPw;admins[i].passwordHash=hashPw(newPw);admins[i].active=true;admins[i].status='ACTIVE';ensureAdminDeployment(admins[i]).status='ACTIVE';persistFounderAdmins();renderAdmins();}
-function changeAdminRole(i){let roles=Object.keys(ROLE_PERMISSIONS),newRole=prompt('Role:\n'+roles.join('\n'),admins[i].role);if(!newRole||!ROLE_PERMISSIONS[newRole])return;admins[i].role=newRole;admins[i].permissions=ROLE_PERMISSIONS[newRole].slice();admins[i].deployment=defaultAdminDeployment(admins[i]);persistFounderAdmins();renderAdmins();}
-function clearAllAdmins(){if(!confirm('Delete ALL?'))return;admins=[];persistFounderAdmins();renderAdmins();}
+
+// ------------------------------------------------------------
+// ADMIN DISPLAY HELPERS
+// ------------------------------------------------------------
+function adminStatus(admin){
+  return admin?.deployment?.status || admin?.status || (admin?.active ? 'ACTIVE' : 'PENDING');
+}
+
+function adminModules(admin){
+  return Array.isArray(admin?.deployment?.modules)
+    ? admin.deployment.modules
+    : [];
+}
+
+function adminPermissions(admin){
+  return Array.isArray(admin?.deployment?.permissions)
+    ? admin.deployment.permissions
+    : [];
+}
+
+// ------------------------------------------------------------
+// ADMIN LIST / CONTROL CENTRE RENDERING
+// ------------------------------------------------------------
+function renderAdmins(){
+  const list = document.getElementById('adminList');
+  const badge = document.getElementById('adminCountBadge');
+
+  if(badge) badge.innerText = admins.length + ' Admins';
+  if(!list) return;
+
+  if(!admins.length){
+    list.innerHTML = '<p style="color:var(--muted)">No Admin accounts found on the server.</p>';
+    return;
+  }
+
+  list.innerHTML = '';
+
+  admins.forEach((admin, index) => {
+    const status = adminStatus(admin);
+    const modules = adminModules(admin).length;
+
+    list.innerHTML += `
+      <div class="ben-item">
+        <div class="ben-info">
+          <b>${admin.name || 'Unnamed Admin'}</b> - ${admin.role || 'No role'}<br>
+          <small>${admin.email || 'No email'} • ${status} • ${modules} modules</small>
+        </div>
+        <div class="ben-actions">
+          <button class="icon-btn view" onclick="openAdminControlCentre(${index})">
+            <span class="mi">admin_panel_settings</span> Control
+          </button>
+        </div>
+      </div>`;
+  });
+
+  refreshAdminControlCentre();
+}
+
 function refreshAdminControlCentre(){
-  const sel=document.getElementById('controlAdminSelect'), badge=document.getElementById('adminControlCount'), card=document.getElementById('adminControlCardBadge');
-  if(badge)badge.innerText=admins.length+' Admins'; if(card)card.innerText=admins.length+' Admin'+(admins.length===1?'':'s'); if(!sel)return;
-  const current=sel.value; sel.innerHTML=admins.length?'<option value="">-- Select Admin to Control --</option>':'<option value="">-- No Admins --</option>';
-  admins.forEach((a,i)=>{sel.innerHTML+=`<option value="${i}">${a.name} • ${a.role} • ${a.deployment?.status||a.status||'ACTIVE'}</option>`}); if(current && admins[current])sel.value=current;
-  if(!admins.length){document.getElementById('adminControlEmpty').style.display='block';document.getElementById('adminControlEditor').style.display='none';}
+  const select = document.getElementById('controlAdminSelect');
+  const badge = document.getElementById('adminControlCount');
+  const card = document.getElementById('adminControlCardBadge');
+
+  if(badge) badge.innerText = admins.length + ' Admins';
+  if(card) card.innerText = admins.length + ' Admin' + (admins.length === 1 ? '' : 's');
+  if(!select) return;
+
+  const current = select.value;
+
+  select.innerHTML = admins.length
+    ? '<option value="">-- Select Admin to Control --</option>'
+    : '<option value="">-- No Admins --</option>';
+
+  admins.forEach((admin, index) => {
+    select.innerHTML += `
+      <option value="${index}">
+        ${admin.name || 'Unnamed Admin'} • ${admin.role || 'No role'} • ${adminStatus(admin)}
+      </option>`;
+  });
+
+  if(current !== '' && admins[current]){
+    select.value = current;
+  }
+
+  const empty = document.getElementById('adminControlEmpty');
+  const editor = document.getElementById('adminControlEditor');
+
+  if(!admins.length){
+    if(empty){
+      empty.style.display = 'block';
+      empty.innerText = 'No Admin accounts are currently available from the server.';
+    }
+    if(editor) editor.style.display = 'none';
+  }
 }
-function openAdminControlCentre(index){showSec('adminControl',document.querySelector('.menu[onclick*="adminControl"]'));refreshAdminControlCentre();const sel=document.getElementById('controlAdminSelect');if(typeof index==='number'&&admins[index])sel.value=String(index);if(sel.value)loadAdminControlCentre();}
-function moduleChecked(id,selected){return selected.includes(id)?'checked':''}
+
+function openAdminControlCentre(index){
+  showSec('adminControl', document.querySelector('.menu[onclick*="adminControl"]'));
+  refreshAdminControlCentre();
+
+  const select = document.getElementById('controlAdminSelect');
+  if(!select) return;
+
+  if(typeof index === 'number' && admins[index]){
+    select.value = String(index);
+  }
+
+  if(select.value) loadAdminControlCentre();
+}
+
+// ------------------------------------------------------------
+// ADMIN CONTROL — SERVER DATA VIEW
+// ------------------------------------------------------------
 function loadAdminControlCentre(){
- const idx=document.getElementById('controlAdminSelect')?.value; if(idx===''||idx==null||!admins[idx]){document.getElementById('adminControlEmpty').style.display='block';document.getElementById('adminControlEditor').style.display='none';return;}
- const a=ensureAdminDeployment(admins[idx]), d=a.deployment, manual=d.manual||ROLE_MANUALS[a.role]||{};
- document.getElementById('adminControlEmpty').style.display='none';document.getElementById('adminControlEditor').style.display='block';
- document.getElementById('selectedAdminIdentity').innerHTML=`<b>${a.name}</b><br>${a.email}<br>${a.phone}<br>Account ID: ${a.id}`;
- document.getElementById('adminDeployStatus').value=d.status||'ACTIVE';
- const roleSel=document.getElementById('adminDeployRole');roleSel.innerHTML=Object.keys(ROLE_PERMISSIONS).map(r=>`<option value="${r}">${r}</option>`).join('');roleSel.value=a.role;
- document.getElementById('adminRoleTemplateDescription').innerText=(ROLE_MANUALS[a.role]||{}).purpose||'Role template description not configured.';
- document.getElementById('adminDeploymentMeta').innerHTML=`Version: <b>${d.version||1}</b><br>Deployed: ${d.deployedAt||'Not recorded'}<br>By: ${d.deployedBy||'Founder'}`;
- const selected=d.modules||[];document.getElementById('adminModuleMatrix').innerHTML=ADMIN_MODULES.map(([id,label])=>`<label class="permission-option"><input type="checkbox" data-admin-module="${id}" ${moduleChecked(id,selected)}><span><b>${label}</b><br><small>${id}</small></span></label>`).join('');
- const selectedP=new Set(d.permissions||[]);document.getElementById('adminPermissionMatrix').innerHTML=ADMIN_MODULES.flatMap(([m,label])=>ADMIN_ACTIONS.map(action=>{let key=m+':'+action;return `<label class="permission-option"><input type="checkbox" data-admin-permission="${key}" ${selectedP.has(key)?'checked':''}><span>${label}<br><small>${action}</small></span></label>`})).join('');
- document.getElementById('adminApprovalLevel').value=d.approvalLevel||'view';document.getElementById('adminScope').value=d.scope||'All Trust';
- document.getElementById('adminManualPurpose').value=manual.purpose||'';document.getElementById('adminManualDuties').value=(manual.duties||[]).join('\n');document.getElementById('adminManualMustNot').value=(manual.mustNot||[]).join('\n');document.getElementById('adminManualEscalate').value=manual.escalate||'Founder';
- renderAdminDeploymentTasks(a); renderAdminDeploymentOverrides(a);
+  const index = document.getElementById('controlAdminSelect')?.value;
+  const empty = document.getElementById('adminControlEmpty');
+  const editor = document.getElementById('adminControlEditor');
+
+  if(index === '' || index == null || !admins[index]){
+    if(empty) empty.style.display = 'block';
+    if(editor) editor.style.display = 'none';
+    return;
+  }
+
+  const admin = ensureAdminDeployment(admins[index]);
+  const deployment = admin.deployment || {};
+  const manual = deployment.manual || ROLE_MANUALS[admin.role] || {};
+
+  if(empty) empty.style.display = 'none';
+  if(editor) editor.style.display = 'block';
+
+  const identity = document.getElementById('selectedAdminIdentity');
+  if(identity){
+    identity.innerHTML = `
+      <b>${admin.name || 'Unnamed Admin'}</b><br>
+      ${admin.email || ''}<br>
+      ${admin.phone || ''}<br>
+      Role: ${admin.role || 'Not assigned'}<br>
+      Status: ${adminStatus(admin)}<br>
+      Admin ID: ${admin.admin_id || admin.adminId || 'Not supplied'}
+    `;
+  }
+
+  const role = document.getElementById('adminDeployRole');
+  if(role) role.value = admin.role || '';
+
+  const status = document.getElementById('adminDeployStatus');
+  if(status) status.value = adminStatus(admin);
+
+  const approval = document.getElementById('adminApprovalLevel');
+  if(approval) approval.value = deployment.approvalLevel || 'view';
+
+  const scope = document.getElementById('adminScope');
+  if(scope) scope.value = deployment.scope || 'All Trust';
+
+  document.querySelectorAll('[data-admin-module]').forEach(box => {
+    box.checked = adminModules(admin).includes(box.dataset.adminModule);
+  });
+
+  document.querySelectorAll('[data-admin-permission]').forEach(box => {
+    box.checked = adminPermissions(admin).includes(box.dataset.adminPermission);
+  });
+
+  const description = document.getElementById('adminRoleTemplateDescription');
+  if(description) description.innerText = manual.purpose || '';
+
+  const purpose = document.getElementById('adminManualPurpose');
+  const duties = document.getElementById('adminManualDuties');
+  const mustNot = document.getElementById('adminManualMustNot');
+  const escalate = document.getElementById('adminManualEscalate');
+
+  if(purpose) purpose.value = manual.purpose || '';
+  if(duties) duties.value = (manual.duties || []).join('\n');
+  if(mustNot) mustNot.value = (manual.mustNot || []).join('\n');
+  if(escalate) escalate.value = manual.escalate || 'Founder';
+
+  renderAdminDeploymentTasks(admin);
+  renderAdminDeploymentOverrides(admin);
 }
-function applyRoleTemplateToEditor(){const role=document.getElementById('adminDeployRole').value, m=ROLE_MANUALS[role]||{}, defaults=ROLE_PERMISSIONS[role]||['dashboard'];document.querySelectorAll('[data-admin-module]').forEach(x=>x.checked=defaults.includes(x.dataset.adminModule));document.querySelectorAll('[data-admin-permission]').forEach(x=>{let parts=x.dataset.adminPermission.split(':');x.checked=defaults.includes(parts[0])&&parts[1]==='view'});document.getElementById('adminRoleTemplateDescription').innerText=m.purpose||'';document.getElementById('adminManualPurpose').value=m.purpose||'';document.getElementById('adminManualDuties').value=(m.duties||[]).join('\n');document.getElementById('adminManualMustNot').value=(m.mustNot||[]).join('\n');document.getElementById('adminManualEscalate').value=m.escalate||'Founder';}
-function renderAdminDeploymentTasks(a){const el=document.getElementById('adminDeploymentTasks');if(!el)return;const tasks=a.deployment?.tasks||[];el.innerHTML=tasks.length?tasks.map((t,i)=>`<div class="ben-item"><div class="ben-info"><b>${t.title||'Task '+(i+1)}</b><br><small>${t.description||''}</small><br><small>Due: ${t.dueDate||'Not specified'} • Priority: ${t.priority||'Normal'} • ${t.status||'ASSIGNED'}</small></div><button class="icon-btn del" onclick="removeAdminDeploymentTask(${i})">Remove</button></div>`).join(''):'<p style="font-size:11px;color:var(--muted)">No deployment tasks yet.</p>';}
-function addAdminDeploymentTask(){const idx=document.getElementById('controlAdminSelect').value;if(idx===''||!admins[idx])return alert('Select an Admin first.');const title=document.getElementById('adminTaskTitle').value.trim();if(!title)return alert('Enter a task title.');const a=ensureAdminDeployment(admins[idx]);a.deployment.tasks.push({id:'TASK-'+Date.now(),title,description:document.getElementById('adminTaskDescription').value.trim(),dueDate:document.getElementById('adminTaskDue').value,priority:document.getElementById('adminTaskPriority').value,status:document.getElementById('adminTaskStatus').value,assignedBy:'Founder',assignedAt:new Date().toISOString()});persistFounderAdmins();document.getElementById('adminTaskTitle').value='';document.getElementById('adminTaskDescription').value='';renderAdminDeploymentTasks(a);}
-function removeAdminDeploymentTask(i){const idx=document.getElementById('controlAdminSelect').value;if(idx===''||!admins[idx])return;admins[idx].deployment.tasks.splice(i,1);persistFounderAdmins();renderAdminDeploymentTasks(admins[idx]);}
-function renderAdminDeploymentOverrides(a){const el=document.getElementById('adminDeploymentOverrides');if(!el)return;const overrides=a.deployment?.overrides||[];el.innerHTML=overrides.length?overrides.map((o,i)=>`<div class="ben-item"><div class="ben-info"><b>${o.permission||o.module||'Override'}</b><br><small>${o.reason||'No reason recorded'} • ${o.expiresAt?'Expires '+o.expiresAt:'No expiry'}</small></div><button class="icon-btn del" onclick="removeAdminDeploymentOverride(${i})">Remove</button></div>`).join(''):'<p style="font-size:11px;color:var(--muted)">No temporary overrides.</p>';}
-function addAdminDeploymentOverride(){const idx=document.getElementById('controlAdminSelect').value;if(idx===''||!admins[idx])return alert('Select an Admin first.');const permission=document.getElementById('adminOverridePermission').value.trim();const reason=document.getElementById('adminOverrideReason').value.trim();if(!permission||!reason)return alert('Enter the permission/module and reason.');const a=ensureAdminDeployment(admins[idx]);const override={id:'OVR-'+Date.now(),permission,reason,expiresAt:document.getElementById('adminOverrideExpires').value||null,active:true,createdBy:'Founder',createdAt:new Date().toISOString()};a.deployment.overrides.push(override);persistFounderAdmins();const logs=founderSafeParse(localStorage.getItem('gft_admin_audit_events')||'[]',[]);logs.push({id:'AUD-'+Date.now(),action:'ADMIN_OVERRIDE_ADDED',adminId:a.id,adminEmail:a.email,details:override,timestamp:new Date().toISOString()});localStorage.setItem('gft_admin_audit_events',JSON.stringify(logs));document.getElementById('adminOverridePermission').value='';document.getElementById('adminOverrideReason').value='';document.getElementById('adminOverrideExpires').value='';renderAdminDeploymentOverrides(a);}
-function removeAdminDeploymentOverride(i){const idx=document.getElementById('controlAdminSelect').value;if(idx===''||!admins[idx])return;admins[idx]=ensureAdminDeployment(admins[idx]);const removed=admins[idx].deployment.overrides.splice(i,1)[0];persistFounderAdmins();const logs=founderSafeParse(localStorage.getItem('gft_admin_audit_events')||'[]',[]);logs.push({id:'AUD-'+Date.now(),action:'ADMIN_OVERRIDE_REMOVED',adminId:admins[idx].id,adminEmail:admins[idx].email,details:removed||{},timestamp:new Date().toISOString()});localStorage.setItem('gft_admin_audit_events',JSON.stringify(logs));renderAdminDeploymentOverrides(admins[idx]);}
-function deploySelectedAdmin(){
- const idx=document.getElementById('controlAdminSelect').value;if(idx===''||!admins[idx])return alert('Select an Admin first.');const a=ensureAdminDeployment(admins[idx]),d=a.deployment;
- const role=document.getElementById('adminDeployRole').value; a.role=role;
- d.modules=Array.from(document.querySelectorAll('[data-admin-module]:checked')).map(x=>x.dataset.adminModule);
- d.permissions=Array.from(document.querySelectorAll('[data-admin-permission]:checked')).map(x=>x.dataset.adminPermission);
- d.status=document.getElementById('adminDeployStatus').value; a.status=d.status; a.active=d.status==='ACTIVE';
- d.approvalLevel=document.getElementById('adminApprovalLevel').value;d.scope=document.getElementById('adminScope').value.trim()||'All Trust';
- d.manual={purpose:document.getElementById('adminManualPurpose').value.trim(),duties:document.getElementById('adminManualDuties').value.split('\n').map(x=>x.trim()).filter(Boolean),mustNot:document.getElementById('adminManualMustNot').value.split('\n').map(x=>x.trim()).filter(Boolean),escalate:document.getElementById('adminManualEscalate').value.trim()||'Founder'};
- d.version=(Number(d.version)||0)+1;d.deployedBy='Founder';d.deployedAt=new Date().toISOString();
- a.permissions=d.permissions.slice();a.tasks=d.tasks.slice();
- persistFounderAdmins();localStorage.setItem('gft_admin_audit_events',JSON.stringify(founderSafeParse(localStorage.getItem('gft_admin_audit_events')||'[]',[]).concat([{id:'AUD-'+Date.now(),action:'ADMIN_DEPLOYMENT_UPDATED',adminId:a.id,adminEmail:a.email,details:{version:d.version,status:d.status,role:a.role,modules:d.modules,permissions:d.permissions,tasks:d.tasks,overrides:d.overrides,approvalLevel:d.approvalLevel,scope:d.scope},timestamp:new Date().toISOString()}])));renderAdmins();loadAdminControlCentre();document.getElementById('adminControlAuditMsg').innerText='Deployment saved successfully at '+new Date().toLocaleString();
+
+// ------------------------------------------------------------
+// ADMIN ROLE TEMPLATE
+// ------------------------------------------------------------
+function applyRoleTemplateToEditor(){
+  const role = document.getElementById('adminDeployRole')?.value;
+  const manual = ROLE_MANUALS[role] || {};
+  const defaults = ROLE_PERMISSIONS[role] || ['dashboard'];
+
+  document.querySelectorAll('[data-admin-module]').forEach(box => {
+    box.checked = defaults.includes(box.dataset.adminModule);
+  });
+
+  document.querySelectorAll('[data-admin-permission]').forEach(box => {
+    const parts = box.dataset.adminPermission.split(':');
+    box.checked = defaults.includes(parts[0]) && parts[1] === 'view';
+  });
+
+  const description = document.getElementById('adminRoleTemplateDescription');
+  const purpose = document.getElementById('adminManualPurpose');
+  const duties = document.getElementById('adminManualDuties');
+  const mustNot = document.getElementById('adminManualMustNot');
+  const escalate = document.getElementById('adminManualEscalate');
+
+  if(description) description.innerText = manual.purpose || '';
+  if(purpose) purpose.value = manual.purpose || '';
+  if(duties) duties.value = (manual.duties || []).join('\n');
+  if(mustNot) mustNot.value = (manual.mustNot || []).join('\n');
+  if(escalate) escalate.value = manual.escalate || 'Founder';
 }
-function suspendSelectedAdmin(){const idx=document.getElementById('controlAdminSelect').value;if(idx===''||!admins[idx])return alert('Select an Admin first.');admins[idx]=ensureAdminDeployment(admins[idx]);admins[idx].status='SUSPENDED';admins[idx].active=false;admins[idx].deployment.status='SUSPENDED';admins[idx].deployment.version=(Number(admins[idx].deployment.version)||0)+1;admins[idx].deployment.deployedBy='Founder';admins[idx].deployment.deployedAt=new Date().toISOString();persistFounderAdmins();renderAdmins();loadAdminControlCentre();}
-function reloadSelectedAdminControl(){loadAdminControlCentre();}
-renderAdmins();
-updateFounderHeader('master');
-checkApproval();updateSweepUI();calculateDaughterRule();renderNotif();renderExport();renderVerifiedSchools();renderIdentityFamily();
-setTimeout(()=>{autoApprovePendingRegs();autoApproveFuneral();autoApproveSchool();checkBen24hPayout(false);},1000);
+
+// ------------------------------------------------------------
+// ADMIN TASK DISPLAY
+// ------------------------------------------------------------
+function renderAdminDeploymentTasks(admin){
+  const element = document.getElementById('adminDeploymentTasks');
+  if(!element) return;
+
+  const tasks = admin?.deployment?.tasks || [];
+
+  element.innerHTML = tasks.length
+    ? tasks.map((task, index) => `
+        <div class="ben-item">
+          <div class="ben-info">
+            <b>${task.title || 'Task ' + (index + 1)}</b><br>
+            <small>${task.description || ''}</small><br>
+            <small>Due: ${task.dueDate || 'Not specified'} • Priority: ${task.priority || 'Normal'} • ${task.status || 'ASSIGNED'}</small>
+          </div>
+        </div>`).join('')
+    : '<p style="font-size:11px;color:var(--muted)">No deployment tasks recorded.</p>';
+}
+
+// ------------------------------------------------------------
+// ADMIN OVERRIDE DISPLAY
+// ------------------------------------------------------------
+function renderAdminDeploymentOverrides(admin){
+  const element = document.getElementById('adminDeploymentOverrides');
+  if(!element) return;
+
+  const overrides = admin?.deployment?.overrides || [];
+
+  element.innerHTML = overrides.length
+    ? overrides.map(override => `
+        <div class="ben-item">
+          <div class="ben-info">
+            <b>${override.permission || override.module || 'Override'}</b><br>
+            <small>${override.reason || 'No reason recorded'} • ${override.expiresAt ? 'Expires ' + override.expiresAt : 'No expiry'}</small>
+          </div>
+        </div>`).join('')
+    : '<p style="font-size:11px;color:var(--muted)">No temporary overrides recorded.</p>';
+}
+
+// ------------------------------------------------------------
+// ADMIN WRITE OPERATIONS
+// ------------------------------------------------------------
+// The current server exposes the Founder Admin READ endpoint only:
+// GET /api/founder/admins
+// Do not write Admin records to localStorage. Write operations will
+// be connected when their corresponding protected server endpoints
+// are added to server.js.
+function adminServerWritePending(){
+  alert('This Admin action is now server-controlled. The protected server write endpoint for this action has not been connected yet. No browser-local Admin record will be created.');
+}
+
+function addAdminInvite(){ adminServerWritePending(); }
+function delAdmin(){ adminServerWritePending(); }
+function resetAdminPw(){ adminServerWritePending(); }
+function changeAdminRole(){ adminServerWritePending(); }
+function clearAllAdmins(){ adminServerWritePending(); }
+function addAdminDeploymentTask(){ adminServerWritePending(); }
+function removeAdminDeploymentTask(){ adminServerWritePending(); }
+function addAdminDeploymentOverride(){ adminServerWritePending(); }
+function removeAdminDeploymentOverride(){ adminServerWritePending(); }
+function deploySelectedAdmin(){ adminServerWritePending(); }
+function suspendSelectedAdmin(){ adminServerWritePending(); }
+function reloadSelectedAdminControl(){ loadFounderAdmins(); }
+
+// ------------------------------------------------------------
+// ADMIN STARTUP
+// ------------------------------------------------------------
+loadFounderAdmins();
+
+// ============================================================
+// END — FOUNDER ADMIN CONTROL CENTRE
+// ============================================================
+
 </script>
 
 <script>

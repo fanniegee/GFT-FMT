@@ -1890,6 +1890,60 @@ app.post('/api/admin/logout', async (req, res) => {
 });
 
 // ------------------------------------------------------------
+// FOUNDER — LOAD ADMIN ACCOUNTS
+// ------------------------------------------------------------
+
+app.get('/api/founder/admins', requireAdmin, async (req, res) => {
+  try {
+    if (
+      String(req.admin.role || '').toUpperCase() !== 'FOUNDER'
+    ) {
+      return res.status(403).json({
+        ok: false,
+        error: 'Founder authorization required'
+      });
+    }
+
+    const result = await query(
+      `SELECT
+         admin_id,
+         name,
+         email,
+         phone,
+         role,
+         permissions,
+         tasks,
+         deployment,
+         status,
+         active,
+         invited_at,
+         activated_at,
+         last_login_at,
+         created_at,
+         updated_at
+       FROM gft_admin_accounts
+       ORDER BY created_at ASC`
+    );
+
+    return res.json({
+      ok: true,
+      admins: result.rows
+    });
+
+  } catch (error) {
+    console.error(
+      'Founder Admin list error:',
+      error
+    );
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to load Admin accounts'
+    });
+  }
+});
+
+// ------------------------------------------------------------
 // ADMIN AUTHORIZATION HELPER
 // ------------------------------------------------------------
 
