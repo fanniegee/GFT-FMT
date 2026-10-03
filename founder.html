@@ -1678,8 +1678,12 @@ async function loadFounderAdmins(){
     }
 
     admins = Array.isArray(data.admins)
-      ? data.admins.map(ensureAdminDeployment)
-      : [];
+  ? data.admins
+      .filter(admin =>
+        String(admin.role || '').toUpperCase() !== 'FOUNDER'
+      )
+      .map(ensureAdminDeployment)
+  : [];
 
     adminsLoadedAt = new Date();
     renderAdmins();
