@@ -866,12 +866,449 @@ async function resetToDefaultConfig(){
     // saveCustomConfig already reports the server error.
   }
 }
-function hashPw(s){return btoa(s).split('').reverse().join('');}
-function saveFounderPw(){let p=document.getElementById('founderPwSet').value.trim();if(p.length<6){alert('Min 6 chars');return;}localStorage.setItem('guvaza_founder_pw', hashPw(p));document.getElementById('pwStatus').innerText='Saved '+new Date().toLocaleString();document.getElementById('founderPwSet').value='';log('Password changed');}
-function loadSecurity(){try{let en=localStorage.getItem('guvaza_2fa_enabled')==='1';let sw=document.getElementById('faSwitch'), lb=document.getElementById('faLabel'), box=document.getElementById('faSetupBox');if(sw){if(en){sw.classList.add('on'); if(lb){lb.innerText='ON'; lb.style.color='#10b981';} if(box) box.style.display='block'; let c=localStorage.getItem('guvaza_2fa_code')||''; document.getElementById('new2FACode').value=c; document.getElementById('faStatus').innerText='2FA ON: '+c;} else {sw.classList.remove('on'); if(lb){lb.innerText='OFF'; lb.style.color='#94a3b8';} if(box) box.style.display='none'; document.getElementById('faStatus').innerText='2FA OFF';}}let hasPw=localStorage.getItem('guvaza_founder_pw');let ps=document.getElementById('pwStatus');if(ps) ps.innerText= hasPw? 'Password SET' : 'No password yet';}catch(e){}}
-function toggle2FA(){let en=localStorage.getItem('guvaza_2fa_enabled')==='1';localStorage.setItem('guvaza_2fa_enabled', en?'0':'1');loadSecurity();}
-function save2FA(){let c=document.getElementById('new2FACode').value.trim();if(!/^\d{6}$/.test(c)){alert('6 digits');return;}localStorage.setItem('guvaza_2fa_code', c);localStorage.setItem('guvaza_2fa_enabled','1');document.getElementById('faStatus').innerText='2FA ON: '+c;alert('2FA Saved!');}
-setTimeout(loadSecurity,800);
+
+// ============================================================
+// FOUNDER SECURITY
+// ACCESS IS CONTROLLED BY SERVER AUTHENTICATION.
+// The Founder password is NOT stored in localStorage.
+// ============================================================
+
+
+async function checkFounderSession() {
+
+  // ----------------------------------------------------------
+  // 1. First check whether a valid server Founder session
+  //    already exists.
+  // ----------------------------------------------------------
+  try {
+
+    const sessionResponse = await fetch('/api/admin/me', {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    const sessionData = await sessionResponse.json();
+
+    if (
+      sessionResponse.ok &&
+      sessionData.ok &&
+      sessionData.admin &&
+      String(sessionData.admin.role || '').toUpperCase() === 'FOUNDER'
+    ) {
+      return true;
+    }
+
+  } catch (error) {
+    console.warn('No existing Founder session:', error);
+  }
+
+
+  // ----------------------------------------------------------
+  // 2. No valid Founder session.
+  //    Show the real Founder login screen.
+  // ----------------------------------------------------------
+
+  const loginBox = document.createElement('div');
+
+  loginBox.id = 'founderServerLogin';
+
+  loginBox.style.cssText = `
+    position:fixed;
+    inset:0;
+    z-index:999999;
+    background:#020617;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  `;
+
+  loginBox.innerHTML = `
+    <div style="
+      width:100%;
+      max-width:430px;
+      background:#0f172a;
+      border:1px solid #334155;
+      border-radius:18px;
+      padding:28px;
+      box-shadow:0 25px 70px rgba(0,0,0,.65);
+    ">
+
+      <div style="
+        text-align:center;
+        margin-bottom:22px;
+      ">
+
+        <div style="
+          width:64px;
+          height:64px;
+          margin:0 auto 12px;
+          border-radius:50%;
+          background:#f59e0b22;
+          border:2px solid #f59e0b;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+        ">
+          <span class="mi" style="
+            font-size:32px;
+            color:#f59e0b;
+          ">admin_panel_settings</span>
+        </div>
+
+        <h1 style="
+          margin:0;
+          color:#f8fafc;
+          font-size:24px;
+        ">
+          FOUNDER ENTRANCE
+        </h1>
+
+        <p style="
+          margin:8px 0 0;
+          color:#94a3b8;
+          font-size:12px;
+        ">
+          Guvaza Family Trust Founder Control Centre
+        </p>
+
+      </div>
+
+      <label style="
+        display:block;
+        color:#cbd5e1;
+        font-size:12px;
+        margin-bottom:6px;
+      ">
+        Founder Email
+      </label>
+
+      <input
+        id="founderLoginEmail"
+        type="email"
+        autocomplete="username"
+        placeholder="Founder email"
+        style="
+          width:100%;
+          box-sizing:border-box;
+          margin-bottom:14px;
+        "
+      >
+
+      <label style="
+        display:block;
+        color:#cbd5e1;
+        font-size:12px;
+        margin-bottom:6px;
+      ">
+        Founder Password
+      </label>
+
+      <input
+        id="founderLoginPassword"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Founder password"
+        style="
+          width:100%;
+          box-sizing:border-box;
+          margin-bottom:14px;
+        "
+      >
+
+      <div
+        id="founderLoginError"
+        style="
+          display:none;
+          background:#7f1d1d33;
+          border:1px solid #ef4444;
+          color:#fca5a5;
+          padding:10px;
+          border-radius:8px;
+          font-size:12px;
+          margin-bottom:12px;
+        "
+      ></div>
+
+      <button
+        id="founderLoginButton"
+        class="primary"
+        style="
+          width:100%;
+          justify-content:center;
+          background:#f59e0b;
+          color:#111827;
+          font-weight:700;
+        "
+      >
+        <span class="mi">lock_open</span>
+        Enter Founder Control Centre
+      </button>
+
+      <button
+        id="founderBackButton"
+        type="button"
+        style="
+          width:100%;
+          margin-top:10px;
+          background:transparent;
+          border:1px solid #334155;
+          color:#94a3b8;
+          padding:10px;
+          border-radius:8px;
+          cursor:pointer;
+        "
+      >
+        Return to Homepage
+      </button>
+
+      <div style="
+        text-align:center;
+        margin-top:16px;
+        color:#64748b;
+        font-size:10px;
+      ">
+        Server-authenticated Founder access
+      </div>
+
+    </div>
+  `;
+
+  document.body.appendChild(loginBox);
+
+
+  // ----------------------------------------------------------
+  // 3. Login button
+  // ----------------------------------------------------------
+
+  const loginButton =
+    document.getElementById('founderLoginButton');
+
+  const errorBox =
+    document.getElementById('founderLoginError');
+
+  const emailInput =
+    document.getElementById('founderLoginEmail');
+
+  const passwordInput =
+    document.getElementById('founderLoginPassword');
+
+
+  async function performFounderLogin() {
+
+    const email =
+      emailInput.value.trim().toLowerCase();
+
+    const password =
+      passwordInput.value;
+
+
+    if (!email || !password) {
+      errorBox.innerText =
+        'Please enter your Founder email and password.';
+
+      errorBox.style.display = 'block';
+
+      return;
+    }
+
+
+    loginButton.disabled = true;
+
+    loginButton.innerHTML =
+      '<span class="mi">hourglass_top</span> Authenticating...';
+
+    errorBox.style.display = 'none';
+
+
+    try {
+
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password
+        })
+      });
+
+
+      const data = await response.json();
+
+
+      if (!response.ok || !data.ok) {
+
+        throw new Error(
+          data.error ||
+          'Founder login failed.'
+        );
+
+      }
+
+
+      // ------------------------------------------------------
+      // SECURITY CHECK:
+      // A successful Admin login is NOT enough.
+      // The server account MUST have role = FOUNDER.
+      // ------------------------------------------------------
+
+      if (
+        !data.admin ||
+        String(data.admin.role || '').toUpperCase() !== 'FOUNDER'
+      ) {
+
+        // Immediately prevent a non-Founder Admin from
+        // entering the Founder dashboard.
+        window.location.replace('admin.html');
+
+        return;
+      }
+
+
+      // Server has authenticated the Founder.
+      // Remove the login screen and reveal the dashboard.
+      loginBox.remove();
+
+      console.log(
+        'Founder server authentication successful.'
+      );
+
+    } catch (error) {
+
+      console.error(
+        'Founder login error:',
+        error
+      );
+
+      errorBox.innerText =
+        error.message ||
+        'Unable to authenticate Founder.';
+
+      errorBox.style.display = 'block';
+
+      loginButton.disabled = false;
+
+      loginButton.innerHTML =
+        '<span class="mi">lock_open</span> Enter Founder Control Centre';
+
+      passwordInput.value = '';
+
+    }
+
+  }
+
+
+  loginButton.addEventListener(
+    'click',
+    performFounderLogin
+  );
+
+
+  passwordInput.addEventListener(
+    'keydown',
+    function(event) {
+      if (event.key === 'Enter') {
+        performFounderLogin();
+      }
+    }
+  );
+
+
+  emailInput.addEventListener(
+    'keydown',
+    function(event) {
+      if (event.key === 'Enter') {
+        passwordInput.focus();
+      }
+    }
+  );
+
+
+  document.getElementById(
+    'founderBackButton'
+  ).addEventListener(
+    'click',
+    function() {
+      window.location.replace('index.html');
+    }
+  );
+
+
+  emailInput.focus();
+
+  return false;
+}
+
+// Legacy Founder password controls are now disabled.
+// The real Founder password is controlled by the server.
+function saveFounderPw() {
+  alert(
+    'Founder password is managed securely by the server. ' +
+    'This browser setting is no longer used for Founder login.'
+  );
+}
+
+
+// Keep the existing security display from breaking,
+// but do NOT use localStorage as an authentication authority.
+function loadSecurity() {
+  const ps = document.getElementById('pwStatus');
+
+  if (ps) {
+    ps.innerText = 'Server-controlled Founder authentication';
+  }
+
+  const sw = document.getElementById('faSwitch');
+  const lb = document.getElementById('faLabel');
+  const box = document.getElementById('faSetupBox');
+
+  if (sw) {
+    sw.classList.remove('on');
+  }
+
+  if (lb) {
+    lb.innerText = 'SERVER CONTROLLED';
+    lb.style.color = '#10b981';
+  }
+
+  if (box) {
+    box.style.display = 'none';
+  }
+
+  const faStatus = document.getElementById('faStatus');
+
+  if (faStatus) {
+    faStatus.innerText =
+      'Founder authentication is controlled by the server.';
+  }
+}
+
+
+// Legacy 2FA controls are temporarily disabled.
+// We will implement proper server-side authentication separately.
+function toggle2FA() {
+  alert(
+    'Founder authentication is controlled by the server.'
+  );
+}
+
+function save2FA() {
+  alert(
+    'Founder authentication is controlled by the server.'
+  );
+}
+
+
+// Check the authenticated Founder session when the page loads.
+checkFounderSession();
+
 let autoApprove=JSON.parse(localStorage.getItem('guvaza_auto_approve')??'true');
 let emailEnabled=JSON.parse(localStorage.getItem('guvaza_email_enabled')??'true');
 let whatsappEnabled=JSON.parse(localStorage.getItem('guvaza_whatsapp_enabled')??'true');
