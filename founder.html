@@ -1822,6 +1822,10 @@ function openAdminControlCentre(index){
 // ------------------------------------------------------------
 // ADMIN CONTROL — SERVER DATA VIEW
 // ------------------------------------------------------------
+function moduleChecked(id, selected){
+  return selected.includes(id) ? 'checked' : '';
+}
+
 function loadAdminControlCentre(){
   const index = document.getElementById('controlAdminSelect')?.value;
   const empty = document.getElementById('adminControlEmpty');
