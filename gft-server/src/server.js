@@ -1123,6 +1123,22 @@ for (const document of uploadedDocuments) {
 const ADMIN_SESSION_COOKIE = 'gft_admin_session';
 const ADMIN_SESSION_HOURS = 8;
 
+// ------------------------------------------------------------
+// FOUNDER CONTROLLER
+// The Founder is a distinct server-level authority.
+// This must never convert or replace an existing Admin role.
+// ------------------------------------------------------------
+
+const FOUNDER_EMAIL =
+  String(
+    process.env.GFT_FOUNDER_EMAIL ||
+    'fanniegee3011@gmail.com'
+  )
+    .trim()
+    .toLowerCase();
+
+const FOUNDER_ROLE = 'FOUNDER';
+
 function sha256(value) {
   return createHash('sha256')
     .update(String(value))
@@ -1193,6 +1209,120 @@ async function createPasswordHash(password) {
   );
 
   return `scrypt$${salt}$${Buffer.from(derivedKey).toString('hex')}`;
+}
+
+// ------------------------------------------------------------
+// FOUNDER ACCOUNT CONTROLLER
+// Ensures the designated Founder exists as a server account.
+// The Founder remains separate from all Admin roles.
+// ------------------------------------------------------------
+
+async function ensureFounderAccount() {
+  const founderPassword =
+    String(
+      process.env.GFT_FOUNDER_PASSWORD || ''
+    );
+
+  if (!founderPassword) {
+    console.warn(
+      'GFT_FOUNDER_PASSWORD is not set. Founder account was not created.'
+    );
+    return;
+  }
+
+  const existing = await query(
+    `SELECT
+       admin_id,
+       email,
+       role
+     FROM gft_admin_accounts
+     WHERE LOWER(email) = $1
+     LIMIT 1`,
+    [FOUNDER_EMAIL]
+  );
+
+  if (existing.rows.length) {
+    const founder = existing.rows[0];
+
+    if (
+      String(founder.role || '').toUpperCase() !==
+      FOUNDER_ROLE
+    ) {
+      await query(
+        `UPDATE gft_admin_accounts
+         SET
+           role = $1,
+           status = 'ACTIVE',
+           active = TRUE,
+           updated_at = NOW()
+         WHERE admin_id = $2`,
+        [
+          FOUNDER_ROLE,
+          founder.admin_id
+        ]
+      );
+
+      console.log(
+        `Founder role established for ${FOUNDER_EMAIL}`
+      );
+    }
+
+    return;
+  }
+
+  const passwordHash =
+    await createPasswordHash(founderPassword);
+
+  await query(
+    `INSERT INTO gft_admin_accounts
+       (
+         admin_id,
+         name,
+         email,
+         phone,
+         role,
+         permissions,
+         tasks,
+         deployment,
+         password_hash,
+         password_algorithm,
+         status,
+         active,
+         invited_at,
+         activated_at
+       )
+     VALUES
+       (
+         $1,
+         $2,
+         $3,
+         NULL,
+         $4,
+         $5::jsonb,
+         $6::jsonb,
+         $7::jsonb,
+         $8,
+         'scrypt',
+         'ACTIVE',
+         TRUE,
+         NOW(),
+         NOW()
+       )`,
+    [
+      'GFT-FOUNDER',
+      'Founder',
+      FOUNDER_EMAIL,
+      FOUNDER_ROLE,
+      JSON.stringify([]),
+      JSON.stringify([]),
+      JSON.stringify({}),
+      passwordHash
+    ]
+  );
+
+  console.log(
+    `Founder account established: ${FOUNDER_EMAIL}`
+  );
 }
 
 async function verifyPassword(password, storedHash) {
@@ -2006,6 +2136,19 @@ app.use((error, _req, res, _next) => {
 // START SERVER
 // ------------------------------------------------------------
 
-app.listen(PORT, () => {
-  console.log(`GFT server listening on http://localhost:${PORT}`);
-});
+ensureFounderAccount()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(
+        `GFT server listening on http://localhost:${PORT}`
+      );
+    });
+  })
+  .catch((error) => {
+    console.error(
+      'Founder account initialization failed:',
+      error
+    );
+
+    process.exit(1);
+  });
