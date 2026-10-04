@@ -1175,7 +1175,7 @@ async function checkFounderSession() {
       // Server has authenticated the Founder.
       // Remove the login screen and reveal the dashboard.
       loginBox.remove();
-
+      await loadFounderAdmins();
       console.log(
         'Founder server authentication successful.'
       );
