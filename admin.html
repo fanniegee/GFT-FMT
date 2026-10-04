@@ -1087,10 +1087,30 @@ function renderAboutSectionsAdmin(){
   list.innerHTML='';
   secs.forEach((sec, idx)=>{
     let galleryHtml = (sec.gallery||[]).map((m,i)=>`
+    
+    let galleryHtml = (sec.gallery||[]).map((m,i)=>`
       <div class="ben-item" style="padding:6px">
         <img src="${m.image}" style="width:40px;height:40px;border-radius:8px;object-fit:cover">
-        <small><b>${m.name}</b> - ${m.caption||''}</small>
-        <button class="danger" style="padding:4px 8px" onclick="adminDelSecGallery(${idx},${i})">X</button>
+
+        <div style="flex:1">
+          <small>
+            <b>${m.name}</b> - ${m.caption||''}
+          </small>
+        </div>
+
+        <button
+          class="orange"
+          style="padding:4px 8px"
+          onclick="adminEditSecGallery(${idx},${i})">
+          Edit
+        </button>
+
+        <button
+          class="danger"
+          style="padding:4px 8px"
+          onclick="adminDelSecGallery(${idx},${i})">
+          Delete
+        </button>
       </div>
     `).join('') || '<small style="color:var(--muted)">No photos yet for this section</small>';
 
@@ -1173,6 +1193,49 @@ renderAboutSectionsAdmin();
   };
   if(file){let r=new FileReader(); r.onload=e=>save(e.target.result); r.readAsDataURL(file);} else {save(imgPath||'assets/family.jpg');}
 }
+
+async function adminEditSecGallery(secIdx, galIdx){
+  const sec = customConfig.about.sections?.[secIdx];
+  const item = sec?.gallery?.[galIdx];
+
+  if(!item) return;
+
+  const name = prompt(
+    'Edit photo name:',
+    item.name || ''
+  );
+
+  if(name === null) return;
+
+  const caption = prompt(
+    'Edit photo caption:',
+    item.caption || ''
+  );
+
+  if(caption === null) return;
+
+  const newImage = prompt(
+    'Edit image path (leave blank to keep the current image):',
+    item.image || ''
+  );
+
+  if(newImage === null) return;
+
+  item.name = name.trim();
+  item.caption = caption.trim();
+
+  if(newImage.trim()){
+    item.image = newImage.trim();
+  }
+
+  const saved = await saveCustomConfig();
+
+  if(!saved) return;
+
+  renderAboutSectionsAdmin();
+  alert('Gallery photo updated!');
+}
+
 async function adminDelSecGallery(secIdx, galIdx){
   if(!confirm('Delete this photo?')) return;
   customConfig.about.sections[secIdx].gallery.splice(galIdx,1);
