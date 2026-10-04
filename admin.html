@@ -57,8 +57,10 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <div class="login-box" id="loginBox">
 <h2 style="display:flex;align-items:center"><span class="mi">admin_panel_settings</span> ADMIN LOGIN - Guvaza Trust</h2>
 <p style="font-size:11px;color:var(--muted)">Login with Email + Password YOU set yourself</p>
-<input id="loginEmail" placeholder="Email e.g. john@guvaza.com">
-<input id="loginPassword" type="password" placeholder="Password you created">
+
+<input id="loginEmail" autocomplete="off" placeholder="Email e.g. john@guvaza.com">
+<input id="loginPassword" type="password" autocomplete="new-password" placeholder="Password you created">
+
 <button class="primary" onclick="doAdminLogin()" style="width:100%;justify-content:center;margin-top:10px"><span class="mi">login</span> Login to Admin Panel</button>
 <div id="loginMsg" style="font-size:11px;color:#ef4444;margin-top:10px"></div>
 <div class="log" style="margin-top:12px;font-size:10px">
@@ -831,7 +833,21 @@ function renderDashboard(){
  let sch=JSON.parse(localStorage.getItem('guvaza_school_requests')||'[]');
  document.getElementById('dashSch').innerText=sch.length+' pending invoices';
  document.getElementById('configBadge').innerText=`${CFG.name} | ${(customConfig.companies||[]).length} companies`;
- document.getElementById('adminCountInfo').innerText=`${admins.length} admins`;
+ fetch('/api/admin/count', {
+  method: 'GET',
+  credentials: 'include',
+  headers: { 'Accept': 'application/json' }
+})
+.then(r => r.json())
+.then(data => {
+  if (data.ok) {
+    document.getElementById('adminCountInfo').innerText =
+      `${data.count} admins`;
+  }
+})
+.catch(error => {
+  console.error('Admin count load failed:', error);
+});
 }
 function renderHomeEdit(){
  let hp=customConfig.homepage||{};
@@ -920,11 +936,102 @@ if(!saved) return;
 alert('About saved!');
 }
 function renderAdminFamily(){
- let list=document.getElementById('adminFamilyList'); let badge=document.getElementById('adminFamilyCount');
- let members=customConfig.about.familyMembers||[]; if(badge) badge.innerText=members.length; if(!list) return;
- if(members.length===0){list.innerHTML='<p style="color:var(--muted)">No family - add Guvaza etc</p>';return;}
- list.innerHTML=''; members.forEach((m,i)=>{list.innerHTML+=`<div class="ben-item"><img src="${m.image}" style="width:50px;height:50px;border-radius:10px;object-fit:cover"><div class="ben-info"><b>${m.name}</b><br><small>${m.caption}</small></div><div><button class="danger" style="padding:6px 10px" onclick="adminDelFamily(${i})">Delete</button></div></div>`});
+  let list=document.getElementById('adminFamilyList');
+  let badge=document.getElementById('adminFamilyCount');
+  let members=customConfig.about.familyMembers||[];
+
+  if(badge) badge.innerText=members.length;
+  if(!list) return;
+
+  if(members.length===0){
+    list.innerHTML='<p style="color:var(--muted)">No family - add Guvaza etc</p>';
+    return;
+  }
+
+  list.innerHTML='';
+
+  members.forEach((m,i)=>{
+    list.innerHTML+=`
+      <div class="ben-item">
+        <img src="${m.image||'assets/family.jpg'}"
+             style="width:50px;height:50px;border-radius:10px;object-fit:cover">
+
+        <div class="ben-info">
+          <b>${m.name||''}</b><br>
+          <small>${m.caption||''}</small>
+        </div>
+
+        <div style="display:flex;gap:6px">
+          <button
+            class="primary"
+            style="padding:6px 10px"
+            onclick="adminEditFamily(${i})">
+            Edit
+          </button>
+
+          <button
+            class="danger"
+            style="padding:6px 10px"
+            onclick="adminDelFamily(${i})">
+            Delete
+          </button>
+        </div>
+      </div>
+    `;
+  });
 }
+
+async function adminEditFamily(i){
+  let members=customConfig.about.familyMembers||[];
+  let member=members[i];
+
+  if(!member) return;
+
+  let name=prompt(
+    'Edit family member name:',
+    member.name||''
+  );
+
+  if(name===null) return;
+
+  name=name.trim();
+
+  if(!name){
+    alert('Name is required.');
+    return;
+  }
+
+  let caption=prompt(
+    'Edit family member caption:',
+    member.caption||''
+  );
+
+  if(caption===null) return;
+
+  caption=caption.trim();
+
+  let image=prompt(
+    'Edit image path (leave unchanged by pressing Cancel):',
+    member.image||''
+  );
+
+  if(image!==null){
+    image=image.trim();
+    if(image) member.image=image;
+  }
+
+  member.name=name;
+  member.caption=caption;
+
+  const saved=await saveCustomConfig();
+
+  if(!saved) return;
+
+  renderAdminFamily();
+
+  alert('Family member updated successfully.');
+}
+
 async function adminAddFamily(){
  let name=document.getElementById('adminFamilyName').value.trim(); let cap=document.getElementById('adminFamilyCaption').value.trim(); let imgPath=document.getElementById('adminFamilyImage').value.trim(); let file=document.getElementById('adminFamilyFile').files[0];
  if(!name) return alert('Name required');

@@ -2023,6 +2023,34 @@ app.post('/api/admin/logout', async (req, res) => {
 // FOUNDER — LOAD ADMIN ACCOUNTS
 // ------------------------------------------------------------
 
+// ------------------------------------------------------------
+// ADMIN — SERVER-SIDE ADMIN COUNT
+// Founder is not counted as an Admin.
+// ------------------------------------------------------------
+
+app.get('/api/admin/count', requireAdmin, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT COUNT(*)::int AS count
+       FROM gft_admin_accounts
+       WHERE UPPER(COALESCE(role, '')) <> 'FOUNDER'`
+    );
+
+    return res.json({
+      ok: true,
+      count: result.rows[0].count
+    });
+
+  } catch (error) {
+    console.error('Admin count error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to load Admin count'
+    });
+  }
+});
+
 app.get('/api/founder/admins', requireAdmin, async (req, res) => {
   try {
     if (
