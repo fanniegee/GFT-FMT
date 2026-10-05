@@ -241,6 +241,73 @@ app.get('/api/family/:systemId', async (req, res) => {
 });
 
 // ------------------------------------------------------------
+// PUBLIC BENEFICIARY LINEAGE API
+// Safe lineage fields only.
+// No phone numbers, ID numbers, emails, or documents.
+// ------------------------------------------------------------
+
+app.get('/api/beneficiaries/lineage', async (_req, res) => {
+  try {
+    const result = await query(
+      `SELECT
+         system_id,
+         full_name,
+         identity_status,
+         lineage_status,
+         status,
+         profile
+       FROM beneficiaries
+       ORDER BY system_id`
+    );
+
+    const beneficiaries = result.rows.map(row => {
+      const profile =
+        row.profile && typeof row.profile === 'object'
+          ? row.profile
+          : {};
+
+      return {
+        systemId: row.system_id,
+        fullName: row.full_name,
+        parentId: profile.parentId || profile.parentSystemId || null,
+        generation: profile.generation || null,
+        branch: profile.branch || profile.branchCode || null,
+        gender: profile.gender || null,
+        rootSurname: profile.rootSurname || 'Guvaza',
+        currentSurname:
+          profile.currentSurname ||
+          profile.rootSurname ||
+          'Guvaza',
+        wifeNo: profile.wifeNo || null,
+        isPlaceholder: Boolean(profile.isPlaceholder),
+
+        identityStatus: row.identity_status,
+        lineageStatus: row.lineage_status,
+        beneficiaryStatus: row.status
+      };
+    });
+
+    return res.json({
+      ok: true,
+      count: beneficiaries.length,
+      beneficiaries,
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error(
+      'Public beneficiary lineage API error:',
+      error
+    );
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to load beneficiary lineage data'
+    });
+  }
+});
+
+// ------------------------------------------------------------
 // PUBLIC CONFIGURATION API
 // ------------------------------------------------------------
 
@@ -1111,6 +1178,56 @@ for (const document of uploadedDocuments) {
     return res.status(500).json({
       ok: false,
       error: 'Unable to submit registration'
+    });
+  }
+});
+
+// ------------------------------------------------------------
+// REGISTRATION LIST
+// Server-backed registration records for Admin/Founder views.
+// Reads directly from PostgreSQL.
+// ------------------------------------------------------------
+
+app.get('/api/registrations', requireAdmin, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT
+         registration_id,
+         applicant_system_id,
+         full_name,
+         username,
+         phone,
+         id_number,
+         parent_full_name,
+         grandparent_full_name,
+         email,
+         date_of_birth,
+         gender,
+         current_surname,
+         generation,
+         branch_code,
+         wife_no,
+         parent_system_id,
+         grandparent_system_id,
+         status,
+         submitted_at
+       FROM registrations
+       ORDER BY submitted_at DESC`
+    );
+
+    return res.json({
+      ok: true,
+      count: result.rows.length,
+      registrations: result.rows,
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error('Registration list API error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to load registrations'
     });
   }
 });

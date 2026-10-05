@@ -332,6 +332,45 @@ function getWifeName(p, no){
   return p.wifeName || null;
 }
 
+let serverCanonicalBeneficiaries = [];
+
+async function loadServerCanonicalBeneficiaries(){
+  try {
+    const response = await fetch('/api/beneficiaries/lineage', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || 'Unable to load server beneficiary lineage'
+      );
+    }
+
+    serverCanonicalBeneficiaries =
+      Array.isArray(data.beneficiaries)
+        ? data.beneficiaries
+        : [];
+
+    console.log(
+      'GFT server beneficiary lineage loaded:',
+      serverCanonicalBeneficiaries.length
+    );
+
+  } catch (error) {
+    console.error(
+      'GFT server beneficiary lineage load failed:',
+      error
+    );
+
+    serverCanonicalBeneficiaries = [];
+  }
+}
+
 function allRecords(){
   const fixed = getTree().map(p => ({
     ...p,
@@ -346,9 +385,15 @@ function allRecords(){
     wifeNo: getWifeNo(p),
     isPlaceholder: isPlaceholder(p)
   }));
-  let registered = [];
-  try { registered = JSON.parse(localStorage.getItem("gft_canonical_beneficiaries") || "[]"); } catch {}
-  return [...fixed, ...registered.filter(r => r?.systemId)];
+
+  const registered = Array.isArray(serverCanonicalBeneficiaries)
+    ? serverCanonicalBeneficiaries
+    : [];
+
+  return [
+    ...fixed,
+    ...registered.filter(r => r?.systemId)
+  ];
 }
 
 function canonicalStatus(r){
@@ -920,6 +965,8 @@ document.querySelectorAll("#progress button").forEach(b=>b.addEventListener("cli
   if(target===state.step || target>state.step || (state.wifeFrozen && target<3)) return;
   showStep(target);
 }));
+
+loadServerCanonicalBeneficiaries();
 
 // Initial state.
 $("rootSurname").value="Guvaza";
