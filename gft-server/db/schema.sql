@@ -77,6 +77,21 @@ CREATE TABLE IF NOT EXISTS beneficiaries (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS beneficiary_sessions (
+  session_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  beneficiary_id UUID NOT NULL REFERENCES beneficiaries(beneficiary_id) ON DELETE CASCADE,
+  token_hash TEXT UNIQUE NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_used_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_beneficiary_sessions_beneficiary
+  ON beneficiary_sessions(beneficiary_id);
+
+CREATE INDEX IF NOT EXISTS idx_beneficiary_sessions_expires
+  ON beneficiary_sessions(expires_at);
+
 CREATE TABLE IF NOT EXISTS family_people (
   person_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   system_id TEXT UNIQUE NOT NULL,

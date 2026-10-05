@@ -1310,6 +1310,338 @@ function clearAdminCookie(res) {
   );
 }
 
+// ------------------------------------------------------------
+// BENEFICIARY AUTHENTICATION
+// Server-controlled Beneficiary sessions.
+// ------------------------------------------------------------
+
+const BENEFICIARY_SESSION_COOKIE =
+  'gft_beneficiary_session';
+
+const BENEFICIARY_SESSION_HOURS = 8;
+
+function setBeneficiaryCookie(res, token) {
+  const secure = process.env.NODE_ENV === 'production';
+
+  res.setHeader(
+    'Set-Cookie',
+    `${BENEFICIARY_SESSION_COOKIE}=${encodeURIComponent(token)}; ` +
+    `HttpOnly; ` +
+    `Path=/; ` +
+    `SameSite=Lax; ` +
+    `${secure ? 'Secure; ' : ''}` +
+    `Max-Age=${BENEFICIARY_SESSION_HOURS * 60 * 60}`
+  );
+}
+
+function clearBeneficiaryCookie(res) {
+  const secure = process.env.NODE_ENV === 'production';
+
+  res.setHeader(
+    'Set-Cookie',
+    `${BENEFICIARY_SESSION_COOKIE}=; ` +
+    `HttpOnly; ` +
+    `Path=/; ` +
+    `SameSite=Lax; ` +
+    `${secure ? 'Secure; ' : ''}` +
+    `Max-Age=0`
+  );
+}
+
+async function createBeneficiarySession(
+  req,
+  res,
+  beneficiaryId
+) {
+  const rawToken =
+    randomBytes(32).toString('hex');
+
+  const tokenHash = sha256(rawToken);
+
+  const expiresAt = new Date(
+    Date.now() +
+    BENEFICIARY_SESSION_HOURS *
+    60 *
+    60 *
+    1000
+  );
+
+  await query(
+    `INSERT INTO beneficiary_sessions
+       (
+         beneficiary_id,
+         token_hash,
+         expires_at
+       )
+     VALUES ($1, $2, $3)`,
+    [
+      beneficiaryId,
+      tokenHash,
+      expiresAt
+    ]
+  );
+
+  setBeneficiaryCookie(res, rawToken);
+
+  return {
+    expiresAt
+  };
+}
+
+async function getAuthenticatedBeneficiary(req) {
+  const rawToken = getCookie(
+    req,
+    BENEFICIARY_SESSION_COOKIE
+  );
+
+  if (!rawToken) {
+    return null;
+  }
+
+  const tokenHash = sha256(rawToken);
+
+  const result = await query(
+    `SELECT
+       b.beneficiary_id,
+       b.system_id,
+       b.membership,
+       b.full_name,
+       b.username,
+       b.phone,
+       b.identity_status,
+       b.lineage_status,
+       b.status,
+       b.profile,
+       s.session_id,
+       s.expires_at
+     FROM beneficiary_sessions s
+     JOIN beneficiaries b
+       ON b.beneficiary_id = s.beneficiary_id
+     WHERE s.token_hash = $1
+       AND s.expires_at > NOW()
+       AND UPPER(b.status) = 'ACTIVE'
+     LIMIT 1`,
+    [tokenHash]
+  );
+
+  if (result.rows.length === 0) {
+    return null;
+  }
+
+  const beneficiary = result.rows[0];
+
+  await query(
+    `UPDATE beneficiary_sessions
+     SET last_used_at = NOW()
+     WHERE session_id = $1`,
+    [beneficiary.session_id]
+  );
+
+  return beneficiary;
+}
+
+// ------------------------------------------------------------
+// BENEFICIARY LOGIN
+// Server-authoritative beneficiary authentication.
+// ------------------------------------------------------------
+
+app.post('/api/beneficiary/login', async (req, res) => {
+  try {
+    const loginIdentifier =
+      String(
+        req.body?.loginIdentifier ||
+        req.body?.username ||
+        req.body?.phone ||
+        ''
+      ).trim();
+
+    const identityValue =
+      String(
+        req.body?.identityValue ||
+        req.body?.idNumber ||
+        req.body?.membership ||
+        ''
+      ).trim();
+
+    if (!loginIdentifier || !identityValue) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Login details are required'
+      });
+    }
+
+    const result = await query(
+      `SELECT
+         beneficiary_id,
+         system_id,
+         membership,
+         full_name,
+         username,
+         phone,
+         id_number,
+         identity_status,
+         lineage_status,
+         status,
+         profile
+       FROM beneficiaries
+       WHERE
+         (
+           LOWER(COALESCE(username, '')) =
+             LOWER($1)
+           OR
+           phone = $1
+         )
+         AND
+         (
+           id_number = $2
+           OR membership = $2
+         )
+         AND UPPER(status) IN ('ACTIVE', 'APPROVED')
+       LIMIT 1`,
+      [
+        loginIdentifier,
+        identityValue
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Invalid beneficiary login details'
+      });
+    }
+
+    const beneficiary = result.rows[0];
+
+    const session =
+      await createBeneficiarySession(
+        req,
+        res,
+        beneficiary.beneficiary_id
+      );
+
+    return res.json({
+      ok: true,
+      authenticated: true,
+      beneficiary: {
+        systemId: beneficiary.system_id,
+        membership: beneficiary.membership,
+        fullName: beneficiary.full_name,
+        username: beneficiary.username,
+        identityStatus:
+          beneficiary.identity_status,
+        lineageStatus:
+          beneficiary.lineage_status,
+        status: beneficiary.status,
+        profile: beneficiary.profile
+      },
+      session: {
+        expiresAt: session.expiresAt
+      },
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error(
+      'Beneficiary login error:',
+      error
+    );
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to complete beneficiary login'
+    });
+  }
+});
+
+// ------------------------------------------------------------
+// CURRENT BENEFICIARY SESSION
+// ------------------------------------------------------------
+
+app.get('/api/beneficiary/me', async (req, res) => {
+  try {
+    const beneficiary =
+      await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        authenticated: false
+      });
+    }
+
+    return res.json({
+      ok: true,
+      authenticated: true,
+      beneficiary: {
+        systemId: beneficiary.system_id,
+        membership: beneficiary.membership,
+        fullName: beneficiary.full_name,
+        username: beneficiary.username,
+        identityStatus:
+          beneficiary.identity_status,
+        lineageStatus:
+          beneficiary.lineage_status,
+        status: beneficiary.status,
+        profile: beneficiary.profile
+      },
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error(
+      'Beneficiary session lookup error:',
+      error
+    );
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to check beneficiary session'
+    });
+  }
+});
+
+// ------------------------------------------------------------
+// BENEFICIARY LOGOUT
+// ------------------------------------------------------------
+
+app.post('/api/beneficiary/logout', async (req, res) => {
+  try {
+    const rawToken = getCookie(
+      req,
+      BENEFICIARY_SESSION_COOKIE
+    );
+
+    if (rawToken) {
+      const tokenHash = sha256(rawToken);
+
+      await query(
+        `DELETE FROM beneficiary_sessions
+         WHERE token_hash = $1`,
+        [tokenHash]
+      );
+    }
+
+    clearBeneficiaryCookie(res);
+
+    return res.json({
+      ok: true
+    });
+
+  } catch (error) {
+    console.error(
+      'Beneficiary logout error:',
+      error
+    );
+
+    clearBeneficiaryCookie(res);
+
+    return res.json({
+      ok: true
+    });
+  }
+});
+
 async function createPasswordHash(password) {
   const salt = randomBytes(16).toString('hex');
 

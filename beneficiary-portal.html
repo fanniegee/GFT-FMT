@@ -176,18 +176,46 @@ body{margin:0;font-family:system-ui;background:#f5f1f1}
 <script src="portalData.js"></script>
 <script src="guvazaTree.js"></script>
 <script>
-let session=JSON.parse(localStorage.getItem('guvaza_beneficiary_session')||localStorage.getItem('guvaza_current_user')||'null');
-if(!session){window.location.href='beneficiary-login.html';}
-else{
-  document.getElementById('topName').innerText='Welcome, '+(session.name||session.username||'Beneficiary');
-  document.getElementById('memberId').innerText=session.membership||'GFT-'+new Date().getFullYear()+'-'+Math.floor(1000+Math.random()*9000);
-  document.getElementById('watermark').innerText=Array(40).fill((session.membership||'GFT-')+' • '+(session.idNumber||'')).join(' ');
-  refreshBenWallet();
-document.getElementById('profileName').innerText = session.name || session.username || 'Beneficiary';
-document.getElementById('profileId').innerText = (session.membership||'GFT-2026-0014') + ' • Approved';
-document.getElementById('cardHolderName').innerText = session.name || session.username || 'Beneficiary';
+let session=null;
+
+async function loadBeneficiarySession(){
+  try{
+    const response=await fetch('/api/beneficiary/me',{
+      method:'GET',
+      headers:{'Accept':'application/json'},
+      credentials:'include'
+    });
+
+    const result=await response.json().catch(()=>({}));
+
+    if(!response.ok || !result.ok || !result.authenticated || !result.beneficiary){
+      window.location.href='beneficiary-login.html';
+      return false;
+    }
+
+    session=result.beneficiary;
+    session.name=session.fullName||session.name||session.username||'Beneficiary';
+    session.idNumber=session.membership||'';
+
+    document.getElementById('topName').innerText='Welcome, '+session.name;
+    document.getElementById('memberId').innerText=session.membership||session.systemId||'GFT-';
+    document.getElementById('watermark').innerText=Array(40).fill((session.membership||session.systemId||'GFT-')+' • '+(session.systemId||'')).join(' ');
+    document.getElementById('profileName').innerText=session.name;
+    document.getElementById('profileId').innerText=(session.membership||session.systemId||'GFT-')+' • Approved';
+    document.getElementById('cardHolderName').innerText=session.name;
+
+    refreshBenWallet();
+    renderPortalData();
+    return true;
+
+  }catch(error){
+    console.error('GFT beneficiary session lookup failed:',error);
+    window.location.href='beneficiary-login.html';
+    return false;
+  }
 }
-renderPortalData();
+
+loadBeneficiarySession();
 
 function getMyBenId(){ return session.idNumber || session.id || session.username || ''; }
 function refreshBenWallet(){
@@ -302,11 +330,17 @@ async function requestPayout(){
   let msg=document.getElementById('payoutMsg');msg.innerText='Place finger on sensor..';await new Promise(r=>setTimeout(r,1500));msg.innerText='✅ Fingerprint verified! Payout request sent to Trust Office.';
 }
 function applyVirtual(){document.getElementById('virtualMsg').innerText='✅ Virtual card application sent!';}
-function logout(){localStorage.removeItem('guvaza_beneficiary_session');localStorage.removeItem('guvaza_current_user');window.location.href='beneficiary-login.html';}
-function getAllRegs(){
-  let a=[]; try{a=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]')}catch(e){}
-  let b=[]; try{b=JSON.parse(localStorage.getItem('pendingRegistrations')||'[]')}catch(e){}
-  return [...a,...b];
+async function logout(){
+  try{
+    await fetch('/api/beneficiary/logout',{
+      method:'POST',
+      headers:{'Accept':'application/json'},
+      credentials:'include'
+    });
+  }catch(error){
+    console.error('GFT beneficiary logout failed:',error);
+  }
+  window.location.href='beneficiary-login.html';
 }
 function getBranchMeta(branch, fullName){
   let bn=(branch||'').toUpperCase();
@@ -335,8 +369,6 @@ function openMyDirectLineage(){
 let first = (session?.name || session?.firstName || '').trim();
 let last = (session?.surname || session?.lastName || session?.familyName || '').trim();
 let currentName = `${first} ${last}`.trim() || (session?.username || 'Beneficiary').trim();
-  localStorage.setItem('guvaza_current_user_id', currentId);
-  localStorage.setItem('guvaza_current_user_name', currentName);
   window.location.href = `my-direct-lineage.html?id=${encodeURIComponent(currentId)}&name=${encodeURIComponent(currentName)}`;
 }
 (function(){
