@@ -1233,6 +1233,364 @@ app.get('/api/registrations', requireAdmin, async (req, res) => {
 });
 
 // ------------------------------------------------------------
+// ADMIN — APPROVE REGISTRATION
+//
+// Approval is the point where a PENDING registration becomes
+// an official server-side beneficiary.
+//
+// IMPORTANT:
+// This does NOT create a GFT VISA card yet.
+// The card will only be created after successful beneficiary
+// activation.
+// ------------------------------------------------------------
+
+app.post(
+  '/api/registrations/:registrationId/approve',
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const registrationId =
+        String(req.params.registrationId || '').trim();
+
+      if (!registrationId) {
+        return res.status(400).json({
+          ok: false,
+          error: 'Registration ID is required'
+        });
+      }
+
+      // --------------------------------------------------------
+      // 1. Load the registration
+      // --------------------------------------------------------
+
+      const registrationResult = await query(
+        `SELECT
+           registration_id,
+           applicant_system_id,
+           full_name,
+           username,
+           phone,
+           id_number,
+           email,
+           date_of_birth,
+           gender,
+           current_surname,
+           generation,
+           branch_code,
+           wife_no,
+           parent_system_id,
+           grandparent_system_id,
+           parent_full_name,
+           grandparent_full_name,
+           status
+         FROM registrations
+         WHERE registration_id = $1
+         LIMIT 1`,
+        [registrationId]
+      );
+
+      if (registrationResult.rows.length === 0) {
+        return res.status(404).json({
+          ok: false,
+          error: 'Registration not found'
+        });
+      }
+
+      const registration =
+        registrationResult.rows[0];
+
+      // --------------------------------------------------------
+      // 2. Only PENDING registrations may be approved
+      // --------------------------------------------------------
+
+      if (
+        String(registration.status || '')
+          .toUpperCase() !== 'PENDING'
+      ) {
+        return res.status(409).json({
+          ok: false,
+          error:
+            `Registration cannot be approved because its current status is ${registration.status}`
+        });
+      }
+
+      // --------------------------------------------------------
+      // 3. Make sure the applicant has a valid GFT System ID
+      // --------------------------------------------------------
+
+      const systemId =
+        String(
+          registration.applicant_system_id || ''
+        ).trim();
+
+      if (!systemId) {
+        return res.status(400).json({
+          ok: false,
+          error:
+            'Registration does not have a valid GFT System ID'
+        });
+      }
+
+      // --------------------------------------------------------
+      // 4. Check whether this registration was already converted
+      // into a beneficiary.
+      //
+      // This protects against duplicate beneficiary creation.
+      // --------------------------------------------------------
+
+      const existingBeneficiaryResult =
+        await query(
+          `SELECT
+             beneficiary_id,
+             system_id,
+             membership,
+             full_name,
+             status
+           FROM beneficiaries
+           WHERE system_id = $1
+           LIMIT 1`,
+          [systemId]
+        );
+
+      if (
+        existingBeneficiaryResult.rows.length > 0
+      ) {
+        const existing =
+          existingBeneficiaryResult.rows[0];
+
+        return res.status(409).json({
+          ok: false,
+          error:
+            'This registration already has a beneficiary record',
+          beneficiary: {
+            beneficiaryId:
+              existing.beneficiary_id,
+            systemId:
+              existing.system_id,
+            membership:
+              existing.membership,
+            fullName:
+              existing.full_name,
+            status:
+              existing.status
+          }
+        });
+      }
+
+      // --------------------------------------------------------
+      // 5. Create the official beneficiary
+      //
+      // Membership is server-generated from the official
+      // GFT System ID.
+      // --------------------------------------------------------
+
+      const membership =
+        `GFT-MEM-${systemId}`;
+
+      const profile = {
+        parentId:
+          registration.parent_system_id || null,
+
+        grandparentId:
+          registration.grandparent_system_id || null,
+
+        parentName:
+          registration.parent_full_name || null,
+
+        grandparentName:
+          registration.grandparent_full_name || null,
+
+        generation:
+          registration.generation || null,
+
+        branch:
+          registration.branch_code || null,
+
+        wifeNo:
+          registration.wife_no || null,
+
+        gender:
+          registration.gender || null,
+
+        dateOfBirth:
+          registration.date_of_birth || null,
+
+        currentSurname:
+          registration.current_surname || null,
+
+        email:
+          registration.email || null,
+
+        registrationId:
+          registration.registration_id,
+
+        approvedAt:
+          new Date().toISOString(),
+
+        approvedByAdminId:
+          req.admin?.admin_id || null,
+
+        approvedByAdminEmail:
+          req.admin?.email || null
+      };
+
+      const beneficiaryResult =
+        await query(
+          `INSERT INTO beneficiaries
+             (
+               system_id,
+               membership,
+               full_name,
+               username,
+               phone,
+               id_number,
+               identity_status,
+               lineage_status,
+               status,
+               profile
+             )
+           VALUES
+             (
+               $1,
+               $2,
+               $3,
+               $4,
+               $5,
+               $6,
+               'VERIFIED',
+               'VERIFIED',
+               'ACTIVE',
+               $7::jsonb
+             )
+           RETURNING
+             beneficiary_id,
+             system_id,
+             membership,
+             full_name,
+             username,
+             phone,
+             identity_status,
+             lineage_status,
+             status,
+             profile,
+             created_at`,
+          [
+            systemId,
+            membership,
+            registration.full_name,
+            registration.username,
+            registration.phone,
+            registration.id_number,
+            JSON.stringify(profile)
+          ]
+        );
+
+      const beneficiary =
+        beneficiaryResult.rows[0];
+
+      // --------------------------------------------------------
+      // 6. Mark the registration as APPROVED
+      // --------------------------------------------------------
+
+      const updatedRegistrationResult =
+        await query(
+          `UPDATE registrations
+           SET
+             status = 'APPROVED',
+             reviewed_at = NOW(),
+             review_notes = $2
+           WHERE registration_id = $1
+           RETURNING
+             registration_id,
+             applicant_system_id,
+             status,
+             reviewed_at`,
+          [
+            registrationId,
+            'Registration approved and beneficiary activated'
+          ]
+        );
+
+      const updatedRegistration =
+        updatedRegistrationResult.rows[0];
+
+      // --------------------------------------------------------
+      // 7. Return the newly created beneficiary
+      //
+      // GFT VISA card is intentionally NOT created here yet.
+      // --------------------------------------------------------
+
+      return res.json({
+        ok: true,
+
+        registration: {
+          registrationId:
+            updatedRegistration.registration_id,
+
+          systemId:
+            updatedRegistration.applicant_system_id,
+
+          status:
+            updatedRegistration.status,
+
+          reviewedAt:
+            updatedRegistration.reviewed_at
+        },
+
+        beneficiary: {
+          beneficiaryId:
+            beneficiary.beneficiary_id,
+
+          systemId:
+            beneficiary.system_id,
+
+          membership:
+            beneficiary.membership,
+
+          fullName:
+            beneficiary.full_name,
+
+          username:
+            beneficiary.username,
+
+          identityStatus:
+            beneficiary.identity_status,
+
+          lineageStatus:
+            beneficiary.lineage_status,
+
+          status:
+            beneficiary.status,
+
+          profile:
+            beneficiary.profile
+        },
+
+        gftVisaCard: {
+          created: false,
+          reason:
+            'GFT VISA card will be created by the server-side card issuance step after beneficiary activation.'
+        },
+
+        serverAuthoritative: true
+      });
+
+    } catch (error) {
+      console.error(
+        'Registration approval error:',
+        error
+      );
+
+      return res.status(500).json({
+        ok: false,
+        error:
+          'Unable to approve registration'
+      });
+    }
+  }
+);
+
+// ------------------------------------------------------------
 // ADMIN AUTHENTICATION
 // Server-controlled Admin sessions.
 // ------------------------------------------------------------
