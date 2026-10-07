@@ -1233,6 +1233,92 @@ app.get('/api/registrations', requireAdmin, async (req, res) => {
 });
 
 // ------------------------------------------------------------
+// GFT VISA CARD ISSUANCE
+// ------------------------------------------------------------
+
+async function issueGftVisaCard({
+  beneficiaryId,
+  systemId
+}) {
+  const existingResult = await query(
+    `SELECT
+       card_id,
+       beneficiary_id,
+       system_id,
+       card_number,
+       card_last4,
+       card_status,
+       issued_at,
+       expires_at
+     FROM gft_visa_cards
+     WHERE beneficiary_id = $1
+        OR system_id = $2
+     LIMIT 1`,
+    [
+      beneficiaryId,
+      systemId
+    ]
+  );
+
+  if (existingResult.rows.length > 0) {
+    return existingResult.rows[0];
+  }
+
+  const sequenceResult = await query(
+    `SELECT nextval(
+       'gft_visa_card_number_seq'
+     ) AS card_number`
+  );
+
+  const serial =
+    String(
+      sequenceResult.rows[0].card_number
+    ).padStart(6, '0');
+
+  const cardNumber =
+    `GFT VISA ${serial}`;
+
+  const cardLast4 =
+    serial.slice(-4);
+
+  const cardResult = await query(
+    `INSERT INTO gft_visa_cards
+       (
+         beneficiary_id,
+         system_id,
+         card_number,
+         card_last4,
+         card_status
+       )
+     VALUES
+       (
+         $1,
+         $2,
+         $3,
+         $4,
+         'ACTIVE'
+       )
+     RETURNING
+       card_id,
+       beneficiary_id,
+       system_id,
+       card_number,
+       card_last4,
+       card_status,
+       issued_at,
+       expires_at`,
+    [
+      beneficiaryId,
+      systemId,
+      cardNumber,
+      cardLast4
+    ]
+  );
+
+  return cardResult.rows[0];
+}
+
+// ------------------------------------------------------------
 // ADMIN — APPROVE REGISTRATION
 //
 // Approval is the point where a PENDING registration becomes
