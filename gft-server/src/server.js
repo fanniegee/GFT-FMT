@@ -1606,7 +1606,16 @@ app.post(
       // GFT VISA card is intentionally NOT created here yet.
       // --------------------------------------------------------
 
-      return res.json({
+       const gftVisaCard =
+        await issueGftVisaCard({
+          beneficiaryId:
+            beneficiary.beneficiary_id,
+
+          systemId:
+            beneficiary.system_id
+        });    
+
+       return res.json({
         ok: true,
 
         registration: {
@@ -1652,10 +1661,25 @@ app.post(
             beneficiary.profile
         },
 
-        gftVisaCard: {
-          created: false,
-          reason:
-            'GFT VISA card will be created by the server-side card issuance step after beneficiary activation.'
+     gftVisaCard: {
+          created: true,
+          cardId:
+            gftVisaCard.card_id,
+
+          cardNumber:
+            gftVisaCard.card_number,
+
+          cardLast4:
+            gftVisaCard.card_last4,
+
+          cardStatus:
+            gftVisaCard.card_status,
+
+          issuedAt:
+            gftVisaCard.issued_at,
+
+          expiresAt:
+            gftVisaCard.expires_at
         },
 
         serverAuthoritative: true
@@ -2032,6 +2056,7 @@ app.get('/api/beneficiary/me', async (req, res) => {
       serverAuthoritative: true
     });
 
+
   } catch (error) {
     console.error(
       'Beneficiary session lookup error:',
@@ -2041,6 +2066,76 @@ app.get('/api/beneficiary/me', async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: 'Unable to check beneficiary session'
+    });
+  }
+});
+
+// ------------------------------------------------------------
+// BENEFICIARY — GFT VISA CARD
+// ------------------------------------------------------------
+
+app.get('/api/beneficiary/card', async (req, res) => {
+  try {
+    const beneficiary =
+      await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Beneficiary authentication required'
+      });
+    }
+
+    const result = await query(
+      `SELECT
+         card_id,
+         system_id,
+         card_number,
+         card_last4,
+         card_status,
+         issued_at,
+         expires_at
+       FROM gft_visa_cards
+       WHERE beneficiary_id = $1
+       LIMIT 1`,
+      [beneficiary.beneficiary_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({
+        ok: true,
+        card: null,
+        issued: false,
+        serverAuthoritative: true
+      });
+    }
+
+    const card = result.rows[0];
+
+    return res.json({
+      ok: true,
+      issued: true,
+      card: {
+        cardId: card.card_id,
+        systemId: card.system_id,
+        cardNumber: card.card_number,
+        cardLast4: card.card_last4,
+        cardStatus: card.card_status,
+        issuedAt: card.issued_at,
+        expiresAt: card.expires_at
+      },
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error(
+      'Beneficiary GFT VISA card API error:',
+      error
+    );
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to load GFT VISA card'
     });
   }
 });

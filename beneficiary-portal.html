@@ -115,7 +115,7 @@ body{margin:0;font-family:system-ui;background:#f5f1f1}
           <span style="font-weight:900;font-size:18px;letter-spacing:1px">GFT</span>
           <span style="width:18px;height:18px;background:#fff;border-radius:50%;opacity:0.9;display:block"></span>
         </div>
-        <div style="font-size:20px;letter-spacing:4px;margin-top:20px">•••• •••• •••• 4129</div>
+        <div style="font-size:20px;letter-spacing:4px;margin-top:20px"><span id="gftVisaCardNumber">GFT VISA — NOT ISSUED</span></div>
         <div style="display:flex;justify-content:space-between;align-items:end;margin-top:20px">
           <div>
             <div id="cardHolderName" style="font-size:14px">Fannuel</div>
@@ -129,7 +129,7 @@ body{margin:0;font-family:system-ui;background:#f5f1f1}
         <div style="background:#000;height:36px;margin:-18px -18px 16px -18px"></div>
         <div style="font-size:12px;opacity:0.8">CVV</div>
         <div style="background:#fff;color:#000;padding:8px 12px;border-radius:6px;margin-top:6px;font-weight:800;letter-spacing:3px;display:flex;justify-content:space-between">
-          <span>••• 4129</span><span id="benCVV">847</span>
+          <span><span id="gftVisaCardNumberBack">GFT VISA — NOT ISSUED</span></span><span id="benCVV">•••</span>
         </div>
         <div style="font-size:11px;margin-top:10px;opacity:0.7">Tap to flip back</div>
       </div>
@@ -203,6 +203,103 @@ async function loadBeneficiarySession(){
     document.getElementById('profileName').innerText=session.name;
     document.getElementById('profileId').innerText=(session.membership||session.systemId||'GFT-')+' • Approved';
     document.getElementById('cardHolderName').innerText=session.name;
+
+async function loadGftVisaCard(){
+
+  try{
+
+    const response = await fetch(
+      '/api/beneficiary/card',
+      {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
+      }
+    );
+
+    const result =
+      await response.json().catch(() => ({}));
+
+    const front =
+      document.getElementById(
+        'gftVisaCardNumber'
+      );
+
+    const back =
+      document.getElementById(
+        'gftVisaCardNumberBack'
+      );
+
+    const cvv =
+      document.getElementById('benCVV');
+
+    if(!response.ok || !result.ok){
+
+      if(front)
+        front.textContent =
+          'GFT VISA — NOT AVAILABLE';
+
+      if(back)
+        back.textContent =
+          'GFT VISA — NOT AVAILABLE';
+
+      if(cvv)
+        cvv.textContent = '—';
+
+      return;
+    }
+
+    if(!result.issued || !result.card){
+
+      if(front)
+        front.textContent =
+          'GFT VISA — NOT ISSUED';
+
+      if(back)
+        back.textContent =
+          'GFT VISA — NOT ISSUED';
+
+      if(cvv)
+        cvv.textContent = '—';
+
+      return;
+    }
+
+    const card =
+      result.card;
+
+    if(front)
+      front.textContent =
+        card.cardNumber ||
+        ('GFT VISA •••• ' +
+         (card.cardLast4 || ''));
+
+    if(back)
+      back.textContent =
+        '••• ' +
+        (card.cardLast4 || '');
+
+    /*
+      No real CVV is stored in the GFT database.
+      Keep the display masked until a proper
+      secure card-security system exists.
+    */
+    if(cvv)
+      cvv.textContent = '•••';
+
+  }catch(error){
+
+    console.error(
+      'GFT VISA card load failed:',
+      error
+    );
+
+  }
+}
+
+loadGftVisaCard();
 
     refreshBenWallet();
     renderPortalData();
