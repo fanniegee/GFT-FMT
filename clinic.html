@@ -1,0 +1,2122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Guvaza Geriatric Clinic | Integrated Health & Geriatric Care
+    </title>
+
+    <meta
+        name="description"
+        content="Guvaza Geriatric Clinic — Integrated Health and Geriatric Nursing Home."
+    >
+
+    <style>
+
+        /* =====================================================
+           GUVAZA GERIATRIC CLINIC
+           PRIMARY COLOURS
+           ===================================================== */
+
+        :root {
+
+            --clinic-navy: #123B5D;
+            --clinic-navy-dark: #0B2942;
+            --clinic-green: #3F8F63;
+            --clinic-green-dark: #2F704D;
+            --clinic-white: #FFFFFF;
+            --clinic-soft: #F4F8F6;
+            --clinic-text: #20313D;
+            --clinic-muted: #64727C;
+            --clinic-border: #DCE6E1;
+
+        }
+
+
+        /* =====================================================
+           RESET
+           ===================================================== */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+
+        body {
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                var(--clinic-soft);
+
+            color:
+                var(--clinic-text);
+
+            line-height: 1.6;
+
+        }
+
+
+        a {
+            text-decoration: none;
+        }
+
+
+        button,
+        a {
+            -webkit-tap-highlight-color:
+                transparent;
+        }
+
+
+        /* =====================================================
+           NAVIGATION
+           ===================================================== */
+
+        .clinic-nav {
+
+            background:
+                var(--clinic-navy);
+
+            min-height:
+                68px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                space-between;
+
+            padding:
+                0 6%;
+
+            position:
+                sticky;
+
+            top:
+                0;
+
+            z-index:
+                1000;
+
+            box-shadow:
+                0 4px 18px rgba(
+                    0,
+                    0,
+                    0,
+                    0.12
+                );
+
+        }
+
+
+        .clinic-brand {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                12px;
+
+            color:
+                var(--clinic-white);
+
+        }
+
+
+        .clinic-brand-mark {
+
+            width:
+                42px;
+
+            height:
+                42px;
+
+            border-radius:
+                50%;
+
+            background:
+                var(--clinic-white);
+
+            color:
+                var(--clinic-navy);
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            font-size:
+                17px;
+
+            font-weight:
+                900;
+
+            border:
+                3px solid
+                var(--clinic-green);
+
+        }
+
+
+        .clinic-brand-text {
+
+            display:
+                flex;
+
+            flex-direction:
+                column;
+
+        }
+
+
+        .clinic-brand-name {
+
+            font-size:
+                17px;
+
+            font-weight:
+                800;
+
+            letter-spacing:
+                0.2px;
+
+        }
+
+
+        .clinic-brand-subtitle {
+
+            font-size:
+                10px;
+
+            opacity:
+                0.82;
+
+            letter-spacing:
+                0.5px;
+
+        }
+
+
+        .clinic-nav-links {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                25px;
+
+        }
+
+
+        .clinic-nav-links a {
+
+            color:
+                var(--clinic-white);
+
+            font-size:
+                14px;
+
+            font-weight:
+                700;
+
+            opacity:
+                0.92;
+
+            transition:
+                0.2s ease;
+
+        }
+
+
+        .clinic-nav-links a:hover {
+
+            color:
+                #B9E4C8;
+
+        }
+
+
+        .back-gft {
+
+            padding:
+                9px 15px;
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.35
+                );
+
+            border-radius:
+                22px;
+
+        }
+
+
+        /* =====================================================
+           HERO
+           ===================================================== */
+
+        .clinic-hero {
+
+            min-height:
+                610px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            position:
+                relative;
+
+            overflow:
+                hidden;
+
+            background:
+
+                linear-gradient(
+                    110deg,
+                    rgba(
+                        11,
+                        41,
+                        66,
+                        0.97
+                    ),
+                    rgba(
+                        18,
+                        59,
+                        93,
+                        0.91
+                    )
+                );
+
+        }
+
+
+        .hero-decoration {
+
+            position:
+                absolute;
+
+            border-radius:
+                50%;
+
+            opacity:
+                0.12;
+
+            pointer-events:
+                none;
+
+        }
+
+
+        .hero-decoration.one {
+
+            width:
+                430px;
+
+            height:
+                430px;
+
+            right:
+                -150px;
+
+            top:
+                -140px;
+
+            border:
+                80px solid
+                var(--clinic-green);
+
+        }
+
+
+        .hero-decoration.two {
+
+            width:
+                330px;
+
+            height:
+                330px;
+
+            left:
+                -180px;
+
+            bottom:
+                -170px;
+
+            border:
+                65px solid
+                var(--clinic-white);
+
+        }
+
+
+        .clinic-hero-content {
+
+            width:
+                min(
+                    1180px,
+                    90%
+                );
+
+            margin:
+                auto;
+
+            position:
+                relative;
+
+            z-index:
+                2;
+
+            display:
+                grid;
+
+            grid-template-columns:
+                1.2fr 0.8fr;
+
+            gap:
+                55px;
+
+            align-items:
+                center;
+
+        }
+
+
+        .hero-eyebrow {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            gap:
+                8px;
+
+            background:
+                rgba(
+                    63,
+                    143,
+                    99,
+                    0.18
+                );
+
+            color:
+                #D8F3E1;
+
+            border:
+                1px solid
+                rgba(
+                    185,
+                    228,
+                    200,
+                    0.35
+                );
+
+            padding:
+                8px 14px;
+
+            border-radius:
+                30px;
+
+            font-size:
+                12px;
+
+            font-weight:
+                800;
+
+            text-transform:
+                uppercase;
+
+            letter-spacing:
+                1px;
+
+            margin-bottom:
+                20px;
+
+        }
+
+
+        .hero-title {
+
+            color:
+                var(--clinic-white);
+
+            font-size:
+                clamp(
+                    38px,
+                    5vw,
+                    68px
+                );
+
+            line-height:
+                1.05;
+
+            font-weight:
+                900;
+
+            margin-bottom:
+                20px;
+
+        }
+
+
+        .hero-title span {
+
+            color:
+                #9ED5B1;
+
+        }
+
+
+        .hero-description {
+
+            max-width:
+                680px;
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.86
+                );
+
+            font-size:
+                18px;
+
+            line-height:
+                1.75;
+
+            margin-bottom:
+                32px;
+
+        }
+
+
+        .hero-buttons {
+
+            display:
+                flex;
+
+            flex-wrap:
+                wrap;
+
+            gap:
+                13px;
+
+        }
+
+
+        .primary-button,
+        .secondary-button {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            min-height:
+                50px;
+
+            padding:
+                0 22px;
+
+            border-radius:
+                8px;
+
+            font-size:
+                14px;
+
+            font-weight:
+                800;
+
+            transition:
+                0.2s ease;
+
+        }
+
+
+        .primary-button {
+
+            background:
+                var(--clinic-green);
+
+            color:
+                var(--clinic-white);
+
+            box-shadow:
+                0 8px 20px rgba(
+                    0,
+                    0,
+                    0,
+                    0.16
+                );
+
+        }
+
+
+        .primary-button:hover {
+
+            background:
+                var(--clinic-green-dark);
+
+            transform:
+                translateY(-2px);
+
+        }
+
+
+        .secondary-button {
+
+            background:
+                transparent;
+
+            color:
+                var(--clinic-white);
+
+            border:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.45
+                );
+
+        }
+
+
+        .secondary-button:hover {
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.08
+                );
+
+        }
+
+
+        /* =====================================================
+           HERO HEALTH PANEL
+           ===================================================== */
+
+        .hero-panel {
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.97
+                );
+
+            border-radius:
+                22px;
+
+            padding:
+                28px;
+
+            box-shadow:
+                0 25px 60px rgba(
+                    0,
+                    0,
+                    0,
+                    0.22
+                );
+
+        }
+
+
+        .hero-panel-header {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                12px;
+
+            padding-bottom:
+                20px;
+
+            border-bottom:
+                1px solid
+                var(--clinic-border);
+
+            margin-bottom:
+                20px;
+
+        }
+
+
+        .health-icon {
+
+            width:
+                48px;
+
+            height:
+                48px;
+
+            border-radius:
+                12px;
+
+            background:
+                #E5F3EA;
+
+            color:
+                var(--clinic-green);
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            font-size:
+                23px;
+
+            font-weight:
+                900;
+
+        }
+
+
+        .hero-panel h3 {
+
+            color:
+                var(--clinic-navy);
+
+            font-size:
+                19px;
+
+        }
+
+
+        .hero-panel p {
+
+            color:
+                var(--clinic-muted);
+
+            font-size:
+                12px;
+
+        }
+
+
+        .service-mini-list {
+
+            display:
+                grid;
+
+            gap:
+                11px;
+
+        }
+
+
+        .service-mini {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                11px;
+
+            padding:
+                11px;
+
+            border-radius:
+                10px;
+
+            background:
+                #F7FAF8;
+
+        }
+
+
+        .service-mini-dot {
+
+            width:
+                9px;
+
+            height:
+                9px;
+
+            border-radius:
+                50%;
+
+            background:
+                var(--clinic-green);
+
+            flex-shrink:
+                0;
+
+        }
+
+
+        .service-mini span {
+
+            color:
+                var(--clinic-text);
+
+            font-size:
+                13px;
+
+            font-weight:
+                700;
+
+        }
+
+
+        /* =====================================================
+           INTRO
+           ===================================================== */
+
+        .section {
+
+            width:
+                min(
+                    1180px,
+                    90%
+                );
+
+            margin:
+                auto;
+
+            padding:
+                80px 0;
+
+        }
+
+
+        .section-heading {
+
+            text-align:
+                center;
+
+            max-width:
+                760px;
+
+            margin:
+                0 auto 45px;
+
+        }
+
+
+        .section-heading .label {
+
+            color:
+                var(--clinic-green);
+
+            font-size:
+                12px;
+
+            font-weight:
+                900;
+
+            letter-spacing:
+                1.4px;
+
+            text-transform:
+                uppercase;
+
+            margin-bottom:
+                10px;
+
+        }
+
+
+        .section-heading h2 {
+
+            color:
+                var(--clinic-navy);
+
+            font-size:
+                clamp(
+                    28px,
+                    4vw,
+                    42px
+                );
+
+            line-height:
+                1.15;
+
+            margin-bottom:
+                13px;
+
+        }
+
+
+        .section-heading p {
+
+            color:
+                var(--clinic-muted);
+
+            font-size:
+                16px;
+
+        }
+
+
+        /* =====================================================
+           SERVICES
+           ===================================================== */
+
+        .services-grid {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(
+                    3,
+                    1fr
+                );
+
+            gap:
+                20px;
+
+        }
+
+
+        .service-card {
+
+            background:
+                var(--clinic-white);
+
+            border:
+                1px solid
+                var(--clinic-border);
+
+            border-radius:
+                16px;
+
+            padding:
+                28px;
+
+            box-shadow:
+                0 8px 25px rgba(
+                    18,
+                    59,
+                    93,
+                    0.05
+                );
+
+            transition:
+                0.25s ease;
+
+        }
+
+
+        .service-card:hover {
+
+            transform:
+                translateY(-5px);
+
+            box-shadow:
+                0 18px 35px rgba(
+                    18,
+                    59,
+                    93,
+                    0.10
+                );
+
+        }
+
+
+        .service-number {
+
+            color:
+                var(--clinic-green);
+
+            font-size:
+                12px;
+
+            font-weight:
+                900;
+
+            margin-bottom:
+                18px;
+
+        }
+
+
+        .service-card h3 {
+
+            color:
+                var(--clinic-navy);
+
+            font-size:
+                19px;
+
+            margin-bottom:
+                9px;
+
+        }
+
+
+        .service-card p {
+
+            color:
+                var(--clinic-muted);
+
+            font-size:
+                14px;
+
+            line-height:
+                1.7;
+
+        }
+
+
+        /* =====================================================
+           CLIENT GATEWAY
+           ===================================================== */
+
+        .gateway {
+
+            background:
+                var(--clinic-navy);
+
+            color:
+                var(--clinic-white);
+
+            border-radius:
+                24px;
+
+            padding:
+                50px;
+
+            display:
+                grid;
+
+            grid-template-columns:
+                1fr auto;
+
+            align-items:
+                center;
+
+            gap:
+                30px;
+
+        }
+
+
+        .gateway h2 {
+
+            font-size:
+                30px;
+
+            margin-bottom:
+                9px;
+
+        }
+
+
+        .gateway p {
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.78
+                );
+
+            max-width:
+                700px;
+
+        }
+
+
+        .gateway-button {
+
+            background:
+                var(--clinic-green);
+
+            color:
+                var(--clinic-white);
+
+            padding:
+                14px 24px;
+
+            border-radius:
+                8px;
+
+            font-weight:
+                800;
+
+            white-space:
+                nowrap;
+
+        }
+
+
+        /* =====================================================
+           INFORMATION
+           ===================================================== */
+
+        .info-grid {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(
+                    3,
+                    1fr
+                );
+
+            gap:
+                20px;
+
+        }
+
+
+        .info-card {
+
+            background:
+                var(--clinic-white);
+
+            border:
+                1px solid
+                var(--clinic-border);
+
+            border-radius:
+                15px;
+
+            padding:
+                25px;
+
+        }
+
+
+        .info-card h3 {
+
+            color:
+                var(--clinic-navy);
+
+            margin-bottom:
+                10px;
+
+            font-size:
+                18px;
+
+        }
+
+
+        .info-card p {
+
+            color:
+                var(--clinic-muted);
+
+            font-size:
+                14px;
+
+        }
+
+
+        /* =====================================================
+           FOOTER
+           ===================================================== */
+
+        footer {
+
+            background:
+                #0B2942;
+
+            color:
+                var(--clinic-white);
+
+            padding:
+                45px 6% 25px;
+
+        }
+
+
+        .footer-grid {
+
+            width:
+                min(
+                    1180px,
+                    100%
+                );
+
+            margin:
+                auto;
+
+            display:
+                grid;
+
+            grid-template-columns:
+                1.4fr 1fr 1fr;
+
+            gap:
+                40px;
+
+        }
+
+
+        .footer-title {
+
+            font-size:
+                18px;
+
+            font-weight:
+                800;
+
+            margin-bottom:
+                10px;
+
+        }
+
+
+        .footer-text {
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.68
+                );
+
+            font-size:
+                13px;
+
+        }
+
+
+        .footer-links {
+
+            display:
+                grid;
+
+            gap:
+                8px;
+
+        }
+
+
+        .footer-links a {
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.72
+                );
+
+            font-size:
+                13px;
+
+        }
+
+
+        .footer-bottom {
+
+            width:
+                min(
+                    1180px,
+                    100%
+                );
+
+            margin:
+                35px auto 0;
+
+            padding-top:
+                20px;
+
+            border-top:
+                1px solid
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.12
+                );
+
+            color:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.55
+                );
+
+            font-size:
+                11px;
+
+        }
+
+
+        /* =====================================================
+           MOBILE
+           ===================================================== */
+
+        @media (
+            max-width: 850px
+        ) {
+
+            .clinic-nav {
+
+                padding:
+                    0 4%;
+
+            }
+
+            .clinic-nav-links {
+
+                gap:
+                    12px;
+
+            }
+
+            .clinic-nav-links a:not(.back-gft) {
+
+                display:
+                    none;
+
+            }
+
+            .clinic-hero-content {
+
+                grid-template-columns:
+                    1fr;
+
+                padding:
+                    65px 0;
+
+            }
+
+            .hero-panel {
+
+                max-width:
+                    560px;
+
+            }
+
+            .services-grid,
+            .info-grid {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+            .gateway {
+
+                grid-template-columns:
+                    1fr;
+
+                padding:
+                    35px 25px;
+
+            }
+
+            .gateway-button {
+
+                justify-self:
+                    start;
+
+            }
+
+            .footer-grid {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+        }
+
+
+        @media (
+            max-width: 520px
+        ) {
+
+            .clinic-brand-subtitle {
+
+                display:
+                    none;
+
+            }
+
+            .clinic-brand-name {
+
+                font-size:
+                    14px;
+
+            }
+
+            .hero-title {
+
+                font-size:
+                    40px;
+
+            }
+
+            .hero-description {
+
+                font-size:
+                    15px;
+
+            }
+
+            .section {
+
+                padding:
+                    60px 0;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         CLINIC NAVIGATION
+         ===================================================== -->
+
+    <nav class="clinic-nav">
+
+        <a
+            href="clinic.html"
+            class="clinic-brand"
+        >
+
+            <div class="clinic-brand-mark">
+                G
+            </div>
+
+            <div class="clinic-brand-text">
+
+                <div class="clinic-brand-name">
+                    Guvaza Geriatric Clinic
+                </div>
+
+                <div class="clinic-brand-subtitle">
+                    Integrated Health & Geriatric Care
+                </div>
+
+            </div>
+
+        </a>
+
+
+        <div class="clinic-nav-links">
+
+            <a href="#services">
+                Services
+            </a>
+
+            <a href="#about">
+                About
+            </a>
+
+            <a href="#contact">
+                Contact
+            </a>
+
+            <a
+                href="index.html"
+                class="back-gft"
+            >
+                GFT Home
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- =====================================================
+         HERO / FIRST GATE
+         ===================================================== -->
+
+    <header class="clinic-hero">
+
+        <div class="hero-decoration one"></div>
+        <div class="hero-decoration two"></div>
+
+
+        <div class="clinic-hero-content">
+
+
+            <div>
+
+                <div class="hero-eyebrow">
+                    Integrated Health & Geriatric Care
+                </div>
+
+
+                <h1 class="hero-title">
+
+                    Compassionate care.
+                    <span>
+                        Dignified living.
+                    </span>
+
+                </h1>
+
+
+                <p class="hero-description">
+
+                    Welcome to Guvaza Geriatric Clinic,
+                    providing integrated health, assisted living
+                    and geriatric nursing care with dignity,
+                    compassion and respect.
+
+                </p>
+
+
+                <div class="hero-buttons">
+
+                    <a
+                        href="clinic-register.html"
+                        class="primary-button"
+                    >
+                        Register / Apply for Care
+                    </a>
+
+
+                    <a
+                        href="#services"
+                        class="secondary-button"
+                    >
+                        Explore Our Services
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 HEALTH SERVICE PANEL
+                 ================================================= -->
+
+            <div class="hero-panel">
+
+                <div class="hero-panel-header">
+
+                    <div class="health-icon">
+                        +
+                    </div>
+
+                    <div>
+
+                        <h3>
+                            Geriatric Care
+                        </h3>
+
+                        <p>
+                            Care designed around the individual
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="service-mini-list">
+
+                    <div class="service-mini">
+
+                        <div class="service-mini-dot"></div>
+
+                        <span>
+                            Assisted Living
+                        </span>
+
+                    </div>
+
+
+                    <div class="service-mini">
+
+                        <div class="service-mini-dot"></div>
+
+                        <span>
+                            Frail Care Services
+                        </span>
+
+                    </div>
+
+
+                    <div class="service-mini">
+
+                        <div class="service-mini-dot"></div>
+
+                        <span>
+                            Primary Health Services
+                        </span>
+
+                    </div>
+
+
+                    <div class="service-mini">
+
+                        <div class="service-mini-dot"></div>
+
+                        <span>
+                            Individual Care Planning
+                        </span>
+
+                    </div>
+
+
+                    <div class="service-mini">
+
+                        <div class="service-mini-dot"></div>
+
+                        <span>
+                            Family & Next-of-Kin Support
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         ABOUT
+         ===================================================== -->
+
+    <section
+        class="section"
+        id="about"
+    >
+
+        <div class="section-heading">
+
+            <div class="label">
+                About the Clinic
+            </div>
+
+            <h2>
+                Care with dignity at every stage
+            </h2>
+
+            <p>
+
+                Guvaza Geriatric Clinic is being developed
+                as an integrated health and geriatric care
+                service within the wider Guvaza platform.
+
+            </p>
+
+        </div>
+
+
+        <div class="info-grid">
+
+            <div class="info-card">
+
+                <h3>
+                    Assisted Living
+                </h3>
+
+                <p>
+                    A supportive environment for older people
+                    who require assistance while maintaining
+                    as much independence as possible.
+                </p>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <h3>
+                    Frail Care
+                </h3>
+
+                <p>
+                    Structured care for residents who require
+                    additional assistance because of frailty,
+                    disability or higher care needs.
+                </p>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <h3>
+                    Integrated Health
+                </h3>
+
+                <p>
+                    Health monitoring and care coordination
+                    within the scope of the clinic's approved
+                    services and professional oversight.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         SERVICES
+         ===================================================== -->
+
+    <section
+        class="section"
+        id="services"
+    >
+
+        <div class="section-heading">
+
+            <div class="label">
+                Our Services
+            </div>
+
+            <h2>
+                A complete care pathway
+            </h2>
+
+            <p>
+
+                The clinic's future online system will allow
+                prospective clients and families to begin the
+                care journey digitally.
+
+            </p>
+
+        </div>
+
+
+        <div class="services-grid">
+
+
+            <div class="service-card">
+
+                <div class="service-number">
+                    01
+                </div>
+
+                <h3>
+                    Client Registration
+                </h3>
+
+                <p>
+                    Submit an online application for yourself
+                    or a family member and begin the clinic
+                    assessment process.
+                </p>
+
+            </div>
+
+
+            <div class="service-card">
+
+                <div class="service-number">
+                    02
+                </div>
+
+                <h3>
+                    Assessment
+                </h3>
+
+                <p>
+                    Applications can proceed through the
+                    clinic's assessment and admission workflow
+                    before a resident is formally admitted.
+                </p>
+
+            </div>
+
+
+            <div class="service-card">
+
+                <div class="service-number">
+                    03
+                </div>
+
+                <h3>
+                    Residential Care
+                </h3>
+
+                <p>
+                    Structured support for residents according
+                    to their assessed level of care.
+                </p>
+
+            </div>
+
+
+            <div class="service-card">
+
+                <div class="service-number">
+                    04
+                </div>
+
+                <h3>
+                    Care Planning
+                </h3>
+
+                <p>
+                    Individual care planning will coordinate
+                    daily care, medical, nutrition and social
+                    care information.
+                </p>
+
+            </div>
+
+
+            <div class="service-card">
+
+                <div class="service-number">
+                    05
+                </div>
+
+                <h3>
+                    Family Communication
+                </h3>
+
+                <p>
+                    Future family access will provide approved
+                    next-of-kin with appropriate resident
+                    updates and communication tools.
+                </p>
+
+            </div>
+
+
+            <div class="service-card">
+
+                <div class="service-number">
+                    06
+                </div>
+
+                <h3>
+                    Clinic Services
+                </h3>
+
+                <p>
+                    The clinic will provide approved primary
+                    health services within its licensed scope.
+                </p>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CLIENT / FAMILY GATEWAY
+         ===================================================== -->
+
+    <section class="section">
+
+        <div class="gateway">
+
+            <div>
+
+                <h2>
+                    Are you looking for care?
+                </h2>
+
+                <p>
+
+                    Families and prospective clients will be
+                    able to register directly with Guvaza
+                    Geriatric Clinic. This system is separate
+                    from the Guvaza Family Trust beneficiary
+                    registration system.
+
+                </p>
+
+            </div>
+
+
+            <a
+                href="clinic-register.html"
+                class="gateway-button"
+            >
+                Begin Registration
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CONTACT
+         ===================================================== -->
+
+    <section
+        class="section"
+        id="contact"
+    >
+
+        <div class="section-heading">
+
+            <div class="label">
+                Contact
+            </div>
+
+            <h2>
+                Guvaza Geriatric Clinic
+            </h2>
+
+            <p>
+
+                Integrated Health & Geriatric Nursing Home
+
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
+
+    <footer>
+
+        <div class="footer-grid">
+
+
+            <div>
+
+                <div class="footer-title">
+                    Guvaza Geriatric Clinic
+                </div>
+
+                <p class="footer-text">
+
+                    Integrated Health & Geriatric Nursing Home.
+                    A dedicated Guvaza service for integrated
+                    health, assisted living and geriatric care.
+
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <div class="footer-title">
+                    Clinic
+                </div>
+
+                <div class="footer-links">
+
+                    <a href="#about">
+                        About
+                    </a>
+
+                    <a href="#services">
+                        Services
+                    </a>
+
+                    <a href="clinic-register.html">
+                        Register / Apply for Care
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <div class="footer-title">
+                    Guvaza
+                </div>
+
+                <div class="footer-links">
+
+                    <a href="index.html">
+                        GFT Homepage
+                    </a>
+
+                    <a href="companies.html">
+                        Companies
+                    </a>
+
+                    <a href="library.html">
+                        Library
+                    </a>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            © 2026 Guvaza Geriatric Clinic.
+            Part of the wider Guvaza platform.
+
+        </div>
+
+    </footer>
+
+
+    <!-- =====================================================
+         SERVER-BACKED FOUNDATION
+         =====================================================
+
+         IMPORTANT:
+         No LocalStorage is used by this page.
+
+         Future clinic data will be loaded through the
+         server API and PostgreSQL.
+
+         ===================================================== -->
+
+    <script>
+
+        /*
+         * Clinic foundation.
+         *
+         * We intentionally do NOT use localStorage.
+         *
+         * Future authenticated clinic functionality will
+         * communicate with server.js through /api/clinic/*
+         * endpoints.
+         */
+
+        async function checkClinicServer() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        '/api/health',
+                        {
+                            method: 'GET',
+                            headers: {
+                                'Accept':
+                                    'application/json'
+                            }
+                        }
+                    );
+
+                if (!response.ok) {
+                    throw new Error(
+                        'Clinic server unavailable'
+                    );
+                }
+
+                const result =
+                    await response.json();
+
+                if (
+                    result &&
+                    result.ok
+                ) {
+
+                    document.documentElement
+                        .dataset
+                        .clinicServer =
+                        'online';
+
+                }
+
+            } catch (error) {
+
+                console.warn(
+                    'Clinic server check:',
+                    error.message
+                );
+
+                document.documentElement
+                    .dataset
+                    .clinicServer =
+                    'offline';
+
+            }
+
+        }
+
+
+        checkClinicServer();
+
+    </script>
+
+</body>
+
+</html>
