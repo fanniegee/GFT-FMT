@@ -3117,6 +3117,135 @@ async function requireAdmin(req, res, next) {
   }
 }
 
+/* ============================================================
+   GUVAZA GERIATRIC CLINIC — PUBLIC APPLICATION API
+   Separate from GFT beneficiary registration.
+   PostgreSQL is the source of truth.
+   ============================================================ */
+
+const clinicBranchCodes = new Set([
+  'MSV', // Masvingo
+  'BYO', // Bulawayo
+  'HAR', // Harare
+  'GWE', // Gweru
+  'MUT'  // Mutare
+]);
+
+app.post('/api/clinic/applications', async (req, res) => {
+  try {
+    const body = req.body || {};
+
+    const branchCode = String(body.branchCode || '')
+      .trim()
+      .toUpperCase();
+
+    const resident = body.residentDetails;
+    const medical = body.medicalHistory;
+    const consent = body.consentDetails;
+
+    if (!clinicBranchCodes.has(branchCode)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Please select a supported clinic branch.'
+      });
+    }
+
+    if (
+      !resident ||
+      typeof resident !== 'object' ||
+      Array.isArray(resident) ||
+      !medical ||
+      typeof medical !== 'object' ||
+      Array.isArray(medical) ||
+      !consent ||
+      typeof consent !== 'object' ||
+      Array.isArray(consent)
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Valid resident, medical and consent details are required.'
+      });
+    }
+
+    const fullName = String(resident.fullName || '').trim();
+    const nextOfKin = String(resident.nextOfKin || '').trim();
+    const nextOfKinPhone = String(resident.phone || '').trim();
+
+    if (!fullName || !nextOfKin || !nextOfKinPhone) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Resident name, next of kin and contact phone are required.'
+      });
+    }
+
+    if (consent.agreed !== true) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Confirmation of consent is required before submission.'
+      });
+    }
+
+    // Generate the application number on the server.
+    // The sequence is shared across branches; numbers are unique
+    // but are not reset independently for each branch.
+    const sequenceResult = await query(
+      `SELECT nextval('clinic_application_number_seq') AS serial`
+    );
+
+    const serial = String(sequenceResult.rows[0].serial)
+      .padStart(6, '0');
+
+    const applicationNumber = `GGC-${branchCode}-${serial}`;
+
+    const result = await query(
+      `INSERT INTO clinic_applications (
+         application_number,
+         branch_code,
+         resident_details,
+         medical_history,
+         consent_details
+       )
+       VALUES ($1, $2, $3::jsonb, $4::jsonb, $5::jsonb)
+       RETURNING
+         application_id,
+         application_number,
+         branch_code,
+         application_status,
+         submitted_at`,
+      [
+        applicationNumber,
+        branchCode,
+        JSON.stringify(resident),
+        JSON.stringify(medical),
+        JSON.stringify(consent)
+      ]
+    );
+
+    const saved = result.rows[0];
+
+    return res.status(201).json({
+      ok: true,
+      message: 'Clinic application received for review.',
+      application: {
+        applicationId: saved.application_id,
+        applicationNumber: saved.application_number,
+        branchCode: saved.branch_code,
+        status: saved.application_status,
+        submittedAt: saved.submitted_at
+      },
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error('Clinic application submission error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to submit the Clinic application. Please try again later.'
+    });
+  }
+});
+
 // ------------------------------------------------------------
 // SAFE API 404
 // ------------------------------------------------------------

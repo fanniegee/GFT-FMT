@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#123B5D">
+<title>Resident Registration | Guvaza Geriatric Clinic</title>
+<style>
+:root {
+  --navy: #123B5D;
+  --navy-dark: #0B2942;
+  --green: #3F8F63;
+  --green-dark: #2F704D;
+  --white: #FFFFFF;
+  --blue-pale: #EAF2F8;
+  --green-pale: #EDF6EF;
+  --background: #F4F7F9;
+  --text: #263746;
+  --muted: #667887;
+  --border: #D7E1E8;
+  --danger: #A52A2A;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+}
+.topbar {
+  background: var(--navy);
+  color: var(--white);
+  padding: 15px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.brand { font-size: 17px; font-weight: 800; letter-spacing: .4px; }
+.brand small {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: .85;
+  letter-spacing: .7px;
+}
+.topbar a { color: white; text-decoration: none; font-size: 13px; }
+.hero {
+  color: white;
+  background: linear-gradient(120deg, var(--navy-dark), var(--navy) 65%, #24644E);
+  padding: 38px 20px 58px;
+  text-align: center;
+}
+.hero .eyebrow {
+  color: #CDEBD7;
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+.hero h1 { margin: 8px 0; font-size: clamp(25px, 4vw, 37px); }
+.hero p { margin: 8px auto; max-width: 680px; color: #E5EEF4; }
+.badges { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+.badge {
+  background: #FFFFFF18;
+  border: 1px solid #FFFFFF40;
+  border-radius: 30px;
+  padding: 5px 12px;
+  font-size: 11px;
+}
+main { width: min(960px, 94%); margin: -25px auto 45px; position: relative; }
+.notice {
+  padding: 15px 18px;
+  border-radius: 12px;
+  background: var(--blue-pale);
+  border-left: 4px solid var(--navy);
+  margin-bottom: 18px;
+  font-size: 13px;
+}
+.notice strong { color: var(--navy); }
+.progress-card, .form-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  box-shadow: 0 8px 26px #123B5D0A;
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.progress-card { padding: 17px 20px; }
+.progress-track { height: 6px; background: #E6EDF1; border-radius: 20px; margin-top: 10px; }
+.progress-bar { height: 6px; width: 0%; background: var(--green); border-radius: 20px; transition: width .2s; }
+.form-head {
+  background: linear-gradient(90deg, var(--blue-pale), white);
+  padding: 20px 23px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 13px;
+  align-items: center;
+}
+.number {
+  display: grid;
+  place-items: center;
+  min-width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: white;
+  background: var(--navy);
+  font-weight: 800;
+}
+.form-head h2 { margin: 0; color: var(--navy); font-size: 19px; }
+.form-head p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+.form-body { padding: 23px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; }
+.field { min-width: 0; }
+.field.full { grid-column: 1 / -1; }
+label, legend { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #344A5B; }
+input, select, textarea {
+  width: 100%;
+  border: 1px solid #C9D5DE;
+  border-radius: 8px;
+  padding: 11px 12px;
+  background: white;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 3px solid #3F8F6326;
+  border-color: var(--green);
+}
+textarea { min-height: 88px; resize: vertical; }
+.hint { font-size: 11px; color: var(--muted); margin-top: 5px; }
+.choices { display: flex; gap: 10px 17px; flex-wrap: wrap; }
+.choice { display: flex; gap: 7px; align-items: center; font-size: 13px; font-weight: 400; margin: 0; }
+.choice input { width: auto; accent-color: var(--green); }
+.fieldset { border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin: 0; }
+.fieldset legend { padding: 0 5px; }
+.subheading { font-size: 14px; color: var(--navy); margin: 22px 0 12px; }
+.care-note { background: var(--green-pale); border: 1px solid #D1E7D7; padding: 14px; border-radius: 10px; font-size: 13px; }
+.consent-box { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; font-weight: 400; }
+.consent-box input { width: auto; margin-top: 5px; accent-color: var(--green); }
+.actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 22px; }
+button, .button-link {
+  border: 0;
+  border-radius: 9px;
+  padding: 12px 19px;
+  background: var(--green);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+button:hover { background: var(--green-dark); }
+button:disabled { opacity: .6; cursor: wait; }
+.secondary { background: var(--navy); }
+.secondary:hover { background: var(--navy-dark); }
+.status { display: none; padding: 14px; border-radius: 9px; margin-top: 17px; font-size: 13px; overflow-wrap: anywhere; }
+.status.error { display: block; color: var(--danger); background: #FFF0F0; border: 1px solid #E8C3C3; }
+.status.success { display: block; color: #205B3B; background: var(--green-pale); border: 1px solid #B8DCC3; }
+.hidden { display: none !important; }
+footer { text-align: center; background: var(--navy-dark); color: #D9E4EC; padding: 24px 16px; font-size: 12px; }
+footer a { color: white; }
+@media(max-width:650px) {
+  .grid { grid-template-columns: 1fr; }
+  .field.full { grid-column: auto; }
+  .form-body { padding: 17px; }
+  .form-head { padding: 16px; }
+  .hero { padding-top: 30px; }
+  .actions button { width: 100%; }
+}
+</style>
+</head>
+<body>
+<nav class="topbar">
+  <div class="brand">GUVaza GERIATRIC CLINIC
+    <small>INTEGRATED HEALTH &amp; GERIATRIC NURSING HOME</small>
+  </div>
+  <a href="clinic.html">← Back to Clinic Home</a>
+</nav>
+
+<header class="hero">
+  <div class="eyebrow">COMPASSION · DIGNITY · CARE</div>
+  <h1>Resident Registration</h1>
+  <p>Begin an application for residential, assisted-living or frail-care services. Every application is reviewed by the Clinic before admission.</p>
+  <div class="badges">
+    <span class="badge">Confidential information</span>
+    <span class="badge">Application is not admission</span>
+    <span class="badge">Clinic staff review required</span>
+  </div>
+</header>
+
+<main>
+  <div class="notice">
+    <strong>Before you begin:</strong> Please provide accurate information. This public form collects the resident's details, medical history and next-of-kin consent. Clinical assessments, bed allocation and Director approval are reserved for authorised staff.
+  </div>
+
+  <div class="progress-card">
+    <strong style="color:var(--navy)">Application progress</strong>
+    <span id="progressText" style="float:right;font-size:12px;color:var(--muted)">0% completed</span>
+    <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+  </div>
+
+  <form id="clinicForm">
+    <section class="form-card">
+      <div class="form-head">
+        <div class="number">A</div>
+        <div><h2>Resident Details</h2><p>Personal information and emergency contact</p></div>
+      </div>
+      <div class="form-body">
+        <div class="grid">
+          <div class="field full"><label for="branchCode">Preferred clinic branch *</label>
+            <select id="branchCode" required>
+              <option value="">Select town / branch</option>
+              <option value="MSV">Masvingo — MSV</option>
+              <option value="BYO">Bulawayo — BYO</option>
+              <option value="HAR">Harare — HAR</option>
+              <option value="GWE">Gweru — GWE</option>
+              <option value="MUT">Mutare — MUT</option>
+            </select>
+            <div class="hint">The branch determines the location code in your application number.</div>
+          </div>
+          <div class="field"><label for="fullName">Resident's full name *</label><input id="fullName" required maxlength="160" autocomplete="name"></div>
+          <div class="field"><label for="dob">Date of birth</label><input id="dob" type="date"></div>
+          <div class="field"><label for="nationalId">National ID / Passport number</label><input id="nationalId" maxlength="80"></div>
+          <div class="field"><label for="gender">Gender</label><select id="gender"><option value="">Select</option><option>Female</option><option>Male</option><option>Prefer not to say</option></select></div>
+          <div class="field full"><label for="address">Home address</label><textarea id="address" maxlength="600"></textarea></div>
+          <div class="field"><label for="nextOfKin">Next of kin's full name *</label><input id="nextOfKin" required maxlength="160"></div>
+          <div class="field"><label for="relationship">Relationship to resident</label><input id="relationship" maxlength="80" placeholder="e.g. Daughter, son, spouse"></div>
+          <div class="field"><label for="phone">Next of kin phone number *</label><input id="phone" type="tel" required maxlength="40" autocomplete="tel"></div>
+          <div class="field"><label for="altPhone">Alternative phone number</label><input id="altPhone" type="tel" maxlength="40"></div>
+          <div class="field"><label for="religion">Church / religion (optional)</label><input id="religion" maxlength="100"></div>
+          <div class="field"><label for="language">Preferred language</label><input id="language" maxlength="80"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-card">
+      <div class="form-head">
+        <div class="number">B</div>
+        <div><h2>Medical History</h2><p>Help the clinical team understand the resident's needs</p></div>
+      </div>
+      <div class="form-body">
+        <div class="grid">
+          <fieldset class="fieldset field full">
+            <legend>Known medical conditions</legend>
+            <div class="choices">
+              <label class="choice"><input type="checkbox" name="conditions" value="Hypertension"> Hypertension</label>
+              <label class="choice"><input type="checkbox" name="conditions" value="Diabetes"> Diabetes</label>
+              <label class="choice"><input type="checkbox" name="conditions" value="Dementia"> Dementia</label>
+              <label class="choice"><input type="checkbox" name="conditions" value="Stroke"> Stroke</label>
+              <label class="choice"><input type="checkbox" name="conditions" value="Arthritis"> Arthritis</label>
+              <label class="choice"><input type="checkbox" name="conditions" value="Heart disease"> Heart disease</label>
+              <label class="choice"><input type="checkbox" name="conditions" value="Other"> Other / not listed</label>
+              <label class="choice"><input type="checkbox" name="conditions" value="None reported"> None reported</label>
+            </div>
+          </fieldset>
+          <div class="field full"><label for="otherConditions">Other conditions / further details</label><textarea id="otherConditions" maxlength="1500"></textarea></div>
+          <div class="field full"><label for="medications">Current medication, including dose if known</label><textarea id="medications" maxlength="2000"></textarea></div>
+          <div class="field full"><label for="allergies">Known allergies or medication reactions</label><textarea id="allergies" maxlength="1500"></textarea></div>
+          <div class="field"><label for="doctorName">Usual doctor's name</label><input id="doctorName" maxlength="160"></div>
+          <div class="field"><label for="doctorPhone">Doctor's phone number</label><input id="doctorPhone" type="tel" maxlength="40"></div>
+          <div class="field full"><label for="hospitalAdmission">Last hospital admission / relevant history</label><textarea id="hospitalAdmission" maxlength="1500"></textarea></div>
+          <div class="field"><label for="mobility">Mobility</label>
+            <select id="mobility"><option value="">Select</option><option>Independent</option><option>Walking stick</option><option>Wheelchair</option><option>Bedridden</option><option>Needs assessment</option></select>
+          </div>
+          <div class="field"><label for="careLevel">Requested care level</label>
+            <select id="careLevel"><option value="">Select</option><option value="Low Care">Low Care</option><option value="Mid Care">Mid Care</option><option value="Full Frail Care">Full Frail Care</option><option value="Not sure">Not sure — please assess</option></select>
+          </div>
+          <div class="field full"><label for="careNotes">Other care needs or information for the Clinic</label><textarea id="careNotes" maxlength="2000"></textarea></div>
+        </div>
+        <p class="hint">Please share only information relevant to the care assessment. The clinical team will confirm needs and medication arrangements before admission.</p>
+      </div>
+    </section>
+
+    <section class="form-card">
+      <div class="form-head">
+        <div class="number">C</div>
+        <div><h2>Care Needs Assessment</h2><p>Restricted to the Sister-in-Charge / authorised clinical staff</p></div>
+      </div>
+      <div class="form-body">
+        <div class="care-note">
+          <strong>Staff-only section.</strong> This section is not submitted by the public applicant. The authorised clinical team must complete observations, assessment and care recommendations through a protected staff workflow.
+        </div>
+      </div>
+    </section>
+
+    <section class="form-card">
+      <div class="form-head">
+        <div class="number">D</div>
+        <div><h2>Fees &amp; Consent</h2><p>Application consent and acknowledgement</p></div>
+      </div>
+      <div class="form-body">
+        <div class="grid">
+          <div class="field full"><label for="feeInfo">Indicative monthly care fees</label>
+            <div class="care-note">Low Care: USD 450/month · Mid Care: USD 550/month · Full Frail Care: USD 650/month. Final care level and fees must be confirmed by the Clinic before admission.</div>
+          </div>
+          <div class="field full"><label for="feeNotes">Fee or payment questions (optional)</label><textarea id="feeNotes" maxlength="1000" placeholder="Do not enter bank card details or sensitive payment credentials."></textarea></div>
+        </div>
+        <h3 class="subheading">Next-of-kin declaration</h3>
+        <p style="font-size:13px">By submitting this application, I confirm that, to the best of my knowledge, the information supplied is accurate, and I am authorised to provide it. I understand that:</p>
+        <ol style="font-size:13px;padding-left:21px">
+          <li>This submission is an application for assessment, not confirmation of admission.</li>
+          <li>The Clinic must review the resident's needs and confirm availability, care arrangements and applicable fees.</li>
+          <li>Admission, payment terms, emergency arrangements and any refund policy must be explained and agreed in the formal admission agreement.</li>
+          <li>Relevant information may be reviewed by authorised Clinic staff to assess the application and arrange care.</li>
+        </ol>
+        <label class="consent-box"><input id="consentAgreed" type="checkbox" required><span>I confirm that I have read and understood this declaration and agree to submit this application for Clinic review. *</span></label>
+        <p class="hint">This checkbox records application consent only. Formal admission consent and the signed care agreement must be completed separately where required.</p>
+      </div>
+    </section>
+
+    <div class="notice">
+      <strong>Official use — not completed here.</strong>
+      Admission number, admitting nurse, bed number, clinical approval and Director's approval will be recorded by authorised staff after assessment.
+    </div>
+
+    <div id="formStatus" class="status" role="status" aria-live="polite"></div>
+    <div class="actions">
+      <a class="button-link secondary" href="clinic.html">Return to Clinic Home</a>
+      <button type="submit" id="submitButton">Submit Application Securely →</button>
+    </div>
+    <p class="hint">Do not submit real patient information until the server-side route and database are verified and the site is served over HTTPS.</p>
+  </form>
+</main>
+
+<footer>
+  <strong>Guvaza Geriatric Clinic</strong><br>
+  Integrated Health &amp; Geriatric Nursing Home<br>
+  <span>Compassionate care. Dignified living.</span><br><br>
+  <a href="clinic.html">Clinic Home</a> · <a href="index.html">GFT Home</a>
+</footer>
+
+<script>
+(() => {
+  'use strict';
+
+  const form = document.getElementById('clinicForm');
+  const statusBox = document.getElementById('formStatus');
+  const submitButton = document.getElementById('submitButton');
+
+  // No LocalStorage or browser persistence is used.
+  const trackedFields = [...form.querySelectorAll('input:not([type="checkbox"]), select, textarea')];
+
+  function updateProgress() {
+    const required = [...form.querySelectorAll('[required]')];
+    const completed = required.filter(field =>
+      field.type === 'checkbox' ? field.checked : String(field.value || '').trim() !== ''
+    ).length;
+    const percentage = required.length ? Math.round(completed / required.length * 100) : 0;
+    document.getElementById('progressBar').style.width = percentage + '%';
+    document.getElementById('progressText').textContent = percentage + '% completed';
+  }
+
+  form.addEventListener('input', updateProgress);
+  form.addEventListener('change', updateProgress);
+
+  function value(id) {
+    return document.getElementById(id).value.trim();
+  }
+
+  function showStatus(type, message) {
+    statusBox.className = 'status ' + type;
+    statusBox.textContent = message;
+  }
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+
+    if (!form.reportValidity()) return;
+
+    const conditions = [...form.querySelectorAll('input[name="conditions"]:checked')]
+      .map(input => input.value);
+
+    if (conditions.includes('None reported') && conditions.length > 1) {
+      showStatus('error', 'Please select “None reported” or list the applicable medical conditions, not both.');
+      return;
+    }
+
+    const payload = {
+      branchCode: value('branchCode'),
+      residentDetails: {
+        fullName: value('fullName'),
+        dateOfBirth: value('dob') || null,
+        nationalId: value('nationalId') || null,
+        gender: value('gender') || null,
+        homeAddress: value('address') || null,
+        nextOfKin: value('nextOfKin'),
+        relationship: value('relationship') || null,
+        phone: value('phone'),
+        alternatePhone: value('altPhone') || null,
+        religion: value('religion') || null,
+        language: value('language') || null
+      },
+      medicalHistory: {
+        knownConditions: conditions,
+        otherConditions: value('otherConditions') || null,
+        currentMedication: value('medications') || null,
+        allergies: value('allergies') || null,
+        doctorName: value('doctorName') || null,
+        doctorPhone: value('doctorPhone') || null,
+        lastHospitalAdmission: value('hospitalAdmission') || null,
+        mobility: value('mobility') || null,
+        requestedCareLevel: value('careLevel') || null,
+        additionalCareNotes: value('careNotes') || null
+      },
+      consentDetails: {
+        agreed: document.getElementById('consentAgreed').checked,
+        agreedAt: new Date().toISOString(),
+        consentType: 'APPLICATION_REVIEW'
+      }
+    };
+
+    submitButton.disabled = true;
+    submitButton.textContent = 'Submitting securely…';
+    statusBox.className = 'status';
+    statusBox.textContent = '';
+
+    try {
+      const response = await fetch('/api/clinic/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'same-origin'
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || 'The application could not be submitted.');
+      }
+
+      form.reset();
+      updateProgress();
+
+      showStatus(
+        'success',
+        'Application received. Your reference is ' +
+          result.application.applicationNumber +
+          '. Status: ' + result.application.status +
+          '. Please keep this reference for follow-up. Submission does not confirm admission.'
+      );
+
+      statusBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    } catch (error) {
+      showStatus(
+        'error',
+        error.message || 'Unable to reach the Clinic server. Please try again later.'
+      );
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = 'Submit Application Securely →';
+    }
+  });
+
+  updateProgress();
+})();
+</script>
+</body>
+</html>
