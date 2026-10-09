@@ -160,8 +160,14 @@ button:disabled { opacity: .6; cursor: wait; }
 .status.error { display: block; color: var(--danger); background: #FFF0F0; border: 1px solid #E8C3C3; }
 .status.success { display: block; color: #205B3B; background: var(--green-pale); border: 1px solid #B8DCC3; }
 .hidden { display: none !important; }
-footer { text-align: center; background: var(--navy-dark); color: #D9E4EC; padding: 24px 16px; font-size: 12px; }
-footer a { color: white; }
+footer { background: #0B2942; color: var(--white); padding: 45px 6% 25px; font-size: 13px; }
+.footer-grid { width: min(1180px, 100%); margin: auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; }
+.footer-title { font-size: 18px; font-weight: 800; margin-bottom: 10px; }
+.footer-text { color: rgba(255,255,255,.68); font-size: 13px; }
+.footer-links { display: grid; gap: 8px; }
+.footer-links a { color: rgba(255,255,255,.72); font-size: 13px; text-decoration: none; }
+.footer-links a:hover { color: #B9E4C8; }
+.footer-bottom { width: min(1180px,100%); margin: 35px auto 0; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.12); color: rgba(255,255,255,.55); font-size: 11px; }
 @media(max-width:650px) {
   .grid { grid-template-columns: 1fr; }
   .field.full { grid-column: auto; }
@@ -169,6 +175,7 @@ footer a { color: white; }
   .form-head { padding: 16px; }
   .hero { padding-top: 30px; }
   .actions button { width: 100%; }
+  .footer-grid { grid-template-columns: 1fr; gap: 25px; }
 }
 </style>
 </head>
@@ -210,16 +217,100 @@ footer a { color: white; }
       </div>
       <div class="form-body">
         <div class="grid">
-          <div class="field full"><label for="branchCode">Preferred clinic branch *</label>
-            <select id="branchCode" required>
-              <option value="">Select town / branch</option>
-              <option value="MSV">Masvingo — MSV</option>
-              <option value="BYO">Bulawayo — BYO</option>
-              <option value="HAR">Harare — HAR</option>
-              <option value="GWE">Gweru — GWE</option>
-              <option value="MUT">Mutare — MUT</option>
+          <div class="field full">
+            <label for="applicationType">Application type *</label>
+            <select id="applicationType" required>
+              <option value="">Choose application type</option>
+              <option value="RESIDENTIAL_CARE">Residential care application</option>
+              <option value="HOSPITAL_TREATMENT">GGC hospital admission for treatment only</option>
             </select>
-            <div class="hint">The branch determines the location code in your application number.</div>
+            <div class="hint">Choose residential care or a hospital admission for treatment. These are recorded as separate application types.</div>
+          </div>
+          <div class="field">
+            <label for="applicantLocation">Applicant's location *</label>
+            <select id="applicantLocation" required>
+              <option value="ZW">Zimbabwe</option>
+              <option value="INTERNATIONAL">Outside Zimbabwe</option>
+            </select>
+          </div>
+          <div class="field" id="zimbabweTownField">
+            <label for="zimbabweTown">Town in Zimbabwe *</label>
+            <select id="zimbabweTown" required>
+              <option value="">Select a town in Zimbabwe</option>
+              <option value="BEI" data-town="Beitbridge">Beitbridge</option>
+              <option value="BIN" data-town="Bindura">Bindura</option>
+              <option value="BIN" data-town="Binga">Binga</option>
+              <option value="BIR" data-town="Birchenough Bridge">Birchenough Bridge</option>
+              <option value="BYO" data-town="Bulawayo">Bulawayo</option>
+              <option value="CHE" data-town="Chegutu">Chegutu</option>
+              <option value="CHI" data-town="Chimanimani">Chimanimani</option>
+              <option value="CHI" data-town="Chinhoyi">Chinhoyi</option>
+              <option value="CHI" data-town="Chipinge">Chipinge</option>
+              <option value="CHI" data-town="Chiredzi">Chiredzi</option>
+              <option value="CHI" data-town="Chitungwiza">Chitungwiza</option>
+              <option value="CHI" data-town="Chivhu">Chivhu</option>
+              <option value="GOK" data-town="Gokwe">Gokwe</option>
+              <option value="GUR" data-town="Guruve">Guruve</option>
+              <option value="GUT" data-town="Gutu">Gutu</option>
+              <option value="GWA" data-town="Gwanda">Gwanda</option>
+              <option value="GWE" data-town="Gweru">Gweru</option>
+              <option value="HRE" data-town="Harare">Harare</option>
+              <option value="HON" data-town="Honde Valley">Honde Valley</option>
+              <option value="HWA" data-town="Hwange">Hwange</option>
+              <option value="KAD" data-town="Kadoma">Kadoma</option>
+              <option value="KAR" data-town="Kariba">Kariba</option>
+              <option value="KWE" data-town="Kwekwe">Kwekwe</option>
+              <option value="LUP" data-town="Lupane">Lupane</option>
+              <option value="MAC" data-town="Macheke">Macheke</option>
+              <option value="MAR" data-town="Marondera">Marondera</option>
+              <option value="MSV" data-town="Masvingo">Masvingo</option>
+              <option value="MAZ" data-town="Mazowe">Mazowe</option>
+              <option value="MBE" data-town="Mberengwa">Mberengwa</option>
+              <option value="MHA" data-town="Mhangura">Mhangura</option>
+              <option value="MOU" data-town="Mount Darwin">Mount Darwin</option>
+              <option value="MUD" data-town="Mudzi">Mudzi</option>
+              <option value="MUR" data-town="Murehwa">Murehwa</option>
+              <option value="MUT" data-town="Mutare">Mutare</option>
+              <option value="MUT" data-town="Mutoko">Mutoko</option>
+              <option value="MVU" data-town="Mvurwi">Mvurwi</option>
+              <option value="NKA" data-town="Nkayi">Nkayi</option>
+              <option value="NOR" data-town="Norton">Norton</option>
+              <option value="NYA" data-town="Nyanga">Nyanga</option>
+              <option value="PEN" data-town="Penhalonga">Penhalonga</option>
+              <option value="PLU" data-town="Plumtree">Plumtree</option>
+              <option value="RAF" data-town="Raffingora">Raffingora</option>
+              <option value="RED" data-town="Redcliff">Redcliff</option>
+              <option value="RUS" data-town="Rusape">Rusape</option>
+              <option value="RUS" data-town="Rushinga">Rushinga</option>
+              <option value="SAN" data-town="Sanyati">Sanyati</option>
+              <option value="SHA" data-town="Shamva">Shamva</option>
+              <option value="SHU" data-town="Shurugwi">Shurugwi</option>
+              <option value="TEN" data-town="Tengwe">Tengwe</option>
+              <option value="TSH" data-town="Tsholotsho">Tsholotsho</option>
+              <option value="UMG" data-town="Umguza">Umguza</option>
+              <option value="VIC" data-town="Victoria Falls">Victoria Falls</option>
+              <option value="WED" data-town="Wedza">Wedza</option>
+              <option value="ZAK" data-town="Zaka">Zaka</option>
+              <option value="ZHO" data-town="Zhombe">Zhombe</option>
+              <option value="ZVI" data-town="Zvimba">Zvimba</option>
+              <option value="ZVI" data-town="Zvishavane">Zvishavane</option>
+            </select>
+          </div>
+          <div class="field hidden" id="internationalCountryField">
+            <label for="internationalCountry">Country *</label>
+            <input id="internationalCountry" maxlength="100" placeholder="Enter country" disabled>
+          </div>
+          <div class="field hidden" id="internationalTownField">
+            <label for="internationalTown">Town / city *</label>
+            <input id="internationalTown" maxlength="100" placeholder="Enter town or city" disabled>
+          </div>
+          <div class="field full hidden" id="treatmentDatesField">
+            <h3 class="subheading">GGC Hospital Treatment Admission</h3>
+            <div class="grid">
+              <div class="field"><label for="admissionDate">Admission date *</label><input id="admissionDate" type="date" disabled></div>
+              <div class="field"><label for="dischargeDate">Discharge date (complete when discharged)</label><input id="dischargeDate" type="date" disabled></div>
+            </div>
+            <div class="hint">Enter the admission date for treatment. Leave the discharge date blank until discharge takes place.</div>
           </div>
           <div class="field"><label for="fullName">Resident's full name *</label><input id="fullName" required maxlength="160" autocomplete="name"></div>
           <div class="field"><label for="dob">Date of birth</label><input id="dob" type="date"></div>
@@ -326,10 +417,29 @@ footer a { color: white; }
 </main>
 
 <footer>
-  <strong>Guvaza Geriatric Clinic</strong><br>
-  Integrated Health &amp; Geriatric Nursing Home<br>
-  <span>Compassionate care. Dignified living.</span><br><br>
-  <a href="clinic.html">Clinic Home</a> · <a href="index.html">GFT Home</a>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-title">Guvaza Geriatric Clinic</div>
+      <p class="footer-text">Integrated Health &amp; Geriatric Nursing Home. A dedicated Guvaza service for integrated health, assisted living and geriatric care.</p>
+    </div>
+    <div>
+      <div class="footer-title">Clinic</div>
+      <div class="footer-links">
+        <a href="clinic.html#about">About</a>
+        <a href="clinic.html#services">Services</a>
+        <a href="clinic-registration.html">Register / Apply for Care</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-title">Guvaza</div>
+      <div class="footer-links">
+        <a href="index.html">GFT Homepage</a>
+        <a href="companies.html">Companies</a>
+        <a href="library.html">Library</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2026 Guvaza Geriatric Clinic. Part of the wider Guvaza platform.</div>
 </footer>
 
 <script>
@@ -360,6 +470,61 @@ footer a { color: white; }
     return document.getElementById(id).value.trim();
   }
 
+  const locationSelect = document.getElementById('applicantLocation');
+  const zimbabweTown = document.getElementById('zimbabweTown');
+  const internationalCountry = document.getElementById('internationalCountry');
+  const internationalTown = document.getElementById('internationalTown');
+  const applicationType = document.getElementById('applicationType');
+  const admissionDate = document.getElementById('admissionDate');
+  const dischargeDate = document.getElementById('dischargeDate');
+
+  function townCode(name) {
+    const letters = String(name || '').normalize('NFD')
+      .replace(/[\\u0300-\\u036f]/g, '')
+      .toUpperCase().replace(/[^A-Z]/g, '');
+    return letters.slice(0, 3);
+  }
+
+  function updateLocationFields() {
+    const international = locationSelect.value === 'INTERNATIONAL';
+    document.getElementById('zimbabweTownField').classList.toggle('hidden', international);
+    document.getElementById('internationalCountryField').classList.toggle('hidden', !international);
+    document.getElementById('internationalTownField').classList.toggle('hidden', !international);
+    zimbabweTown.disabled = international;
+    zimbabweTown.required = !international;
+    internationalCountry.disabled = !international;
+    internationalCountry.required = international;
+    internationalTown.disabled = !international;
+    internationalTown.required = international;
+    updateProgress();
+  }
+
+  function updateApplicationType() {
+    const treatment = applicationType.value === 'HOSPITAL_TREATMENT';
+    document.getElementById('treatmentDatesField').classList.toggle('hidden', !treatment);
+    admissionDate.disabled = !treatment;
+    admissionDate.required = treatment;
+    dischargeDate.disabled = !treatment;
+    updateProgress();
+  }
+
+  locationSelect.addEventListener('change', updateLocationFields);
+  applicationType.addEventListener('change', updateApplicationType);
+  dischargeDate.addEventListener('change', () => {
+    if (admissionDate.value && dischargeDate.value && dischargeDate.value < admissionDate.value) {
+      dischargeDate.setCustomValidity('Discharge date cannot be earlier than admission date.');
+    } else {
+      dischargeDate.setCustomValidity('');
+    }
+  });
+  admissionDate.addEventListener('change', () => {
+    if (dischargeDate.value && admissionDate.value && dischargeDate.value < admissionDate.value) {
+      dischargeDate.setCustomValidity('Discharge date cannot be earlier than admission date.');
+    } else {
+      dischargeDate.setCustomValidity('');
+    }
+  });
+
   function showStatus(type, message) {
     statusBox.className = 'status ' + type;
     statusBox.textContent = message;
@@ -379,7 +544,18 @@ footer a { color: white; }
     }
 
     const payload = {
-      branchCode: value('branchCode'),
+      applicationType: value('applicationType'),
+      applicantLocation: value('applicantLocation'),
+      country: value('applicantLocation') === 'INTERNATIONAL' ? value('internationalCountry') : 'Zimbabwe',
+      town: value('applicantLocation') === 'INTERNATIONAL'
+        ? value('internationalTown')
+        : (zimbabweTown.selectedOptions[0]?.dataset.town || ''),
+      branchCode: value('applicantLocation') === 'INTERNATIONAL'
+        ? townCode(value('internationalTown'))
+        : value('zimbabweTown'),
+      treatmentAdmission: value('applicationType') === 'HOSPITAL_TREATMENT'
+        ? { admissionDate: value('admissionDate'), dischargeDate: value('dischargeDate') || null }
+        : null,
       residentDetails: {
         fullName: value('fullName'),
         dateOfBirth: value('dob') || null,
@@ -455,6 +631,8 @@ footer a { color: white; }
     }
   });
 
+  updateLocationFields();
+  updateApplicationType();
   updateProgress();
 })();
 </script>

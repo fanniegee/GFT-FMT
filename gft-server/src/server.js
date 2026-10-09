@@ -3123,32 +3123,44 @@ async function requireAdmin(req, res, next) {
    PostgreSQL is the source of truth.
    ============================================================ */
 
-const clinicBranchCodes = new Set([
-  'MSV', // Masvingo
-  'BYO', // Bulawayo
-  'HAR', // Harare
-  'GWE', // Gweru
-  'MUT'  // Mutare
-]);
+function getClinicTownCode(town) {
+  const normalizedTown = String(town || '')
+    .trim()
+    .replace(/\s+/g, ' ');
+
+  if (!normalizedTown) return '';
+
+  const townKey = normalizedTown.toUpperCase();
+
+  const specialCodes = {
+    MASVINGO: 'MSV',
+    HARARE: 'HRE',
+    BULAWAYO: 'BYO'
+  };
+
+  return specialCodes[townKey] ||
+    normalizedTown
+      .replace(/[^a-zA-Z]/g, '')
+      .slice(0, 3)
+      .toUpperCase();
+}
 
 app.post('/api/clinic/applications', async (req, res) => {
   try {
     const body = req.body || {};
 
-    const branchCode = String(body.branchCode || '')
-      .trim()
-      .toUpperCase();
+    const branchCode = getClinicTownCode(body.town);
 
-    const resident = body.residentDetails;
-    const medical = body.medicalHistory;
-    const consent = body.consentDetails;
+const resident = body.residentDetails;
+const medical = body.medicalHistory;
+const consent = body.consentDetails;
 
-    if (!clinicBranchCodes.has(branchCode)) {
-      return res.status(400).json({
-        ok: false,
-        error: 'Please select a supported clinic branch.'
-      });
-    }
+if (!branchCode) {
+  return res.status(400).json({
+    ok: false,
+    error: 'Please select a valid town or city.'
+  });
+}
 
     if (
       !resident ||
@@ -3185,6 +3197,32 @@ app.post('/api/clinic/applications', async (req, res) => {
       });
     }
 
+   const applicationType = String(
+  body.applicationType || 'RESIDENTIAL_CARE'
+).trim().toUpperCase();
+
+const treatmentAdmission = body.treatmentAdmission;
+
+if (!['RESIDENTIAL_CARE', 'HOSPITAL_TREATMENT'].includes(applicationType)) {
+  return res.status(400).json({
+    ok: false,
+    error: 'Please select a valid application type.'
+  });
+}
+
+if (applicationType === 'HOSPITAL_TREATMENT') {
+  const admissionDate = String(
+    treatmentAdmission?.admissionDate || ''
+  ).trim();
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(admissionDate)) {
+    return res.status(400).json({
+      ok: false,
+      error: 'A valid treatment admission date is required.'
+    });
+  }
+}     
+
     // Generate the application number on the server.
     // The sequence is shared across branches; numbers are unique
     // but are not reset independently for each branch.
@@ -3215,7 +3253,14 @@ app.post('/api/clinic/applications', async (req, res) => {
       [
         applicationNumber,
         branchCode,
-        JSON.stringify(resident),
+        JSON.stringify({
+  ...resident,
+  applicationType: body.applicationType || 'RESIDENTIAL_CARE',
+  applicantLocation: body.applicantLocation || '',
+  country: body.country || '',
+  town: body.town || '',
+  treatmentAdmission: body.treatmentAdmission || null
+}),
         JSON.stringify(medical),
         JSON.stringify(consent)
       ]
