@@ -315,20 +315,49 @@ loadGftVisaCard();
 loadBeneficiarySession();
 
 function getMyBenId(){ return session.idNumber || session.id || session.username || ''; }
-function refreshBenWallet(){
-  let myId = getMyBenId();
-  let wallets = {};
-  let bens = [];
-  try{ wallets=JSON.parse(localStorage.getItem('guvaza_ben_wallets')||'{}'); }catch(e){}
-  try{ bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]'); }catch(e){}
-  let myBalance = Math.max(0,parseFloat(wallets[myId]||0)||0);
-  if(myBalance===0 && Array.isArray(bens)){
-    let match = bens.find(b=> b.name && session.name && b.name.toLowerCase() === (session.name||'').toLowerCase());
-    if(match) myBalance = Math.max(0,parseFloat(wallets[match.id]||0)||0);
+async function refreshBenWallet() {
+  const balanceEl = document.getElementById('balanceTxt');
+  const accountEl = document.getElementById('benAccountBalanceFront');
+
+  function showBalance(value) {
+    if (balanceEl) balanceEl.innerText = value;
+    if (accountEl) accountEl.innerText = value;
   }
-  document.getElementById('balanceTxt').innerText = 'USD$ ' + myBalance.toFixed(2);
-  let benEl = document.getElementById('benAccountBalanceFront');
-  if(benEl) benEl.innerText = 'USD$ ' + myBalance.toFixed(2);
+
+  showBalance('Loading balance...');
+
+  try {
+    const response = await fetch('/api/beneficiary/wallet', {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json' }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || 'Unable to load wallet');
+    }
+
+    if (!data.wallet) {
+      showBalance('No wallet issued');
+      return;
+    }
+
+    const currency = data.wallet.currency || 'ZAR';
+    const balance = Number(data.wallet.balance);
+
+    if (!Number.isFinite(balance)) {
+      throw new Error('Invalid wallet balance');
+    }
+
+    showBalance(
+      currency + ' ' + balance.toFixed(2)
+    );
+  } catch (error) {
+    console.error('Beneficiary wallet loading error:', error);
+    showBalance('Balance unavailable');
+  }
 }
 const DEFAULT_COMPANIES=[
  {id:'GH',name:'Guvaza Holdings',color:'#7a1a24',info:'Holdings',logo:''},

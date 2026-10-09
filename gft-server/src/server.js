@@ -2071,6 +2071,70 @@ app.get('/api/beneficiary/me', async (req, res) => {
 });
 
 // ------------------------------------------------------------
+ // BENEFICIARY — WALLET BALANCE
+ // ------------------------------------------------------------
+
+app.get('/api/beneficiary/wallet', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Beneficiary authentication required'
+      });
+    }
+
+    const result = await query(
+      `SELECT
+         w.wallet_id,
+         w.currency,
+         COALESCE(
+           SUM(
+             CASE
+               WHEN UPPER(le.entry_type) IN ('CREDIT', 'DEPOSIT')
+                 THEN le.amount
+               WHEN UPPER(le.entry_type) IN ('DEBIT', 'WITHDRAWAL')
+                 THEN -le.amount
+               ELSE 0
+             END
+           ),
+           0
+         ) AS balance
+       FROM wallets w
+       LEFT JOIN ledger_entries le
+         ON le.wallet_id = w.wallet_id
+       WHERE w.owner_system_id = $1
+         AND UPPER(w.status) = 'ACTIVE'
+       GROUP BY w.wallet_id, w.currency
+       LIMIT 1`,
+      [beneficiary.system_id]
+    );
+
+    const wallet = result.rows[0];
+
+    return res.json({
+      ok: true,
+      wallet: wallet
+        ? {
+            walletId: wallet.wallet_id,
+            currency: String(wallet.currency).trim(),
+            balance: Number(wallet.balance)
+          }
+        : null,
+      serverAuthoritative: true
+    });
+  } catch (error) {
+    console.error('Beneficiary wallet API error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to load beneficiary wallet'
+    });
+  }
+});
+
+// ------------------------------------------------------------
 // BENEFICIARY — GFT VISA CARD
 // ------------------------------------------------------------
 
