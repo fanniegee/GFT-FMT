@@ -117,13 +117,13 @@ input:focus{
     </div>
 
     <div class="field">
-      <label for="idInput">GFT ID / Registered ID Number</label>
+      <label for="idInput">Registered ID Number (Password)</label>
       <div class="input-wrap">
         <span class="mi">badge</span>
         <input id="idInput"
-               type="text"
-               placeholder="e.g. GFT-GEN4-054 or registered ID"
-               autocomplete="off"
+               type="password"
+               placeholder="Enter your registered ID number"
+               autocomplete="current-password"
                autocapitalize="characters"
                spellcheck="false">
       </div>
@@ -150,270 +150,79 @@ input:focus{
 <script>
 "use strict";
 
-/*
-  GFT BENEFICIARY LOGIN
-  ======================
-
-  Canonical registration source:
-    gft_canonical_beneficiaries
-
-  First credential:
-    email OR username OR phone
-
-  Second credential:
-    systemId (permanent GFT ID) OR documentNumber
-
-  Session keys:
-    guvaza_current_user
-    guvaza_beneficiary_session
-
-  Prototype note:
-    localStorage is browser-side and is NOT production authentication.
-    Production access control must be enforced by the backend.
-*/
-
-const STORAGE_KEY = "gft_canonical_beneficiaries";
-const CURRENT_USER_KEY = "guvaza_current_user";
-const SESSION_KEY = "guvaza_beneficiary_session";
 const PORTAL_URL = "beneficiary-portal.html";
-
 const $ = id => document.getElementById(id);
-
-function safeArray(key){
-  try{
-    const raw = localStorage.getItem(key);
-    if(!raw) return [];
-    const value = JSON.parse(raw);
-    return Array.isArray(value) ? value : [];
-  }catch(error){
-    return [];
-  }
-}
-
-function normalize(value){
-  return String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g," ");
-}
-
-function compact(value){
-  return String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g,"");
-}
-
-function normalizeEmail(value){
-  return String(value ?? "").trim().toLowerCase();
-}
-
-function normalizePhone(value){
-  let digits = String(value ?? "").replace(/\D/g,"");
-
-  if(digits.startsWith("00")){
-    digits = digits.slice(2);
-  }
-
-  /*
-    Zimbabwe/South Africa-friendly normalization:
-    +27xxxxxxxxx / 27xxxxxxxxx -> 0xxxxxxxxx
-    Other numbers remain digit-normalized.
-  */
-  if(digits.startsWith("27") && digits.length === 11){
-    return "0" + digits.slice(2);
-  }
-
-  return digits;
-}
-
-function normalizeCredential(value){
-  return compact(value);
-}
 
 function setMessage(message, color){
   const el = $("loginMsg");
-  el.innerHTML = message;
+  el.textContent = message;
   el.style.color = color;
 }
 
-function escapeHtml(value){
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#39;"
-  }[char]));
-}
-
-function getRecords(){
-  return safeArray(STORAGE_KEY);
-}
-
-function matchesEmail(record, entered){
-  const stored = normalizeEmail(record.email);
-  const value = normalizeEmail(entered);
-  return Boolean(stored && value && stored === value);
-}
-
-function matchesUsername(record, entered){
-  const stored = normalize(record.username);
-  const value = normalize(entered);
-  return Boolean(stored && value && stored === value);
-}
-
-function matchesPhone(record, entered){
-  const stored = normalizePhone(record.phone);
-  const value = normalizePhone(entered);
-
-  if(!stored || !value) return false;
-
-  return stored === value;
-}
-
-function identifierMatches(record, entered){
-  return (
-    matchesEmail(record, entered) ||
-    matchesUsername(record, entered) ||
-    matchesPhone(record, entered)
-  );
-}
-
-function credentialMatches(record, entered){
-  const supplied = normalizeCredential(entered);
-  if(!supplied) return false;
-
-  const candidates = [
-    record.systemId,
-    record.documentNumber
-  ];
-
-  return candidates.some(value =>
-    value && normalizeCredential(value) === supplied
-  );
-}
-
-function determineLoginMethod(record, entered){
-  if(matchesEmail(record, entered)) return "EMAIL";
-  if(matchesUsername(record, entered)) return "USERNAME";
-  if(matchesPhone(record, entered)) return "PHONE";
-  return "UNKNOWN";
-}
-
-function beneficiaryName(record){
-  return record.fullName ||
-         record.currentSurname ||
-         record.username ||
-         "Beneficiary";
-}
-
-function clearSession(){
-  localStorage.removeItem(CURRENT_USER_KEY);
-  localStorage.removeItem(SESSION_KEY);
-}
-
-function createSession(record, loginMethod){
-  /*
-    Preserve the canonical beneficiary record.
-    The additional fields identify how the current prototype login was made.
-  */
-  return {
-    ...record,
-    loginAuthenticated: true,
-    loginAuthenticatedAt: new Date().toISOString(),
-    loginMethod
-  };
-}
-
-function doLogin(){
-  const identifier = $("loginIdentifier").value;
-  const suppliedCredential = $("idInput").value;
+async function doLogin(){
+  const identifier = $("loginIdentifier").value.trim();
+  const identityValue = $("idInput").value.trim();
   const button = $("loginBtn");
 
-  if(!normalize(identifier)){
-    setMessage(
-      "Please enter your email, username or phone number.",
-      "var(--maroon)"
-    );
+  if(!identifier){
+    setMessage("Enter your email, username or phone number.", "var(--maroon)");
     $("loginIdentifier").focus();
     return;
   }
 
-  if(!normalizeCredential(suppliedCredential)){
-    setMessage(
-      "Please enter your GFT ID or registered identity/document number.",
-      "var(--maroon)"
-    );
+  if(!identityValue){
+    setMessage("Enter your registered ID number.", "var(--maroon)");
     $("idInput").focus();
     return;
   }
 
-  /*
-    Clear an old session before attempting a new login.
-    This prevents a previous beneficiary remaining active after a failed
-    login attempt.
-  */
-  clearSession();
-
-  const records = getRecords();
-
-  if(!records.length){
-    setMessage(
-      "❌ No beneficiary registration record is available in this browser.<br>" +
-      "Please complete registration first.",
-      "var(--danger)"
-    );
-    return;
-  }
-
-  /*
-    SECURITY RULE:
-    Both credentials must match the SAME canonical beneficiary.
-    We deliberately do NOT find an email/phone/username from one record
-    and an ID from another record.
-  */
-  const found = records.find(record =>
-    record &&
-    identifierMatches(record, identifier) &&
-    credentialMatches(record, suppliedCredential)
-  );
-
-  if(!found){
-    setMessage(
-      "❌ Login details could not be verified.<br>" +
-      "Please check your email/username/phone and GFT ID or registered ID number.",
-      "var(--danger)"
-    );
-    return;
-  }
-
-  const loginMethod = determineLoginMethod(found, identifier);
-  const session = createSession(found, loginMethod);
-
-  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(session));
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-
   button.disabled = true;
+  setMessage("Verifying your details securely…", "var(--blue)");
 
-  setMessage(
-    "✓ Login verified. Welcome " +
-    escapeHtml(beneficiaryName(found)) +
-    ".<br><small>Opening your GFT Beneficiary Portal…</small>",
-    "var(--green)"
-  );
+  try{
+    await fetch("/api/beneficiary/logout", {
+      method: "POST",
+      headers: { "Accept": "application/json" },
+      credentials: "include"
+    });
 
-  window.setTimeout(() => {
+    const response = await fetch("/api/beneficiary/login", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        loginIdentifier: identifier,
+        identityValue: identityValue
+      })
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if(!response.ok || !result.ok || !result.authenticated){
+      setMessage(
+        result.error || "Login details could not be verified. Check your details and try again.",
+        "var(--danger)"
+      );
+      button.disabled = false;
+      return;
+    }
+
+    setMessage("Login verified. Opening your GFT Beneficiary Portal…", "var(--green)");
     window.location.href = PORTAL_URL;
-  }, 700);
+  }catch(error){
+    console.error("Beneficiary login request failed:", error);
+    setMessage("Unable to reach the server. Please try again.", "var(--danger)");
+    button.disabled = false;
+  }
 }
 
 $("loginBtn").addEventListener("click", doLogin);
-
 $("loginIdentifier").addEventListener("keydown", event => {
   if(event.key === "Enter") doLogin();
 });
-
 $("idInput").addEventListener("keydown", event => {
   if(event.key === "Enter") doLogin();
 });
