@@ -551,7 +551,7 @@ let lineageDiv=document.createElement('div');lineageDiv.id='view-lineage';lineag
 lineageDiv.innerHTML=`<button onclick="openView('home')">Back</button><div class="card"><h3>My Direct Lineage</h3><div id="directTree">Loading...</div></div>`;
 document.querySelector('.main').appendChild(lineageDiv);
 let clanDiv=document.createElement('div');clanDiv.id='view-clan';clanDiv.className='view';
-clanDiv.innerHTML=`<button onclick="openView('home')">Back</button><div class="card"><iframe src="beneficiart-gen-drilldown.html" style="width:100%;height:78vh;border:0"></iframe></div>`;
+clanDiv.innerHTML=`<button onclick="openView('home')">Back</button><div class="card"><iframe src="beneficiary-gen-drilldown.html" style="width:100%;height:78vh;border:0"></iframe></div>`;
 document.querySelector('.main').appendChild(clanDiv);
 
 function openMyDirectLineage(){
