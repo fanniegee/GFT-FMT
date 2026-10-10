@@ -83,6 +83,35 @@ body{margin:0;font-family:system-ui;background:#f5f1f1}
 <div class="card" style="margin-top:12px;background:linear-gradient(135deg,#010a22 0%,#0a235e 45%,#12307e 100%);color:#fff;border:none">
 <h3 style="margin:0 0 6px;display:flex;align-items:center;gap:6px;color:#fff"><span class="mi">fingerprint</span> Payout</h3>
 <p style="font-size:11px;color:#e3f2fd;margin:0 0 10px">Payout granted only after fingerprint verification — last step.</p>
+
+<input
+  id="payoutAmount"
+  type="number"
+  min="0.01"
+  step="0.01"
+  placeholder="Enter payout amount (USD)"
+  style="width:100%;box-sizing:border-box;padding:11px;margin:8px 0;border-radius:8px;border:1px solid #93c5fd;font-size:14px"
+>
+<label for="payoutAmount" style="display:block;margin:10px 0 5px;color:#fff;font-size:12px">
+  Payout Amount (USD $)
+</label>
+<input
+  id="payoutAmount"
+  type="number"
+  min="0.01"
+  step="0.01"
+  placeholder="Enter amount"
+  style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #cbd5e1;margin-bottom:10px"
+>
+<label for="payoutReason" style="display:block;margin:5px 0;color:#fff;font-size:12px">
+  Reason (optional)
+</label>
+<input
+  id="payoutReason"
+  type="text"
+  placeholder="Reason for payout"
+  style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #cbd5e1;margin-bottom:10px"
+>
 <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:8px">
 <button class="payoutBtn" onclick="requestPayout()" style="background:#fff;color:#0d47a1;border:none;padding:10px 16px;border-radius:10px;font-weight:800;display:flex;align-items:center;gap:6px"><span class="mi">fingerprint</span> Request Payout</button>
 <button class="payoutBtn" onclick="openCashoutModal()" style="background:#fff;color:#0d47a1;border:none;padding:10px 14px;border-radius:10px;font-weight:700">💵 Cashout</button>
@@ -319,44 +348,30 @@ async function refreshBenWallet() {
   const balanceEl = document.getElementById('balanceTxt');
   const accountEl = document.getElementById('benAccountBalanceFront');
 
-  function showBalance(value) {
-    if (balanceEl) balanceEl.innerText = value;
-    if (accountEl) accountEl.innerText = value;
-  }
-
-  showBalance('Loading balance...');
-
   try {
     const response = await fetch('/api/beneficiary/wallet', {
       method: 'GET',
-      credentials: 'same-origin',
-      headers: { 'Accept': 'application/json' }
+      headers: { 'Accept': 'application/json' },
+      credentials: 'include'
     });
 
     const data = await response.json();
 
     if (!response.ok || !data.ok) {
-      throw new Error(data.error || 'Unable to load wallet');
+      throw new Error(data.error || 'Unable to load wallet balance');
     }
 
-    if (!data.wallet) {
-      showBalance('No wallet issued');
-      return;
-    }
+    const wallet = data.wallet;
+    const balance = wallet ? Number(wallet.balance) : 0;
+    const currency = wallet?.currency || 'USD';
+    const display = currency + ' ' + balance.toFixed(2);
 
-    const currency = data.wallet.currency || 'ZAR';
-    const balance = Number(data.wallet.balance);
-
-    if (!Number.isFinite(balance)) {
-      throw new Error('Invalid wallet balance');
-    }
-
-    showBalance(
-      currency + ' ' + balance.toFixed(2)
-    );
+    if (balanceEl) balanceEl.innerText = display;
+    if (accountEl) accountEl.innerText = display;
   } catch (error) {
-    console.error('Beneficiary wallet loading error:', error);
-    showBalance('Balance unavailable');
+    console.error('Wallet balance request failed:', error);
+    if (balanceEl) balanceEl.innerText = 'Balance unavailable';
+    if (accountEl) accountEl.innerText = 'Balance unavailable';
   }
 }
 const DEFAULT_COMPANIES=[
@@ -452,8 +467,57 @@ function openView(name){
   if(name==='clan'){ mainWrap.classList.add('expanded'); } else { mainWrap.classList.remove('expanded'); }
   window.scrollTo(0,0);
 }
-async function requestPayout(){
-  let msg=document.getElementById('payoutMsg');msg.innerText='Place finger on sensor..';await new Promise(r=>setTimeout(r,1500));msg.innerText='✅ Fingerprint verified! Payout request sent to Trust Office.';
+async function requestPayout() {
+  const msg = document.getElementById('payoutMsg');
+
+  if (!msg) return;
+
+  msg.innerText = 'Submitting payout request...';
+
+  try {
+    const amountInput =
+      document.getElementById('payoutAmount');
+
+    const reasonInput =
+      document.getElementById('payoutReason');
+
+    const amount = Number(amountInput?.value);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      msg.innerText = 'Please enter a valid payout amount.';
+      return;
+    }
+
+    const response = await fetch('/api/beneficiary/payouts', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        amount,
+        reason: reasonInput?.value?.trim() || '',
+        destination: {}
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(
+        data.error || 'Unable to submit payout request.'
+      );
+    }
+
+    msg.innerText =
+      '✓ Payout request submitted for Trust Office review. ' +
+      'Reference: ' + data.payout.payoutId;
+
+  } catch (error) {
+    console.error('Payout request failed:', error);
+    msg.innerText = error.message || 'Payout request failed.';
+  }
 }
 function applyVirtual(){document.getElementById('virtualMsg').innerText='✅ Virtual card application sent!';}
 async function logout(){
@@ -536,12 +600,55 @@ document.getElementById('cashoutMethod').addEventListener('change',function(){
  else if(v==='Trust Card') f.innerHTML='<div style="font-size:13px;padding:8px;background:#f1f5f9;border-radius:8px;margin-top:6px">Money will be sent to your GFT VISA Trust Card ending 4129</div>';
  else f.innerHTML='';
 });
-function saveCashoutMethod(){
- let m=document.getElementById('cashoutMethod').value;
- if(!m){alert('Select method');return;}
- localStorage.setItem('cashoutMethod',m);
- document.getElementById('cashoutMsg').innerText='✅ '+m+' saved as your payout method!';
- setTimeout(closeCashoutModal,1500);
+async function saveCashoutMethod() {
+  const msg = document.getElementById('cashoutMsg');
+  const method = document.getElementById('cashoutMethod').value;
+  const destination = {};
+
+  if (!method) {
+    msg.innerText = 'Select a cashout method.';
+    return;
+  }
+
+  if (method === 'Bank') {
+    destination.accountNumber =
+      document.getElementById('bankAcc')?.value.trim() || '';
+    destination.bankName =
+      document.getElementById('bankName')?.value.trim() || '';
+  } else if (method === 'Ecocash') {
+    destination.number =
+      document.getElementById('ecoNum')?.value.trim() || '';
+    destination.name =
+      document.getElementById('ecoName')?.value.trim() || '';
+  }
+
+  msg.innerText = 'Saving cashout method...';
+
+  try {
+    const response = await fetch('/api/beneficiary/cashout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({ method, destination })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || 'Unable to save cashout method.');
+    }
+
+    msg.innerText =
+      'Cashout method saved for review. Status: ' +
+      data.cashout.status + '.';
+
+    setTimeout(closeCashoutModal, 1500);
+  } catch (error) {
+    msg.innerText = error.message || 'Unable to save cashout method.';
+  }
 }
 </script>
 </body>

@@ -228,6 +228,7 @@ CREATE TABLE IF NOT EXISTS payout_requests (
   payout_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wallet_id UUID REFERENCES wallets(wallet_id),
   amount NUMERIC(20,2) NOT NULL,
+  currency CHAR(3) NOT NULL DEFAULT 'USD',
   reason TEXT,
   destination JSONB NOT NULL DEFAULT '{}',
   status TEXT NOT NULL DEFAULT 'PENDING_REVIEW',
@@ -235,6 +236,16 @@ CREATE TABLE IF NOT EXISTS payout_requests (
   approved_by UUID REFERENCES users(user_id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   decided_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS cashout_requests (
+  cashout_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  beneficiary_system_id TEXT NOT NULL,
+  method TEXT NOT NULL
+    CHECK (method IN ('Bank', 'Ecocash', 'Trust Card')),
+  destination JSONB NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'PENDING_REVIEW',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS reconciliation_records (

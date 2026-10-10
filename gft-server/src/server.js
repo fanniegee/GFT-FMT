@@ -2,11 +2,11 @@ import 'dotenv/config';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import rateLimit from 'express-rate-limit';
+import rateLimit from 'express-rate-limit'; 
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { query } from './db.js';
+import { query, withTransaction } from './db.js';
 import { Resend } from 'resend';
 
 import {
@@ -2130,6 +2130,185 @@ app.get('/api/beneficiary/wallet', async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: 'Unable to load beneficiary wallet'
+    });
+  }
+});
+
+// ------------------------------------------------------------
+ // BENEFICIARY — PAYOUT REQUEST
+ // ------------------------------------------------------------
+
+app.post('/api/beneficiary/payouts', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Beneficiary authentication required'
+      });
+    }
+
+    const amount = Number(req.body?.amount);
+    const reason = String(req.body?.reason || '').trim();
+    const destination =
+      req.body?.destination &&
+      typeof req.body.destination === 'object' &&
+      !Array.isArray(req.body.destination)
+        ? req.body.destination
+        : {};
+
+    if (
+      !Number.isFinite(amount) ||
+      amount <= 0 ||
+      amount > 1000000000 ||
+      Math.round(amount * 100) !== amount * 100
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Enter a valid payout amount in USD'
+      });
+    }
+
+    const walletResult = await query(
+      `SELECT wallet_id, currency
+       FROM wallets
+       WHERE owner_system_id = $1
+         AND UPPER(status) = 'ACTIVE'
+         AND UPPER(TRIM(currency)) = 'USD'
+       ORDER BY created_at ASC
+       LIMIT 1`,
+      [beneficiary.system_id]
+    );
+
+    if (!walletResult.rows.length) {
+      return res.status(409).json({
+        ok: false,
+        error: 'No active USD wallet is available for this beneficiary'
+      });
+    }
+
+    const wallet = walletResult.rows[0];
+
+    const saved = await query(
+      `INSERT INTO payout_requests
+         (wallet_id, amount, currency, reason, destination, status)
+       VALUES ($1, $2, 'USD', $3, $4::jsonb, 'PENDING_REVIEW')
+       RETURNING
+         payout_id, amount, currency, reason,
+         destination, status, created_at`,
+      [
+        wallet.wallet_id,
+        amount,
+        reason || null,
+        JSON.stringify(destination)
+      ]
+    );
+
+    const payout = saved.rows[0];
+
+    return res.status(201).json({
+      ok: true,
+      message: 'USD payout request submitted for Trust Office review',
+      payout: {
+        payoutId: payout.payout_id,
+        amount: Number(payout.amount),
+        currency: String(payout.currency).trim(),
+        reason: payout.reason,
+        destination: payout.destination,
+        status: payout.status,
+        createdAt: payout.created_at
+      },
+      serverAuthoritative: true
+    });
+  } catch (error) {
+    console.error('Beneficiary payout request error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to submit payout request'
+    });
+  }
+});
+
+// BENEFICIARY — CASHOUT METHOD
+app.post('/api/beneficiary/cashout', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Beneficiary authentication required'
+      });
+    }
+
+    const method = String(req.body?.method || '').trim();
+    const allowedMethods = ['Bank', 'Ecocash', 'Trust Card'];
+
+    if (!allowedMethods.includes(method)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Select a valid cashout method'
+      });
+    }
+
+    const destination =
+      req.body?.destination &&
+      typeof req.body.destination === 'object' &&
+      !Array.isArray(req.body.destination)
+        ? req.body.destination
+        : {};
+
+    if (method === 'Bank' &&
+        (!String(destination.accountNumber || '').trim() ||
+         !String(destination.bankName || '').trim())) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Enter the bank account number and bank name'
+      });
+    }
+
+    if (method === 'Ecocash' &&
+        (!String(destination.number || '').trim() ||
+         !String(destination.name || '').trim())) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Enter the Ecocash number and name'
+      });
+    }
+
+    const saved = await query(
+      `INSERT INTO cashout_requests
+         (beneficiary_system_id, method, destination, status)
+       VALUES ($1, $2, $3::jsonb, 'PENDING_REVIEW')
+       RETURNING cashout_id, method, status, created_at`,
+      [
+        beneficiary.system_id,
+        method,
+        JSON.stringify(destination)
+      ]
+    );
+
+    const cashout = saved.rows[0];
+
+    return res.status(201).json({
+      ok: true,
+      message: 'Cashout method saved for review',
+      cashout: {
+        cashoutId: cashout.cashout_id,
+        method: cashout.method,
+        status: cashout.status,
+        createdAt: cashout.created_at
+      },
+      serverAuthoritative: true
+    });
+  } catch (error) {
+    console.error('Beneficiary cashout error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to save cashout method'
     });
   }
 });
