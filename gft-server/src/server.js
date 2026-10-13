@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { query } from './db.js';
+import { query, withTransaction } from './db.js';
 import { Resend } from 'resend';
 
 import {
@@ -3456,6 +3456,725 @@ if (applicationType === 'HOSPITAL_TREATMENT') {
     });
   }
 });
+
+
+/* ============================================================
+   GGC CLINIC STAFF AUTHENTICATION & INVITATIONS
+   Separate identities and sessions from GFT Trust administrators.
+   ============================================================ */
+
+const GGC_SESSION_COOKIE = 'ggc_staff_session';
+const GGC_SESSION_HOURS = 8;
+let ggcSchemaReady;
+
+async function ensureGgcStaffSchema() {
+  if (!ggcSchemaReady) {
+    ggcSchemaReady = (async () => {
+      await query(`
+        CREATE TABLE IF NOT EXISTS clinic_staff_users (
+          staff_id TEXT PRIMARY KEY,
+          full_name TEXT NOT NULL,
+          email TEXT NOT NULL UNIQUE,
+          role TEXT NOT NULL CHECK (role IN ('GGC_SUPER_ADMIN','CLINIC_ADMIN','DEPARTMENT_STAFF')),
+          department TEXT,
+          permissions JSONB NOT NULL DEFAULT '[]'::jsonb,
+          password_hash TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','SUSPENDED')),
+          invited_by TEXT,
+          invited_by_role TEXT,
+          last_login_at TIMESTAMPTZ,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `);
+      await query(`
+        CREATE TABLE IF NOT EXISTS clinic_staff_invitations (
+          invitation_id TEXT PRIMARY KEY,
+          email TEXT NOT NULL,
+          full_name TEXT NOT NULL,
+          role TEXT NOT NULL CHECK (role IN ('GGC_SUPER_ADMIN','CLINIC_ADMIN','DEPARTMENT_STAFF')),
+          department TEXT,
+          permissions JSONB NOT NULL DEFAULT '[]'::jsonb,
+          token_hash TEXT NOT NULL UNIQUE,
+          expires_at TIMESTAMPTZ NOT NULL,
+          used_at TIMESTAMPTZ,
+          invited_by TEXT NOT NULL,
+          invited_by_role TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `);
+      await query(`
+        CREATE TABLE IF NOT EXISTS clinic_staff_sessions (
+          session_id TEXT PRIMARY KEY,
+          staff_id TEXT NOT NULL REFERENCES clinic_staff_users(staff_id) ON DELETE CASCADE,
+          token_hash TEXT NOT NULL UNIQUE,
+          expires_at TIMESTAMPTZ NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          ip_address TEXT,
+          user_agent TEXT
+        )
+      `);
+      await query(`CREATE INDEX IF NOT EXISTS clinic_staff_invites_email_idx ON clinic_staff_invitations (LOWER(email))`);
+      await query(`CREATE INDEX IF NOT EXISTS clinic_staff_sessions_staff_idx ON clinic_staff_sessions (staff_id)`);
+    })().catch(error => { ggcSchemaReady = null; throw error; });
+  }
+  return ggcSchemaReady;
+}
+
+function setGgcCookie(res, token) {
+  const secure = process.env.NODE_ENV === 'production';
+  res.setHeader('Set-Cookie', `${GGC_SESSION_COOKIE}=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; ${secure ? 'Secure; ' : ''}Max-Age=${GGC_SESSION_HOURS * 60 * 60}`);
+}
+function clearGgcCookie(res) {
+  const secure = process.env.NODE_ENV === 'production';
+  res.setHeader('Set-Cookie', `${GGC_SESSION_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; ${secure ? 'Secure; ' : ''}Max-Age=0`);
+}
+
+async function getAuthenticatedClinicStaff(req) {
+  const token = getCookie(req, GGC_SESSION_COOKIE);
+  if (!token) return null;
+  await ensureGgcStaffSchema();
+  const result = await query(`
+    SELECT u.staff_id, u.full_name, u.email, u.role, u.department,
+           u.permissions, u.status, u.last_login_at, s.token_hash
+    FROM clinic_staff_sessions s
+    JOIN clinic_staff_users u ON u.staff_id = s.staff_id
+    WHERE s.token_hash = $1 AND s.expires_at > NOW() AND u.status = 'ACTIVE'
+    LIMIT 1
+  `, [sha256(token)]);
+  return result.rows[0] || null;
+}
+
+async function requireClinicStaff(req, res, next) {
+  try {
+    const staff = await getAuthenticatedClinicStaff(req);
+    if (!staff) return res.status(401).json({ ok: false, error: 'Clinic staff authentication required' });
+    req.clinicStaff = staff;
+    next();
+  } catch (error) {
+    console.error('Clinic staff authorization error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to verify clinic staff authorization' });
+  }
+}
+
+function clinicRoleCanInvite(role) {
+  return ['GGC_SUPER_ADMIN', 'CLINIC_ADMIN'].includes(String(role || '').toUpperCase());
+}
+
+async function createClinicStaffInvitation({ email, fullName, role, department, permissions, invitedBy, invitedByRole }) {
+  await ensureGgcStaffSchema();
+  const token = randomBytes(32).toString('base64url');
+  const invitationId = `GGC-INV-${randomBytes(12).toString('hex')}`;
+  const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  await query(`UPDATE clinic_staff_invitations SET used_at = NOW() WHERE LOWER(email) = $1 AND used_at IS NULL`, [email]);
+  await query(`INSERT INTO clinic_staff_invitations
+    (invitation_id,email,full_name,role,department,permissions,token_hash,expires_at,invited_by,invited_by_role)
+    VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10)`,
+    [invitationId,email,fullName,role,department || null,JSON.stringify(permissions),sha256(token),expiresAt,invitedBy,invitedByRole]);
+  return { invitationId, token, expiresAt };
+}
+
+// Founder-only: create GGC Super Admin or subordinate clinic invitations.
+app.post('/api/clinic/staff/founder-invitations', requireAdmin, async (req, res) => {
+  try {
+    if (String(req.admin.role || '').toUpperCase() !== FOUNDER_ROLE) {
+      return res.status(403).json({ ok: false, error: 'Only the GFT Founder can use this invitation route' });
+    }
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const fullName = String(req.body?.fullName || '').trim();
+    const role = String(req.body?.role || '').trim().toUpperCase();
+    const department = String(req.body?.department || '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !fullName) {
+      return res.status(400).json({ ok: false, error: 'A valid email and full name are required' });
+    }
+    if (!['GGC_SUPER_ADMIN','CLINIC_ADMIN','DEPARTMENT_STAFF'].includes(role)) {
+      return res.status(400).json({ ok: false, error: 'Choose a valid clinic role' });
+    }
+    const permissions = Array.isArray(req.body?.permissions) ? req.body.permissions.filter(v => typeof v === 'string').slice(0,30) : [];
+    const invite = await createClinicStaffInvitation({ email, fullName, role, department, permissions, invitedBy: req.admin.admin_id, invitedByRole: 'FOUNDER' });
+    await query(`INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details,ip_address,user_agent)
+      VALUES ($1,$2,$3,'GGC_STAFF_INVITED',$4::jsonb,$5,$6)`,
+      [`AUD-${randomBytes(10).toString('hex')}`,req.admin.admin_id,req.admin.email,JSON.stringify({email,role,invitationId:invite.invitationId}),req.ip || null,req.get('user-agent') || null]);
+    const base = `${req.protocol}://${req.get('host')}`;
+    return res.status(201).json({ ok: true, invitation: { invitationId: invite.invitationId, email, role, expiresAt: invite.expiresAt, acceptUrl: `${base}/clinic-staff.html?invite=${encodeURIComponent(invite.token)}` }, message: 'Invitation created. Share the acceptance link securely with the invitee.' });
+  } catch (error) {
+    console.error('Founder clinic invitation error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to create clinic invitation' });
+  }
+});
+
+// Clinic Super Admin / explicitly authorised Clinic Admin invitation route.
+app.post('/api/clinic/staff/invitations', requireClinicStaff, async (req, res) => {
+  try {
+    const actor = req.clinicStaff;
+    if (!clinicRoleCanInvite(actor.role) || (actor.role === 'CLINIC_ADMIN' && !actor.permissions?.includes('INVITE_STAFF'))) {
+      return res.status(403).json({ ok: false, error: 'Your clinic role does not have staff invitation permission' });
+    }
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const fullName = String(req.body?.fullName || '').trim();
+    const role = String(req.body?.role || '').trim().toUpperCase();
+    const department = String(req.body?.department || '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !fullName) return res.status(400).json({ ok: false, error: 'A valid email and full name are required' });
+    if (!['CLINIC_ADMIN','DEPARTMENT_STAFF'].includes(role)) return res.status(403).json({ ok: false, error: 'Clinic administrators cannot invite a Super Admin' });
+    const permissions = Array.isArray(req.body?.permissions) ? req.body.permissions.filter(v => typeof v === 'string').slice(0,30) : [];
+    const invite = await createClinicStaffInvitation({ email, fullName, role, department, permissions, invitedBy: actor.staff_id, invitedByRole: actor.role });
+    return res.status(201).json({ ok: true, invitation: { invitationId: invite.invitationId, email, role, expiresAt: invite.expiresAt, acceptUrl: `${req.protocol}://${req.get('host')}/clinic-staff.html?invite=${encodeURIComponent(invite.token)}` } });
+  } catch (error) {
+    console.error('Clinic staff invitation error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to create clinic staff invitation' });
+  }
+});
+
+app.post('/api/clinic/staff/accept-invitation', async (req, res) => {
+  try {
+    await ensureGgcStaffSchema();
+    const token = String(req.body?.token || '');
+    const password = String(req.body?.password || '');
+    if (token.length < 30 || password.length < 12 || password.length > 200) return res.status(400).json({ ok: false, error: 'A valid invitation and password of at least 12 characters are required' });
+    const result = await query(`SELECT * FROM clinic_staff_invitations WHERE token_hash = $1 AND used_at IS NULL AND expires_at > NOW() LIMIT 1`, [sha256(token)]);
+    if (!result.rows.length) return res.status(400).json({ ok: false, error: 'Invitation is invalid, expired, or already used' });
+    const invite = result.rows[0];
+    const existing = await query(`SELECT staff_id FROM clinic_staff_users WHERE LOWER(email) = $1 LIMIT 1`, [invite.email]);
+    if (existing.rows.length) return res.status(409).json({ ok: false, error: 'A clinic staff account already exists for this email' });
+    const staffId = `GGC-${randomBytes(12).toString('hex').toUpperCase()}`;
+    const passwordHash = await createPasswordHash(password);
+    await query('BEGIN');
+    try {
+      await query(`INSERT INTO clinic_staff_users (staff_id,full_name,email,role,department,permissions,password_hash,invited_by,invited_by_role)
+        VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9)`,
+        [staffId,invite.full_name,invite.email,invite.role,invite.department,JSON.stringify(invite.permissions || []),passwordHash,invite.invited_by,invite.invited_by_role]);
+      const consumed = await query(`UPDATE clinic_staff_invitations SET used_at = NOW() WHERE invitation_id = $1 AND used_at IS NULL AND expires_at > NOW() RETURNING invitation_id`, [invite.invitation_id]);
+      if (!consumed.rows.length) throw new Error('Invitation was already consumed');
+      await query('COMMIT');
+    } catch (e) { await query('ROLLBACK'); throw e; }
+    return res.status(201).json({ ok: true, message: 'Clinic staff account activated. You can now sign in.' });
+  } catch (error) {
+    console.error('Clinic invitation acceptance error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to activate clinic staff account' });
+  }
+});
+
+app.post('/api/clinic/staff/login', async (req, res) => {
+  try {
+    await ensureGgcStaffSchema();
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const password = String(req.body?.password || '');
+    if (!email || !password) return res.status(400).json({ ok: false, error: 'Email and password are required' });
+    const result = await query(`SELECT staff_id,full_name,email,role,department,permissions,password_hash,status FROM clinic_staff_users WHERE LOWER(email) = $1 LIMIT 1`, [email]);
+    if (!result.rows.length || result.rows[0].status !== 'ACTIVE' || !(await verifyPassword(password, result.rows[0].password_hash))) {
+      return res.status(401).json({ ok: false, error: 'Invalid email or password' });
+    }
+    const staff = result.rows[0];
+    const rawToken = randomBytes(32).toString('base64url');
+    await query(`INSERT INTO clinic_staff_sessions (session_id,staff_id,token_hash,expires_at,ip_address,user_agent) VALUES ($1,$2,$3,$4,$5,$6)`,
+      [`GGC-SES-${randomBytes(12).toString('hex')}`,staff.staff_id,sha256(rawToken),new Date(Date.now()+GGC_SESSION_HOURS*60*60*1000),req.ip || null,req.get('user-agent') || null]);
+    await query(`UPDATE clinic_staff_users SET last_login_at = NOW(), updated_at = NOW() WHERE staff_id = $1`, [staff.staff_id]);
+    setGgcCookie(res, rawToken);
+    return res.json({ ok: true, staff: { staffId: staff.staff_id, fullName: staff.full_name, email: staff.email, role: staff.role, department: staff.department, permissions: staff.permissions } });
+  } catch (error) {
+    console.error('Clinic staff login error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to complete clinic staff login' });
+  }
+});
+
+app.get('/api/clinic/staff/me', requireClinicStaff, (req, res) => {
+  const s = req.clinicStaff;
+  return res.json({ ok: true, authenticated: true, staff: { staffId: s.staff_id, fullName: s.full_name, email: s.email, role: s.role, department: s.department, permissions: s.permissions, lastLoginAt: s.last_login_at } });
+});
+
+app.post('/api/clinic/staff/logout', async (req, res) => {
+  try {
+    const token = getCookie(req, GGC_SESSION_COOKIE);
+    if (token) {
+      await ensureGgcStaffSchema();
+      await query('DELETE FROM clinic_staff_sessions WHERE token_hash = $1', [sha256(token)]);
+    }
+  } catch (error) { console.error('Clinic staff logout error:', error); }
+  clearGgcCookie(res);
+  return res.json({ ok: true });
+});
+
+/* ============================================================
+GGC PATIENT PORTAL AUTHENTICATION
+Separate patient accounts and sessions from clinic staff.
+Account activation requires authorized clinic verification.
+============================================================ */
+
+const GGC_PATIENT_COOKIE = 'ggc_patient_session';
+const GGC_PATIENT_SESSION_HOURS = 8;
+const GGC_PATIENT_ACTIVATION_MINUTES = 30;
+let ggcPatientSchemaReady;
+
+async function ensureGgcPatientSchema() {
+if (!ggcPatientSchemaReady) {
+ggcPatientSchemaReady = (async () => {
+await query("CREATE TABLE IF NOT EXISTS clinic_patient_accounts ( patient_id TEXT PRIMARY KEY, application_number TEXT NOT NULL UNIQUE, login_email TEXT, password_hash TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'SUSPENDED')), activated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), last_login_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW() )");
+
+  await query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS clinic_patient_email_unique_idx
+    ON clinic_patient_accounts (LOWER(login_email))
+    WHERE login_email IS NOT NULL AND login_email <> ''
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS clinic_patient_activation_tokens (
+      activation_id TEXT PRIMARY KEY,
+      application_number TEXT NOT NULL,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      used_at TIMESTAMPTZ,
+      issued_by TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS clinic_patient_sessions (
+      session_id TEXT PRIMARY KEY,
+      patient_id TEXT NOT NULL
+        REFERENCES clinic_patient_accounts(patient_id)
+        ON DELETE CASCADE,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      ip_address TEXT,
+      user_agent TEXT
+    )
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS clinic_patient_sessions_patient_idx
+    ON clinic_patient_sessions (patient_id)
+  `);
+})().catch(error => {
+  ggcPatientSchemaReady = null;
+  throw error;
+});
+
+}
+
+return ggcPatientSchemaReady;
+}
+
+function setGgcPatientCookie(res, token) {
+const secure = process.env.NODE_ENV === 'production';
+res.setHeader(
+'Set-Cookie',
+`${GGC_PATIENT_COOKIE}=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; ${secure ? 'Secure; ' : ''}Max-Age=${GGC_PATIENT_SESSION_HOURS * 60 * 60}`
+);
+}
+
+function clearGgcPatientCookie(res) {
+const secure = process.env.NODE_ENV === 'production';
+res.setHeader(
+'Set-Cookie',
+`${GGC_PATIENT_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; ${secure ? 'Secure; ' : ''}Max-Age=0`
+);
+}
+
+async function getAuthenticatedGgcPatient(req) {
+const token = getCookie(req, GGC_PATIENT_COOKIE);
+if (!token) return null;
+
+await ensureGgcPatientSchema();
+
+const result = await query("SELECT a.patient_id, a.application_number, a.login_email, a.status, s.token_hash FROM clinic_patient_sessions s JOIN clinic_patient_accounts a ON a.patient_id = s.patient_id WHERE s.token_hash = $1 AND s.expires_at > NOW() AND a.status = 'ACTIVE' LIMIT 1", [sha256(token)]);
+
+return result.rows[0] || null;
+}
+
+async function requireGgcPatient(req, res, next) {
+try {
+const patient = await getAuthenticatedGgcPatient(req);
+
+if (!patient) {
+  return res.status(401).json({
+    ok: false,
+    error: 'Patient authentication required'
+  });
+}
+
+req.ggcPatient = patient;
+next();
+
+} catch (error) {
+console.error('Patient authorization error:', error);
+return res.status(500).json({
+ok: false,
+error: 'Unable to verify patient authorization'
+});
+}
+}
+
+function canManageGgcPatientAccounts(staff) {
+const role = String(staff?.role || '').toUpperCase();
+const permissions = Array.isArray(staff?.permissions)
+? staff.permissions
+: [];
+
+return role === 'GGC_SUPER_ADMIN' ||
+permissions.includes('MANAGE_PATIENT_ACCOUNTS');
+}
+
+/*
+
+* Authorized staff issue an activation token only after checking
+
+* the patient's identity. Application number alone grants no access.
+
+* 
+
+* The returned token must be shared with the verified patient through
+
+* a suitable private channel. It expires after 30 minutes.
+  */
+  app.post(
+  '/api/clinic/patient/issue-activation',
+  requireClinicStaff,
+  async (req, res) => {
+  try {
+  const staff = req.clinicStaff;
+  
+  if (!canManageGgcPatientAccounts(staff)) {
+  return res.status(403).json({
+  ok: false,
+  error: 'Your clinic account is not authorized to activate patient accounts.'
+  });
+  }
+  
+  await ensureGgcPatientSchema();
+  
+  const applicationNumber = String(
+  req.body?.applicationNumber || ''
+  ).trim().toUpperCase();
+  
+  if (!applicationNumber || applicationNumber.length > 100) {
+  return res.status(400).json({
+  ok: false,
+  error: 'A valid clinic application number is required.'
+  });
+  }
+  
+  const application = await query("SELECT application_number FROM clinic_applications WHERE UPPER(application_number) = $1 LIMIT 1", [applicationNumber]);
+  
+  if (!application.rows.length) {
+  return res.status(404).json({
+  ok: false,
+  error: 'Clinic application not found.'
+  });
+  }
+  
+  const existing = await query("SELECT patient_id FROM clinic_patient_accounts WHERE application_number = $1 LIMIT 1", [applicationNumber]);
+  
+  if (existing.rows.length) {
+  return res.status(409).json({
+  ok: false,
+  error: 'A patient portal account already exists for this application. Use the approved account recovery process.'
+  });
+  }
+  
+  const rawToken = randomBytes(32).toString('base64url');
+  const activationId = `GGC-PAT-ACT-${randomBytes(12).toString('hex')}`;
+  const expiresAt = new Date(
+  Date.now() + GGC_PATIENT_ACTIVATION_MINUTES * 60 * 1000
+  );
+  
+ await withTransaction(async (client) => {
+  await client.query(
+    `UPDATE clinic_patient_activation_tokens
+     SET used_at = NOW()
+     WHERE application_number = $1
+       AND used_at IS NULL`,
+    [applicationNumber]
+  );
+
+  await client.query(
+    `INSERT INTO clinic_patient_activation_tokens
+      (activation_id, application_number, token_hash, expires_at, issued_by)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [
+      activationId,
+      applicationNumber,
+      sha256(rawToken),
+      expiresAt,
+      staff.staff_id
+    ]
+  );
+});
+  
+  return res.status(201).json({
+  ok: true,
+  message: 'Activation token created. Share it privately with the identity-verified patient.',
+  activation: {
+  applicationNumber,
+  token: rawToken,
+  expiresAt,
+  expiresInMinutes: GGC_PATIENT_ACTIVATION_MINUTES
+  }
+  });
+  } catch (error) {
+  console.error('Patient activation issuance error:', error);
+  return res.status(500).json({
+  ok: false,
+  error: 'Unable to issue a patient activation token.'
+  });
+  }
+  }
+  );
+
+/*
+
+* Patient activates an account with the one-time token provided
+
+* after clinic identity verification and chooses their own password.
+  */
+  app.post('/api/clinic/patient/activate', async (req, res) => {
+  try {
+  await ensureGgcPatientSchema();
+  
+  const applicationNumber = String(
+  req.body?.applicationNumber || ''
+  ).trim().toUpperCase();
+  const token = String(req.body?.token || '');
+  const password = String(req.body?.password || '');
+  
+  if (
+  !applicationNumber ||
+  token.length < 30 ||
+  password.length < 12 ||
+  password.length > 200
+  ) {
+  return res.status(400).json({
+  ok: false,
+  error: 'Enter your application number, valid activation token, and a password of at least 12 characters.'
+  });
+  }
+  
+  const tokenResult = await query("SELECT activation_id, application_number FROM clinic_patient_activation_tokens WHERE application_number = $1 AND token_hash = $2 AND used_at IS NULL AND expires_at > NOW() LIMIT 1", [applicationNumber, sha256(token)]);
+  
+  if (!tokenResult.rows.length) {
+  return res.status(400).json({
+  ok: false,
+  error: 'The activation token is invalid, expired, or already used.'
+  });
+  }
+  
+  const applicationResult = await query("SELECT application_number, resident_details FROM clinic_applications WHERE UPPER(application_number) = $1 LIMIT 1", [applicationNumber]);
+  
+  if (!applicationResult.rows.length) {
+  return res.status(400).json({
+  ok: false,
+  error: 'The linked clinic application could not be found.'
+  });
+  }
+  
+  const alreadyActive = await query("SELECT patient_id FROM clinic_patient_accounts WHERE application_number = $1 LIMIT 1", [applicationNumber]);
+  
+  if (alreadyActive.rows.length) {
+  return res.status(409).json({
+  ok: false,
+  error: 'A patient portal account already exists for this application.'
+  });
+  }
+  
+  const resident = applicationResult.rows[0].resident_details || {};
+  const emailValue = String(
+  resident.email || resident.emailAddress || resident.email_address || ''
+  ).trim().toLowerCase();
+  const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)
+  ? emailValue
+  : null;
+  
+  const patientId = `GGC-PAT-${randomBytes(12).toString('hex').toUpperCase()}`;
+  const passwordHash = await createPasswordHash(password);
+  
+  await withTransaction(async (client) => {
+    await client.query(
+      'INSERT INTO clinic_patient_accounts (patient_id, application_number, login_email, password_hash) VALUES ($1, $2, $3, $4)',
+      [patientId, applicationNumber, email, passwordHash]
+    );
+
+    const consumed = await client.query(
+      'UPDATE clinic_patient_activation_tokens SET used_at = NOW() WHERE activation_id = $1 AND used_at IS NULL AND expires_at > NOW() RETURNING activation_id',
+      [tokenResult.rows[0].activation_id]
+    );
+
+    if (!consumed.rows.length) {
+      throw new Error('Activation token was already consumed or expired.');
+    }
+  });
+  
+  return res.status(201).json({
+  ok: true,
+  message: 'Patient portal account activated. You can now sign in.'
+  });
+  } catch (error) {
+  if (error?.code === '23505') {
+  return res.status(409).json({
+  ok: false,
+  error: 'An account already exists for this application, or the registered email is already associated with another account.'
+  });
+  }
+  
+  console.error('Patient activation error:', error);
+  return res.status(500).json({
+  ok: false,
+  error: 'Unable to activate the patient portal account.'
+  });
+  }
+  });
+
+app.post('/api/clinic/patient/login', async (req, res) => {
+try {
+await ensureGgcPatientSchema();
+
+const loginIdentifier = String(
+  req.body?.loginIdentifier || req.body?.applicationNumber || ''
+).trim().toLowerCase();
+const password = String(req.body?.password || '');
+
+if (!loginIdentifier || !password) {
+  return res.status(400).json({
+    ok: false,
+    error: 'Patient number or registered email and password are required.'
+  });
+}
+
+const result = await query(`
+  SELECT patient_id, application_number, login_email,
+         password_hash, status
+  FROM clinic_patient_accounts
+  WHERE LOWER(application_number) = $1
+     OR LOWER(COALESCE(login_email, '')) = $1
+  LIMIT 1
+`, [loginIdentifier]);
+
+if (
+  !result.rows.length ||
+  result.rows[0].status !== 'ACTIVE' ||
+  !(await verifyPassword(password, result.rows[0].password_hash))
+) {
+  return res.status(401).json({
+    ok: false,
+    error: 'Invalid sign-in details, or the patient account is not active.'
+  });
+}
+
+const account = result.rows[0];
+const rawToken = randomBytes(32).toString('base64url');
+
+await query(`
+  INSERT INTO clinic_patient_sessions
+    (session_id, patient_id, token_hash, expires_at, ip_address, user_agent)
+  VALUES ($1, $2, $3, $4, $5, $6)
+`, [
+  `GGC-PAT-SES-${randomBytes(12).toString('hex')}`,
+  account.patient_id,
+  sha256(rawToken),
+  new Date(Date.now() + GGC_PATIENT_SESSION_HOURS * 60 * 60 * 1000),
+  req.ip || null,
+  req.get('user-agent') || null
+]);
+
+await query(`
+  UPDATE clinic_patient_accounts
+  SET last_login_at = NOW(), updated_at = NOW()
+  WHERE patient_id = $1
+`, [account.patient_id]);
+
+setGgcPatientCookie(res, rawToken);
+
+return res.json({
+  ok: true,
+  authenticated: true,
+  patient: {
+    patientId: account.patient_id,
+    patientNumber: account.application_number
+  }
+});
+
+} catch (error) {
+console.error('Patient login error:', error);
+return res.status(500).json({
+ok: false,
+error: 'Unable to complete patient sign-in.'
+});
+}
+});
+
+app.get('/api/clinic/patient/me', requireGgcPatient, async (req, res) => {
+try {
+const account = req.ggcPatient;
+
+const result = await query(`
+  SELECT application_number, branch_code, resident_details,
+         application_status, submitted_at
+  FROM clinic_applications
+  WHERE UPPER(application_number) = $1
+  LIMIT 1
+`, [account.application_number.toUpperCase()]);
+
+if (!result.rows.length) {
+  return res.status(404).json({
+    ok: false,
+    error: 'The linked clinic application could not be found.'
+  });
+}
+
+const application = result.rows[0];
+const resident = application.resident_details || {};
+const rawType = String(
+  resident.applicationType || 'RESIDENTIAL_CARE'
+).trim().toUpperCase();
+
+return res.json({
+  ok: true,
+  authenticated: true,
+  patient: {
+    patientId: account.patient_id,
+    patientNumber: application.application_number,
+    fullName: String(resident.fullName || ''),
+    careType: rawType,
+    applicationType: rawType,
+    admissionStatus: String(application.application_status || 'UNDER_REVIEW'),
+    branchCode: application.branch_code,
+    submittedAt: application.submitted_at,
+    careTeamName: '',
+    email: account.login_email || ''
+  },
+  careItems: []
+});
+
+} catch (error) {
+console.error('Patient profile error:', error);
+return res.status(500).json({
+ok: false,
+error: 'Unable to load the patient profile.'
+});
+}
+});
+
+app.post('/api/clinic/patient/logout', async (req, res) => {
+try {
+const token = getCookie(req, GGC_PATIENT_COOKIE);
+
+if (token) {
+  await ensureGgcPatientSchema();
+  await query(
+    'DELETE FROM clinic_patient_sessions WHERE token_hash = $1',
+    [sha256(token)]
+  );
+}
+
+} catch (error) {
+console.error('Patient logout error:', error);
+}
+
+clearGgcPatientCookie(res);
+return res.json({ ok: true });
+});
+
+/* End GGC patient portal authentication */
 
 // ------------------------------------------------------------
 // SAFE API 404
