@@ -462,7 +462,7 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
     </section>
   </main>
 
-  <footer class="site-footer">
+  <footer class="site-footer gft-old-footer">
     <strong>GFT SPOTLIGHT STUDIO · THE GUVAZA FAMILY TRUST</strong><br>
     Creativity. Knowledge. Culture. Community.<br>
     &copy; <span id="currentYear"></span> The Guvaza Family Trust. All rights reserved.
@@ -524,29 +524,38 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
         element.className = 'form-message';
       }
 
-      registerForm.addEventListener('submit', event => {
-        event.preventDefault();
-        clearMessage(registerMessage);
+      // Registration submission is handled by the server connector below.
+      // Keep the existing form and selection behaviour intact.
 
-        if (!registerForm.reportValidity()) return;
-        const memberType = registerForm.querySelector('input[name="memberType"]:checked').value;
-        const departments = [...registerForm.querySelectorAll('input[name="departments"]:checked')].map(input => input.value);
-        if (memberType === 'creative' && departments.length === 0) {
-          showMessage(registerMessage, 'Please select at least one professional department.', 'error');
-          return;
-        }
-        if (!document.getElementById('terms').checked) {
-          showMessage(registerMessage, 'Please accept the membership terms and privacy policy to continue.', 'error');
-          return;
-        }
-        showMessage(registerMessage, 'The design is ready for review. No account has been created and no information has been saved. Secure registration will be connected to the server in the backend phase.', 'info');
-      });
-
-      signinForm.addEventListener('submit', event => {
+      signinForm.addEventListener('submit', async event => {
         event.preventDefault();
         clearMessage(signinMessage);
         if (!signinForm.reportValidity()) return;
-        showMessage(signinMessage, 'Sign-in is a visual prototype only. Authentication is not connected yet.', 'info');
+
+        const button = signinForm.querySelector('button[type="submit"], input[type="submit"]');
+        const email = document.getElementById('signinEmail').value.trim();
+        const password = document.getElementById('signinPassword').value;
+        if (button) button.disabled = true;
+        showMessage(signinMessage, 'Signing in securely…', 'info');
+
+        try {
+          const response = await fetch('/api/spotlight/auth/login', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || data.ok === false || data.authenticated === false) {
+            throw new Error(data.error || data.message || 'Sign-in failed. Check your email and password.');
+          }
+          showMessage(signinMessage, 'Signed in successfully. Opening your profile editor…', 'success');
+          window.location.href = 'gft-spotlight-profile-editor.html';
+        } catch (error) {
+          showMessage(signinMessage, error.message || 'Unable to sign in. Please try again.', 'error');
+        } finally {
+          if (button) button.disabled = false;
+        }
       });
     })();
   </script>
@@ -580,6 +589,20 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
+
+      if (!form.reportValidity()) return;
+      const memberType = form.querySelector('input[name="memberType"]:checked');
+      const departments = [...form.querySelectorAll('input[name="departments"]:checked')];
+      const terms = document.getElementById('terms');
+      if (memberType && memberType.value === 'creative' && departments.length === 0) {
+        status.textContent = 'Please select at least one professional department.';
+        return;
+      }
+      if (terms && !terms.checked) {
+        status.textContent = 'Please accept the membership terms and privacy policy to continue.';
+        return;
+      }
+
       const submit = form.querySelector('button[type="submit"],input[type="submit"]');
       if (submit) submit.disabled = true;
       status.textContent = 'Creating your Spotlight membership…';
@@ -612,11 +635,6 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
   });
 })();
 </script>
-
-
-
-
-
 <script src="/public-footer.js" defer></script>
 </body>
 </html>
