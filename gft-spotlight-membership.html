@@ -496,5 +496,68 @@
       });
     })();
   </script>
+
+<script>
+// GFT_SPOTLIGHT_REGISTRATION_FORM_CONNECTOR
+(() => {
+  document.querySelectorAll('form').forEach(form => {
+    const fields = [...form.querySelectorAll('input')];
+    const nameInput = fields.find(i =>
+      /full.?name|fullname|your.?name|member.?name/i.test(
+        [i.name, i.id, i.placeholder, i.autocomplete].join(' ')
+      )
+    );
+    const emailInput = fields.find(i =>
+      i.type === 'email' || /email/i.test([i.name, i.id, i.placeholder].join(' '))
+    );
+    const passwordInput = fields.find(i => i.type === 'password');
+
+    // Only connect the membership-registration form, not other forms.
+    if (!nameInput || !emailInput || !passwordInput) return;
+
+    let status = form.querySelector('[data-spotlight-registration-status]');
+    if (!status) {
+      status = document.createElement('p');
+      status.dataset.spotlightRegistrationStatus = 'true';
+      status.setAttribute('role', 'status');
+      status.style.cssText = 'margin-top:12px;font-weight:600;';
+      form.appendChild(status);
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const submit = form.querySelector('button[type="submit"],input[type="submit"]');
+      if (submit) submit.disabled = true;
+      status.textContent = 'Creating your Spotlight membership…';
+
+      try {
+        const response = await fetch('/api/spotlight/auth/register', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fullName: nameInput.value.trim(),
+            email: emailInput.value.trim(),
+            password: passwordInput.value
+          })
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || 'Registration failed. Please try again.');
+        }
+
+        status.textContent = 'Membership created successfully. You can now sign in.';
+        form.reset();
+      } catch (error) {
+        status.textContent = error.message || 'Unable to connect. Please try again.';
+      } finally {
+        if (submit) submit.disabled = false;
+      }
+    });
+  });
+})();
+</script>
+
 </body>
 </html>
