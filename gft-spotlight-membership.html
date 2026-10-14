@@ -13,6 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
   <!-- Professional icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="/public-footer.css">
 
   <style>
     :root {
@@ -280,6 +281,83 @@
       .form-panel { padding-left: 14px; padding-right: 14px; }
       .choice-card { padding: 11px; }
     }
+  
+    /* Spotlight Studio banner: edit GFT_SPOTLIGHT_IMAGES.hero below to replace its image. */
+    .spotlight-site-header {
+      position: relative;
+      z-index: 5;
+      background: #031226;
+      color: #fff;
+      border-bottom: 2px solid #d22231;
+    }
+    .spotlight-nav-inner {
+      max-width: 1320px;
+      min-height: 72px;
+      margin: 0 auto;
+      padding: 10px clamp(18px, 4vw, 58px);
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+    .spotlight-brand { display:flex; align-items:center; gap:13px; min-width:260px; color:inherit; text-decoration:none; }
+    .spotlight-brand-mark {
+      width:52px; height:52px; flex:0 0 52px; display:grid; place-items:center; border-radius:50%;
+      color:#fff; font-size:21px; background:radial-gradient(circle at 30% 25%, #315f9a, #071a31 48%, #bd2433 76%, #061126);
+      box-shadow:inset 0 1px 5px #ffffff55, 0 3px 12px #0005;
+    }
+    .spotlight-brand-copy { display:flex; flex-direction:column; gap:4px; }
+    .spotlight-brand-name { font:700 22px/1.1 var(--serif); white-space:nowrap; }
+    .spotlight-brand-tagline { font:700 9px/1.2 var(--sans); letter-spacing:2px; color:#d9e1ed; white-space:nowrap; }
+    .spotlight-main-nav { display:flex; align-items:center; justify-content:flex-end; gap:clamp(13px,2.2vw,30px); flex:1; }
+    .spotlight-main-nav a { color:#d8deea; text-decoration:none; font-size:14px; white-space:nowrap; padding:9px 0; }
+    .spotlight-main-nav a:hover, .spotlight-main-nav a.is-current { color:#fff; }
+    .spotlight-main-nav a.is-current { font-weight:700; border-bottom:2px solid #d22231; }
+    .spotlight-join-button { color:#fff; background:#c92332; border-radius:9px; padding:12px 20px; text-decoration:none; font-weight:700; white-space:nowrap; }
+    .spotlight-hero {
+      min-height:420px; width:100%; display:grid; place-items:center; position:relative; overflow:hidden;
+      color:#fff; background-color:#071a31; background-position:center; background-size:cover; background-repeat:no-repeat;
+      padding:38px 22px 28px;
+    }
+    .spotlight-hero::before { content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(4,15,31,.44),rgba(4,15,31,.74) 36%,rgba(23,12,22,.68) 68%,rgba(4,15,31,.35)); }
+    .spotlight-hero-content { position:relative; z-index:1; width:min(100%,930px); text-align:center; padding:0 12px; }
+    .spotlight-hero-eyebrow { margin:0 0 18px; color:#fff; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; }
+    .spotlight-hero h1 { max-width:850px; margin:0 auto 18px; color:#fff; font:700 clamp(40px,5vw,64px)/1.02 var(--serif); letter-spacing:-1.8px; text-wrap:balance; }
+    .spotlight-hero h1 span { color:#f6c444; }
+    .spotlight-hero-copy { max-width:690px; margin:0 auto; color:#f2f4f8; font-size:17px; line-height:1.55; }
+    .spotlight-hero-benefits { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:25px; max-width:850px; margin:26px auto 24px; text-align:left; }
+    .spotlight-benefit { display:flex; align-items:flex-start; gap:13px; min-width:0; }
+    .spotlight-benefit-icon { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border-radius:50%; color:white; font-size:20px; }
+    .spotlight-benefit-icon.blue { background:#327fd5; } .spotlight-benefit-icon.gold { background:#e8a634; } .spotlight-benefit-icon.green { background:#16a77a; }
+    .spotlight-benefit strong { display:block; margin:5px 0 5px; color:#fff; font-size:14px; }
+    .spotlight-benefit small { display:block; color:#f0f1f5; font-size:12px; line-height:1.5; }
+    .spotlight-hero-motto { display:flex; align-items:center; justify-content:center; gap:14px; color:#fff; font-size:10px; font-weight:700; letter-spacing:3px; }
+    .spotlight-hero-motto span { height:1px; background:#dce3ef99; flex:1; max-width:150px; }
+    .page-shell { max-width:1320px; padding-top:28px; }
+    @media (max-width:900px) {
+      .spotlight-nav-inner { flex-wrap:wrap; gap:12px 20px; }
+      .spotlight-brand { flex:1; min-width:220px; }
+      .spotlight-main-nav { order:3; flex-basis:100%; justify-content:center; gap:20px; }
+      .spotlight-hero { min-height:410px; }
+    }
+    @media (max-width:600px) {
+      .spotlight-nav-inner { padding:12px 16px; }
+      .spotlight-brand-mark { width:44px; height:44px; flex-basis:44px; }
+      .spotlight-brand-name { font-size:18px; }
+      .spotlight-brand-tagline { font-size:7px; letter-spacing:1.5px; }
+      .spotlight-main-nav { overflow-x:auto; justify-content:flex-start; gap:20px; padding:0 2px 4px; }
+      .spotlight-main-nav a { font-size:12px; }
+      .spotlight-join-button { padding:10px 13px; font-size:12px; }
+      .spotlight-hero { min-height:0; padding:43px 16px 24px; }
+      .spotlight-hero h1 { font-size:clamp(37px,10vw,50px); letter-spacing:-1px; }
+      .spotlight-hero-copy { font-size:14px; }
+      .spotlight-hero-benefits { grid-template-columns:1fr; gap:15px; width:min(100%,310px); margin:24px auto; }
+      .spotlight-benefit-icon { width:42px; height:42px; flex-basis:42px; font-size:17px; }
+      .spotlight-hero-motto { font-size:8px; letter-spacing:1.3px; gap:8px; }
+      .spotlight-hero-motto span { max-width:28px; }
+      .page-shell { padding:22px 12px 36px; }
+      .membership-layout { grid-template-columns:1fr; }
+    }
+
   </style>
 
 <style id="gft-spotlight-hero-refresh">
@@ -337,32 +415,51 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
 
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="library.html" aria-label="Guvaza Library home" style="color:inherit;text-decoration:none">
-        <div class="brand-mark" aria-hidden="true"><i class="fa-solid fa-book-open-reader"></i></div>
-        <div>
-          <p class="brand-name">GFT Spotlight Studio</p>
-          <p class="brand-tagline">CREATIVITY · KNOWLEDGE · CULTURE</p>
-        </div>
+  <header class="site-header spotlight-site-header">
+    <div class="spotlight-nav-inner">
+      <a class="spotlight-brand" href="library.html" aria-label="GFT Spotlight Studio home">
+        <span class="spotlight-brand-mark" aria-hidden="true"><i class="fa-solid fa-book-open-reader"></i></span>
+        <span class="spotlight-brand-copy">
+          <span class="spotlight-brand-name">GFT Spotlight Studio</span>
+          <span class="spotlight-brand-tagline">CREATIVITY · KNOWLEDGE · CULTURE</span>
+        </span>
       </a>
-      <div class="header-note">THE GUVAZA FAMILY TRUST<br>One community. Many creative voices.</div>
+      <nav class="spotlight-main-nav" aria-label="Main navigation">
+        <a href="library.html">Home</a>
+        <a href="library.html#explore">Explore</a>
+        <a href="library.html#categories">Categories</a>
+        <a href="library.html#about">About</a>
+        <a class="is-current" href="gft-spotlight-membership.html" aria-current="page">Membership</a>
+      </nav>
+      <a class="spotlight-join-button" href="#membership-account">Join Now</a>
     </div>
   </header>
 
   <main class="page-shell">
-    <section class="intro" aria-labelledby="page-title">
-      <p class="eyebrow">Become part of our community</p>
-      <h1 id="page-title">Your talent deserves the <span>spotlight.</span></h1>
-      <p class="intro-copy">Join the creative community of the Guvaza Family Trust. Build your presence as an author, artist, music producer or filmmaker—or join as a reader and supporter.</p>
-      <div class="benefits" aria-label="Membership benefits">
-        <span><i class="fa-solid fa-book-open" aria-hidden="true"></i> Explore knowledge</span>
-        <span><i class="fa-solid fa-feather-pointed" aria-hidden="true"></i> Share your work</span>
-        <span><i class="fa-solid fa-user-group" aria-hidden="true"></i> One account, many profiles</span>
+    <section class="spotlight-hero" id="spotlightHero" aria-labelledby="page-title">
+      <div class="spotlight-hero-content">
+        <p class="spotlight-hero-eyebrow">Become part of our community</p>
+        <h1 id="page-title">Your talent deserves the <span>spotlight.</span></h1>
+        <p class="spotlight-hero-copy">Join the creative community of the Guvaza Family Trust. Build your presence as an author, artist, music producer or filmmaker — or join as a reader and supporter.</p>
+        <div class="spotlight-hero-benefits" aria-label="Membership benefits">
+          <div class="spotlight-benefit">
+            <span class="spotlight-benefit-icon blue"><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
+            <span><strong>Explore knowledge</strong><small>Discover books, research<br>and original works.</small></span>
+          </div>
+          <div class="spotlight-benefit">
+            <span class="spotlight-benefit-icon gold"><i class="fa-solid fa-palette" aria-hidden="true"></i></span>
+            <span><strong>Share your work</strong><small>Build author, artist, music<br>or film profiles.</small></span>
+          </div>
+          <div class="spotlight-benefit">
+            <span class="spotlight-benefit-icon green"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
+            <span><strong>One account, many profiles</strong><small>Choose which professional<br>profiles to publish.</small></span>
+          </div>
+        </div>
+        <div class="spotlight-hero-motto"><span></span> CREATIVITY&nbsp; · &nbsp;KNOWLEDGE&nbsp; · &nbsp;CULTURE&nbsp; · &nbsp;COMMUNITY <span></span></div>
       </div>
     </section>
 
-    <section class="membership-layout" aria-label="Guvaza Library membership">
+    <section class="membership-layout" id="membership-account" aria-label="Guvaza Library membership">
       <aside class="welcome-panel">
         <div class="welcome-icon" aria-hidden="true"><i class="fa-solid fa-landmark"></i></div>
         <h2>A platform for every creative voice.</h2>
@@ -462,7 +559,7 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
     </section>
   </main>
 
-  <footer class="site-footer gft-old-footer">
+  <footer class="site-footer">
     <strong>GFT SPOTLIGHT STUDIO · THE GUVAZA FAMILY TRUST</strong><br>
     Creativity. Knowledge. Culture. Community.<br>
     &copy; <span id="currentYear"></span> The Guvaza Family Trust. All rights reserved.
@@ -524,38 +621,29 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
         element.className = 'form-message';
       }
 
-      // Registration submission is handled by the server connector below.
-      // Keep the existing form and selection behaviour intact.
+      registerForm.addEventListener('submit', event => {
+        event.preventDefault();
+        clearMessage(registerMessage);
 
-      signinForm.addEventListener('submit', async event => {
+        if (!registerForm.reportValidity()) return;
+        const memberType = registerForm.querySelector('input[name="memberType"]:checked').value;
+        const departments = [...registerForm.querySelectorAll('input[name="departments"]:checked')].map(input => input.value);
+        if (memberType === 'creative' && departments.length === 0) {
+          showMessage(registerMessage, 'Please select at least one professional department.', 'error');
+          return;
+        }
+        if (!document.getElementById('terms').checked) {
+          showMessage(registerMessage, 'Please accept the membership terms and privacy policy to continue.', 'error');
+          return;
+        }
+        showMessage(registerMessage, 'The design is ready for review. No account has been created and no information has been saved. Secure registration will be connected to the server in the backend phase.', 'info');
+      });
+
+      signinForm.addEventListener('submit', event => {
         event.preventDefault();
         clearMessage(signinMessage);
         if (!signinForm.reportValidity()) return;
-
-        const button = signinForm.querySelector('button[type="submit"], input[type="submit"]');
-        const email = document.getElementById('signinEmail').value.trim();
-        const password = document.getElementById('signinPassword').value;
-        if (button) button.disabled = true;
-        showMessage(signinMessage, 'Signing in securely…', 'info');
-
-        try {
-          const response = await fetch('/api/spotlight/auth/login', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-          });
-          const data = await response.json().catch(() => ({}));
-          if (!response.ok || data.ok === false || data.authenticated === false) {
-            throw new Error(data.error || data.message || 'Sign-in failed. Check your email and password.');
-          }
-          showMessage(signinMessage, 'Signed in successfully. Opening your profile editor…', 'success');
-          window.location.href = 'gft-spotlight-profile-editor.html';
-        } catch (error) {
-          showMessage(signinMessage, error.message || 'Unable to sign in. Please try again.', 'error');
-        } finally {
-          if (button) button.disabled = false;
-        }
+        showMessage(signinMessage, 'Sign-in is a visual prototype only. Authentication is not connected yet.', 'info');
       });
     })();
   </script>
@@ -589,20 +677,6 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
-
-      if (!form.reportValidity()) return;
-      const memberType = form.querySelector('input[name="memberType"]:checked');
-      const departments = [...form.querySelectorAll('input[name="departments"]:checked')];
-      const terms = document.getElementById('terms');
-      if (memberType && memberType.value === 'creative' && departments.length === 0) {
-        status.textContent = 'Please select at least one professional department.';
-        return;
-      }
-      if (terms && !terms.checked) {
-        status.textContent = 'Please accept the membership terms and privacy policy to continue.';
-        return;
-      }
-
       const submit = form.querySelector('button[type="submit"],input[type="submit"]');
       if (submit) submit.disabled = true;
       status.textContent = 'Creating your Spotlight membership…';
@@ -635,6 +709,24 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
   });
 })();
 </script>
-<script src="/public-footer.js" defer></script>
+  <div id="gft-public-footer"></div>
+
+<script>
+/* EDIT THIS URL LATER to replace the Spotlight banner image.
+   Local images can live in /assets/ and use a path such as /assets/spotlight-hero.jpg. */
+const GFT_SPOTLIGHT_IMAGES = {
+  hero: "/assets/spotlight-hero.jpg"
+};
+(() => {
+  const hero = document.getElementById("spotlightHero");
+  if (hero && GFT_SPOTLIGHT_IMAGES.hero) {
+    const imageUrl = GFT_SPOTLIGHT_IMAGES.hero.replace(/["\\]/g, "");
+    hero.style.backgroundImage =
+      `linear-gradient(90deg, rgba(4,15,31,.42), rgba(4,15,31,.70) 36%, rgba(23,12,22,.64) 68%, rgba(4,15,31,.32)), url("${imageUrl}")`;
+  }
+})();
+</script>
+
+  <script src="/public-footer.js" defer></script>
 </body>
 </html>
