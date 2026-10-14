@@ -4208,6 +4208,119 @@ app.use((error, _req, res, _next) => {
 });
 
 // ------------------------------------------------------------
+
+// ------------------------------------------------------------
+
+// ------------------------------------------------------------
+// SPOTLIGHT WRITE ACCESS GUARD
+// Public profile reads remain available.
+// Profile creation, editing and publishing stay disabled until
+// dedicated Spotlight member authentication is implemented.
+// ------------------------------------------------------------
+app.use('/api/spotlight/profiles', (req, res, next) => {
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+    return next();
+  }
+
+  return res.status(503).json({
+    ok: false,
+    error: 'SPOTLIGHT AUTHENTICATION REQUIRED',
+    message: 'Profile changes are temporarily disabled until secure Spotlight member authentication is enabled.'
+  });
+});
+
+// GFT SPOTLIGHT PROFILE API
+// Registration and member-write authentication are intentionally
+// deferred. Only published profiles are publicly readable.
+// ------------------------------------------------------------
+
+async function ensureSpotlightProfileTable() {
+  await query(`
+    CREATE TABLE IF NOT EXISTS spotlight_profiles (
+      profile_id TEXT PRIMARY KEY,
+      owner_system_id TEXT NOT NULL,
+      department TEXT NOT NULL CHECK (
+        department IN ('author', 'artist', 'music', 'film')
+      ),
+      display_name TEXT NOT NULL,
+      headline TEXT NOT NULL DEFAULT '',
+      biography TEXT NOT NULL DEFAULT '',
+      details JSONB NOT NULL DEFAULT '{}'::jsonb,
+      status TEXT NOT NULL DEFAULT 'draft' CHECK (
+        status IN ('draft', 'published', 'archived')
+      ),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      published_at TIMESTAMPTZ
+    )
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS spotlight_profiles_public_idx
+    ON spotlight_profiles (department, published_at DESC)
+    WHERE status = 'published'
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS spotlight_profiles_owner_idx
+    ON spotlight_profiles (owner_system_id, updated_at DESC)
+  `);
+}
+
+app.get('/api/spotlight/profiles', async (req, res) => {
+  try {
+    const department = String(req.query.department || '').trim().toLowerCase();
+    const allowed = ['author', 'artist', 'music', 'film'];
+
+    if (department && !allowed.includes(department)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Invalid Spotlight department'
+      });
+    }
+
+    await ensureSpotlightProfileTable();
+
+    const params = department ? [department] : [];
+    const result = await query(
+      `SELECT profile_id, department, display_name, headline,
+              biography, details, published_at
+       FROM spotlight_profiles
+       WHERE status = 'published'
+       ${department ? 'AND department = $1' : ''}
+       ORDER BY published_at DESC, display_name ASC
+       LIMIT 100`,
+      params
+    );
+
+    return res.json({
+      ok: true,
+      count: result.rows.length,
+      profiles: result.rows
+    });
+  } catch (error) {
+    console.error('Spotlight public profiles error:', error);
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to load Spotlight profiles'
+    });
+  }
+});
+
+app.get('/api/spotlight/health', async (_req, res) => {
+  try {
+    await ensureSpotlightProfileTable();
+    return res.json({ ok: true, service: 'spotlight-profile-api' });
+  } catch (error) {
+    console.error('Spotlight API health error:', error);
+    return res.status(503).json({
+      ok: false,
+      error: 'Spotlight storage is unavailable'
+    });
+  }
+});
+
+
 // START SERVER
 // ------------------------------------------------------------
 
