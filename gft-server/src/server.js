@@ -4229,6 +4229,190 @@ app.use('/api/spotlight/profiles', (req, res, next) => {
   });
 });
 
+
+// ------------------------------------------------------------
+// SPOTLIGHT MEMBER SESSION API
+// Separate from beneficiary, admin, and registration systems.
+// Accounts must be provisioned privately; no public signup.
+// ------------------------------------------------------------
+const SPOTLIGHT_SESSION_COOKIE = 'gft_spotlight_session';
+const SPOTLIGHT_SESSION_HOURS = 12;
+
+async function ensureSpotlightAuthSchema() {
+  await query(`
+    CREATE TABLE IF NOT EXISTS spotlight_member_accounts (
+      member_id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      system_id TEXT NOT NULL UNIQUE,
+      full_name TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'ACTIVE'
+        CHECK (status IN ('ACTIVE', 'DISABLED')),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS spotlight_member_sessions (
+      session_id TEXT PRIMARY KEY,
+      member_id TEXT NOT NULL REFERENCES spotlight_member_accounts(member_id)
+        ON DELETE CASCADE,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS spotlight_member_sessions_expiry_idx
+    ON spotlight_member_sessions (expires_at)
+  `);
+}
+
+function setSpotlightSessionCookie(res, token) {
+  const secure = process.env.NODE_ENV === 'production';
+  res.setHeader('Set-Cookie',
+    `${SPOTLIGHT_SESSION_COOKIE}=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${SPOTLIGHT_SESSION_HOURS * 60 * 60}${secure ? '; Secure' : ''}`
+  );
+}
+
+function clearSpotlightSessionCookie(res) {
+  const secure = process.env.NODE_ENV === 'production';
+  res.setHeader('Set-Cookie',
+    `${SPOTLIGHT_SESSION_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0${secure ? '; Secure' : ''}`
+  );
+}
+
+async function getAuthenticatedSpotlightMember(req) {
+  const token = getCookie(req, SPOTLIGHT_SESSION_COOKIE);
+  if (!token) return null;
+
+  await ensureSpotlightAuthSchema();
+  const result = await query(`
+    SELECT a.member_id, a.system_id, a.email, a.full_name
+    FROM spotlight_member_sessions s
+    JOIN spotlight_member_accounts a ON a.member_id = s.member_id
+    WHERE s.token_hash = $1
+      AND s.expires_at > NOW()
+      AND a.status = 'ACTIVE'
+    LIMIT 1
+  `, [sha256(token)]);
+
+  return result.rows[0] || null;
+}
+
+app.post('/api/spotlight/auth/login', async (req, res) => {
+  try {
+    await ensureSpotlightAuthSchema();
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const password = String(req.body?.password || '');
+
+    if (!email || !password) {
+      return res.status(400).json({ ok: false, error: 'Email and password are required' });
+    }
+
+    const result = await query(`
+      SELECT member_id, system_id, email, full_name, password_hash
+      FROM spotlight_member_accounts
+      WHERE LOWER(email) = $1 AND status = 'ACTIVE'
+      LIMIT 1
+    `, [email]);
+
+    if (!result.rows.length ||
+        !(await verifyPassword(password, result.rows[0].password_hash))) {
+      return res.status(401).json({ ok: false, error: 'Invalid Spotlight login details' });
+    }
+
+    const member = result.rows[0];
+    const token = randomBytes(32).toString('base64url');
+    await query(`
+      INSERT INTO spotlight_member_sessions
+        (session_id, member_id, token_hash, expires_at)
+      VALUES ($1, $2, $3, $4)
+    `, [
+      `SPOT-SES-${randomBytes(12).toString('hex')}`,
+      member.member_id,
+      sha256(token),
+      new Date(Date.now() + SPOTLIGHT_SESSION_HOURS * 60 * 60 * 1000)
+    ]);
+
+    setSpotlightSessionCookie(res, token);
+    return res.json({
+      ok: true,
+      authenticated: true,
+      member: {
+        systemId: member.system_id,
+        email: member.email,
+        fullName: member.full_name
+      }
+    });
+  } catch (error) {
+    console.error('Spotlight member login error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to sign in to Spotlight' });
+  }
+});
+
+app.get('/api/spotlight/auth/me', async (req, res) => {
+  try {
+    const member = await getAuthenticatedSpotlightMember(req);
+    if (!member) {
+      return res.status(401).json({ ok: false, authenticated: false });
+    }
+    return res.json({
+      ok: true,
+      authenticated: true,
+      member: {
+        systemId: member.system_id,
+        email: member.email,
+        fullName: member.full_name
+      }
+    });
+  } catch (error) {
+    console.error('Spotlight session lookup error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to check Spotlight session' });
+  }
+});
+
+app.post('/api/spotlight/auth/logout', async (req, res) => {
+  try {
+    const token = getCookie(req, SPOTLIGHT_SESSION_COOKIE);
+    if (token) {
+      await ensureSpotlightAuthSchema();
+      await query(
+        'DELETE FROM spotlight_member_sessions WHERE token_hash = $1',
+        [sha256(token)]
+      );
+    }
+  } catch (error) {
+    console.error('Spotlight logout error:', error);
+  }
+  clearSpotlightSessionCookie(res);
+  return res.json({ ok: true });
+});
+
+// Authenticated members can read only their own saved profiles.
+app.get('/api/spotlight/my-profiles', async (req, res) => {
+  try {
+    const member = await getAuthenticatedSpotlightMember(req);
+    if (!member) {
+      return res.status(401).json({ ok: false, error: 'Spotlight sign-in required' });
+    }
+    await ensureSpotlightProfileTable();
+    const result = await query(`
+      SELECT profile_id, department, display_name, headline, biography,
+             details, status, created_at, updated_at, published_at
+      FROM spotlight_profiles
+      WHERE owner_system_id = $1
+      ORDER BY updated_at DESC
+      LIMIT 100
+    `, [member.system_id]);
+    return res.json({ ok: true, profiles: result.rows });
+  } catch (error) {
+    console.error('Spotlight member profiles error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to load your profiles' });
+  }
+});
+
 // GFT SPOTLIGHT PROFILE API
 // Registration and member-write authentication are intentionally
 // deferred. Only published profiles are publicly readable.
