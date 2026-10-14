@@ -65,7 +65,7 @@
 
     <div class="library-nav-actions">
         <button class="library-nav-btn" type="button" id="wishlistBtn"><span class="material-icons-round">favorite_border</span><span>Wishlist</span></button>
-        <button class="library-nav-btn gold" type="button" id="libraryAccountBtn"><span class="material-icons-round">person</span><span>My Library</span></button>
+        <button class="library-nav-btn gold" type="button" id="libraryAccountBtn" onclick="window.location.href='gft-spotlight-membership.html'"><span class="material-icons-round">person</span><span>My Library</span></button>
     </div>
 </nav>
 
@@ -162,7 +162,7 @@
 
 <section class="library-membership">
     <div><h2>Enter Your Personal Library</h2><p>A future Library account will allow you to save books, build collections, follow authors, track reading progress, purchase publications, access your digital shelf and manage your personal reading history.</p></div>
-    <button type="button" class="membership-btn" id="membershipBtn">Create Library Account</button>
+    <button type="button" class="membership-btn" id="membershipBtn" onclick="window.location.href='gft-spotlight-membership.html'">Create Library Account</button>
 </section>
 
 <section class="library-newsletter">
@@ -270,9 +270,9 @@ document.onkeydown=e=>{if(e.key==="Escape")closeModal()};
 
 function future(msg){alert(msg)}
 document.getElementById("wishlistBtn").onclick=()=>future("Your Library wishlist will be available when Library accounts are connected.");
-document.getElementById("libraryAccountBtn").onclick=()=>future("Personal Library accounts will be connected to the secure member system later.");
+document.getElementById("libraryAccountBtn").onclick=()=>window.location.href="gft-spotlight-dashboard.html";
 document.getElementById("continueBtn").onclick=()=>future("Your personal reading room will open here once Library accounts and reading progress are connected.");
-document.getElementById("membershipBtn").onclick=()=>future("Library membership will be connected after the account system is implemented.");
+document.getElementById("membershipBtn").onclick=()=>window.location.href="gft-spotlight-membership.html";
 document.getElementById("authorsBtn").onclick=e=>{e.preventDefault();future("Author profiles will be available when the publishing system is connected.")};
 document.getElementById("viewAllBtn").onclick=e=>{e.preventDefault();search.focus()};
 
