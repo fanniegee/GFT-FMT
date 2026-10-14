@@ -281,6 +281,60 @@
       .choice-card { padding: 11px; }
     }
   </style>
+
+<style id="gft-spotlight-hero-refresh">
+/* GFT SPOTLIGHT HERO REFRESH */
+main > section:first-of-type {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 24px;
+  margin: 24px auto;
+  padding: clamp(38px, 6vw, 82px) 24px;
+  color: #fff;
+  text-align: center;
+  background:
+    linear-gradient(110deg, rgba(3,18,38,.88), rgba(35,14,27,.70)),
+    url('/assets/spotlight-hero.jpg') center/cover no-repeat,
+    linear-gradient(120deg, #071a31, #53242b);
+  box-shadow: 0 18px 45px rgba(4,18,38,.20);
+}
+main > section:first-of-type h1 {
+  max-width: 900px;
+  margin: 12px auto 20px;
+  color: #fff;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 1.04;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+main > section:first-of-type p {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.75;
+}
+main > section:first-of-type a,
+main > section:first-of-type button {
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+main > section:first-of-type a:hover,
+main > section:first-of-type button:hover {
+  transform: translateY(-2px);
+}
+@media (max-width: 700px) {
+  main > section:first-of-type {
+    border-radius: 16px;
+    margin: 12px;
+    padding: 42px 18px;
+  }
+}
+/* The shared footer script owns the page footer. */
+body.gft-shared-footer-ready > footer.gft-old-footer {
+  display: none !important;
+}
+</style>
+
 </head>
 <body>
   <header class="site-header">
@@ -560,54 +614,9 @@
 </script>
 
 
-<section id="gft-spotlight-signin" style="max-width:560px;margin:32px auto;padding:24px;border:1px solid #dbe3ef;border-radius:16px;background:#fff;color:#172033">
-  <h2 style="margin-top:0">Already a member? Sign In</h2>
-  <p>Sign in to continue managing your GFT Spotlight profile.</p>
-  <form id="gftSpotlightLoginForm">
-    <label for="gftSpotlightLoginEmail">Email address</label>
-    <input id="gftSpotlightLoginEmail" type="email" autocomplete="email" required
-      style="display:block;box-sizing:border-box;width:100%;padding:12px;margin:6px 0 16px;border:1px solid #cbd5e1;border-radius:8px">
-    <label for="gftSpotlightLoginPassword">Password</label>
-    <input id="gftSpotlightLoginPassword" type="password" autocomplete="current-password" required
-      style="display:block;box-sizing:border-box;width:100%;padding:12px;margin:6px 0 16px;border:1px solid #cbd5e1;border-radius:8px">
-    <button type="submit" style="padding:12px 20px;border:0;border-radius:9px;background:#1769d2;color:white;font-weight:700;cursor:pointer">Sign In</button>
-    <p id="gftSpotlightLoginStatus" role="status" aria-live="polite"></p>
-  </form>
-</section>
-<script>
-(function () {
-  const form = document.getElementById('gftSpotlightLoginForm');
-  if (!form) return;
-  form.addEventListener('submit', async function (event) {
-    event.preventDefault();
-    const status = document.getElementById('gftSpotlightLoginStatus');
-    const button = form.querySelector('button[type="submit"]');
-    button.disabled = true;
-    status.textContent = 'Signing in…';
-    try {
-      const response = await fetch('/api/spotlight/auth/login', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: document.getElementById('gftSpotlightLoginEmail').value.trim(),
-          password: document.getElementById('gftSpotlightLoginPassword').value
-        })
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || data.ok === false) {
-        throw new Error(data.message || data.error || 'Sign-in failed. Check your details and try again.');
-      }
-      status.textContent = 'Signed in successfully. Opening your profile editor…';
-      window.location.href = 'gft-spotlight-profile-editor.html';
-    } catch (error) {
-      status.textContent = error.message || 'Unable to sign in. Please try again.';
-    } finally {
-      button.disabled = false;
-    }
-  });
-})();
-</script>
 
+
+
+<script src="/public-footer.js" defer></script>
 </body>
 </html>
