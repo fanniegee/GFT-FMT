@@ -4231,6 +4231,89 @@ app.use('/api/spotlight/profiles', (req, res, next) => {
 
 
 // ------------------------------------------------------------
+
+// ------------------------------------------------------------
+// SPOTLIGHT MEMBER REGISTRATION
+// Public signup is limited to Spotlight accounts only.
+// ------------------------------------------------------------
+const spotlightScrypt = promisify(scryptCallback);
+
+async function spotlightHashPassword(password) {
+  const salt = randomBytes(16).toString('hex');
+  const derived = await spotlightScrypt(password, salt, 64);
+  return `spotlight-scrypt$${salt}$${Buffer.from(derived).toString('hex')}`;
+}
+
+async function spotlightVerifyPassword(password, stored) {
+  try {
+    const parts = String(stored || '').split('$');
+    if (parts.length !== 3 || parts[0] !== 'spotlight-scrypt') return false;
+    const actual = Buffer.from(await spotlightScrypt(password, parts[1], 64));
+    const expected = Buffer.from(parts[2], 'hex');
+    return actual.length === expected.length && timingSafeEqual(actual, expected);
+  } catch {
+    return false;
+  }
+}
+
+app.post('/api/spotlight/auth/register', async (req, res) => {
+  try {
+    await ensureSpotlightAuthSchema();
+
+    const fullName = String(req.body?.fullName || '').trim();
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const password = String(req.body?.password || '');
+
+    if (fullName.length < 2 || fullName.length > 120) {
+      return res.status(400).json({ ok: false, error: 'Enter your full name.' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+      return res.status(400).json({ ok: false, error: 'Enter a valid email address.' });
+    }
+    if (password.length < 12 || password.length > 200) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Password must be at least 12 characters long.'
+      });
+    }
+
+    const passwordHash = await spotlightHashPassword(password);
+    const memberId = `SPOT-MEM-${randomBytes(12).toString('hex')}`;
+    const systemId = `SPOT-${randomBytes(12).toString('hex')}`;
+
+    const result = await query(`
+      INSERT INTO spotlight_member_accounts
+        (member_id, email, password_hash, system_id, full_name)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (email) DO NOTHING
+      RETURNING member_id, system_id, email, full_name
+    `, [memberId, email, passwordHash, systemId, fullName]);
+
+    if (!result.rows.length) {
+      return res.status(409).json({
+        ok: false,
+        error: 'An account with this email already exists.'
+      });
+    }
+
+    return res.status(201).json({
+      ok: true,
+      message: 'Spotlight account created. You can now sign in.',
+      member: {
+        systemId: result.rows[0].system_id,
+        email: result.rows[0].email,
+        fullName: result.rows[0].full_name
+      }
+    });
+  } catch (error) {
+    console.error('Spotlight registration error:', error);
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to create Spotlight account.'
+    });
+  }
+});
+
 // SPOTLIGHT MEMBER SESSION API
 // Separate from beneficiary, admin, and registration systems.
 // Accounts must be provisioned privately; no public signup.
@@ -4319,7 +4402,7 @@ app.post('/api/spotlight/auth/login', async (req, res) => {
     `, [email]);
 
     if (!result.rows.length ||
-        !(await verifyPassword(password, result.rows[0].password_hash))) {
+        !(await spotlightVerifyPassword(password, result.rows[0].password_hash))) {
       return res.status(401).json({ ok: false, error: 'Invalid Spotlight login details' });
     }
 
