@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07152a">
+  <title>My Creative Space | GFT Spotlight Studio</title>
+  <meta name="description" content="Your member dashboard for GFT Spotlight Studio and the Guvaza Family Trust.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <style>
+    :root {
+      --navy:#07152a; --navy-2:#0c203d; --panel:#102744; --blue:#0878e8;
+      --blue-bright:#4aa5ff; --red:#d52235; --white:#fff; --muted:#afbed2;
+      --line:rgba(202,220,244,.15); --surface:#f4f7fb; --ink:#101827;
+      --soft:#eaf1fa; --shadow:0 18px 50px rgba(2,12,28,.18);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--surface);color:var(--ink);font-family:"DM Sans",sans-serif}
+    a{color:inherit;text-decoration:none}
+    button{font:inherit;cursor:pointer}
+    .site-header{background:linear-gradient(115deg,#061329 0%,#0a1d38 62%,#102d50 100%);color:#fff;border-bottom:4px solid var(--blue);position:relative;overflow:hidden}
+    .site-header:after{content:"";position:absolute;width:460px;height:460px;border:1px solid rgba(91,165,255,.16);border-radius:50%;right:-140px;top:-300px;box-shadow:0 0 0 45px rgba(91,165,255,.025),0 0 0 95px rgba(91,165,255,.025);pointer-events:none}
+    .header-inner{max-width:1240px;margin:auto;padding:23px 28px 0;position:relative;z-index:1}
+    .brand-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .brand{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand-mark{height:52px;width:52px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(145deg,var(--red),var(--blue));box-shadow:0 8px 24px rgba(0,0,0,.22);font-size:22px}
+    .brand-title{font-family:Manrope,sans-serif;font-size:clamp(20px,3vw,28px);font-weight:800;letter-spacing:-.7px;margin:0}
+    .brand-title span{color:var(--blue-bright)}
+    .brand-tag{margin:3px 0 0;font-size:10px;letter-spacing:3px;font-weight:800;color:#c2d5ee}
+    .header-actions{display:flex;gap:10px;align-items:center}
+    .icon-btn{height:44px;width:44px;border:1px solid var(--line);border-radius:14px;color:#fff;background:rgba(255,255,255,.055);display:grid;place-items:center}
+    .profile-mini{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:15px;padding:6px 12px 6px 6px;background:rgba(255,255,255,.05)}
+    .avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,var(--blue),#63b4ff);color:white;font-weight:800}
+    .profile-mini small{display:block;color:#afc0d5;font-size:11px}
+    .profile-mini strong{font-size:13px}
+    .main-nav{display:flex;align-items:center;gap:28px;padding:23px 0 18px;overflow-x:auto;white-space:nowrap}
+    .main-nav a{color:#d0dced;font-size:14px;font-weight:600;padding:9px 0;border-bottom:2px solid transparent}
+    .main-nav a.active,.main-nav a:hover{color:white;border-color:var(--blue-bright)}
+    .mobile-label{display:none}
+    main{max-width:1240px;margin:auto;padding:30px 28px 56px}
+    .welcome-hero{position:relative;overflow:hidden;isolation:isolate;min-height:280px;border-radius:26px;background:linear-gradient(105deg,rgba(4,14,31,.97) 0%,rgba(7,25,49,.91) 53%,rgba(7,25,49,.58) 100%),radial-gradient(circle at 82% 30%,rgba(28,128,255,.5),transparent 26rem),linear-gradient(135deg,#101d34,#102f54);color:white;padding:clamp(27px,5vw,54px);box-shadow:var(--shadow)}
+    .welcome-hero:before{content:"";position:absolute;z-index:-1;width:440px;height:440px;border:1px solid rgba(83,163,255,.28);border-radius:50%;right:-90px;top:-200px;box-shadow:0 0 0 38px rgba(83,163,255,.035),0 0 0 82px rgba(83,163,255,.025),0 0 0 130px rgba(213,34,53,.04)}
+    .eyebrow{font-size:11px;font-weight:800;letter-spacing:3.3px;text-transform:uppercase;color:var(--blue-bright);margin:0 0 15px}
+    h1,h2,h3,p{margin-top:0}
+    h1{font-family:Manrope,sans-serif;font-size:clamp(32px,5vw,52px);line-height:1.12;letter-spacing:-1.8px;margin-bottom:14px;max-width:720px}
+    h1 .highlight{color:var(--blue-bright)}
+    .welcome-copy{font-size:16px;line-height:1.8;color:#d0dced;max-width:690px;margin-bottom:25px}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:12px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:13px 18px;border-radius:12px;font-weight:800;border:1px solid transparent;transition:transform .18s,filter .18s}
+    .btn:hover{transform:translateY(-2px);filter:brightness(1.07)}
+    .btn-primary{background:linear-gradient(110deg,var(--blue),#1693ff);color:white;box-shadow:0 8px 24px rgba(8,120,232,.23)}
+    .btn-secondary{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.24);color:white}
+    .section-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:35px 0 17px}
+    .section-head h2{font-family:Manrope,sans-serif;font-size:clamp(21px,3vw,28px);letter-spacing:-.7px;margin:0 0 5px;color:#101827}
+    .section-head p{margin:0;color:#69788d;font-size:14px;line-height:1.6}
+    .text-link{color:#075fbd;font-size:13px;font-weight:800;white-space:nowrap}
+    .overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .overview-card{background:white;border:1px solid #e2e9f2;border-radius:19px;padding:20px;box-shadow:0 8px 24px rgba(19,44,76,.045);display:flex;align-items:flex-start;gap:14px}
+    .stat-icon{width:48px;height:48px;flex:0 0 48px;border-radius:15px;display:grid;place-items:center;font-size:19px}
+    .stat-icon.blue{background:#e7f2ff;color:#0769cb}.stat-icon.red{background:#fff0f1;color:#c31e30}.stat-icon.dark{background:#e9edf3;color:#17263a}
+    .overview-card .label{font-size:12px;color:#69788d;margin-bottom:5px}
+    .overview-card strong{display:block;font-family:Manrope,sans-serif;font-size:20px;letter-spacing:-.4px}
+    .overview-card .note{font-size:11px;color:#8995a5;margin-top:5px}
+    .content-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(280px,.85fr);gap:20px;margin-top:28px}
+    .panel{background:#fff;border:1px solid #e2e9f2;border-radius:22px;padding:23px;box-shadow:0 8px 24px rgba(19,44,76,.045);min-width:0}
+    .panel h2{font-family:Manrope,sans-serif;font-size:21px;margin-bottom:6px;letter-spacing:-.5px}
+    .panel-intro{font-size:13px;color:#718096;line-height:1.6;margin-bottom:20px}
+    .department-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+    .department{border:1px solid #e0e8f2;border-radius:17px;padding:18px;min-height:176px;display:flex;flex-direction:column;align-items:flex-start;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s,border-color .2s;background:linear-gradient(145deg,#fff,#f9fbfe)}
+    .department:hover{transform:translateY(-3px);box-shadow:0 13px 26px rgba(12,42,78,.09);border-color:#a9ccef}
+    .department:after{content:"";position:absolute;width:110px;height:110px;border:1px solid rgba(8,120,232,.1);border-radius:50%;right:-50px;bottom:-50px;pointer-events:none}
+    .dept-icon{width:43px;height:43px;border-radius:13px;display:grid;place-items:center;color:white;background:var(--blue);font-size:17px;margin-bottom:13px}
+    .department.artist .dept-icon{background:var(--red)}.department.music .dept-icon{background:#17263a}.department.film .dept-icon{background:linear-gradient(145deg,var(--red),var(--blue))}
+    .department h3{font-family:Manrope,sans-serif;font-size:16px;margin-bottom:6px}
+    .department p{font-size:12px;color:#718096;line-height:1.55;margin-bottom:13px;max-width:280px}
+    .dept-link{margin-top:auto;font-size:12px;font-weight:800;color:#075fbd;display:flex;gap:8px;align-items:center}
+    .side-stack{display:grid;gap:18px;align-content:start}
+    .completion{background:linear-gradient(145deg,#091a31,#102f54);color:white;border:0}
+    .completion h2{color:white}.completion .panel-intro{color:#c1d0e3}
+    .completion-top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px}
+    .completion-number{font-family:Manrope,sans-serif;font-weight:800;font-size:23px;color:#70b9ff}
+    .progress{height:9px;background:rgba(255,255,255,.13);border-radius:20px;overflow:hidden;margin:13px 0 17px}
+    .progress span{display:block;width:25%;height:100%;background:linear-gradient(90deg,var(--red),var(--blue-bright));border-radius:20px}
+    .check-list{display:grid;gap:13px}
+    .check-row{display:flex;align-items:center;gap:10px;font-size:12px;color:#d9e4f2}
+    .check-row i{width:17px;color:#6fb7ff;text-align:center}
+    .check-row.pending i{color:#f0747f}
+    .quick-list{display:grid;gap:8px}
+    .quick-link{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #e7edf5;border-radius:13px;color:#223047;font-size:13px;font-weight:700;background:#fbfcfe}
+    .quick-link:hover{border-color:#a7cbed;background:#f2f8ff}
+    .quick-link i{width:19px;text-align:center;color:#086bcf}
+    .quick-link .arrow{margin-left:auto;color:#8a9aaf}
+    .activity-empty{border:1px dashed #ccd7e5;background:#f8fafd;border-radius:15px;padding:20px;text-align:center}
+    .activity-empty i{font-size:25px;color:#7a9dc5;margin-bottom:10px}
+    .activity-empty p{font-size:12px;color:#718096;line-height:1.6;margin:0}
+    .privacy-note{display:flex;gap:11px;align-items:flex-start;background:#fff7f7;border:1px solid #f5d7db;color:#71303a;border-radius:15px;padding:15px;font-size:12px;line-height:1.6;margin-top:22px}
+    .privacy-note i{color:var(--red);margin-top:2px}
+    .site-footer{background:#061329;color:#c2d0e2;border-top:4px solid var(--blue)}
+    .footer-inner{max-width:1240px;margin:auto;padding:28px;display:flex;align-items:center;justify-content:space-between;gap:22px}
+    .footer-brand{font-family:Manrope,sans-serif;color:#fff;font-weight:800;font-size:15px;margin-bottom:5px}
+    .footer-sub{font-size:11px;color:#95a9c3;letter-spacing:1.3px}
+    .footer-links{display:flex;flex-wrap:wrap;gap:18px;font-size:12px}
+    .footer-links a:hover{color:#fff}
+    .copyright{background:#030b19;text-align:center;padding:13px 20px;color:#7f91a9;font-size:11px}
+    .notice{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);max-width:calc(100% - 30px);z-index:10;background:#07152a;color:white;border:1px solid #29476c;border-radius:14px;padding:14px 18px;box-shadow:var(--shadow);font-size:13px}
+    .notice.show{display:block}
+    @media(max-width:900px){.content-grid{grid-template-columns:1fr}.side-stack{grid-template-columns:repeat(2,minmax(0,1fr))}.completion{grid-row:span 2}.overview-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.overview-card{padding:15px;gap:10px}.stat-icon{width:40px;height:40px;flex-basis:40px}}
+    @media(max-width:650px){
+      .header-inner{padding:18px 16px 0}.brand-mark{width:44px;height:44px;border-radius:13px}.brand-tag{font-size:8px;letter-spacing:1.8px}.brand-title{font-size:20px}.profile-mini .profile-text{display:none}.profile-mini{padding:5px}.profile-mini .avatar{width:34px;height:34px}.header-actions{gap:6px}.icon-btn{width:39px;height:39px}
+      .main-nav{gap:22px;padding:17px 0 15px}.main-nav a{font-size:13px}
+      main{padding:18px 14px 35px}.welcome-hero{border-radius:21px;min-height:0;padding:27px 22px}.welcome-copy{font-size:14px;line-height:1.75}.hero-actions .btn{width:100%}
+      .section-head{align-items:flex-start;margin-top:28px}.overview-grid{grid-template-columns:1fr;gap:10px}.overview-card{align-items:center;padding:15px}.overview-card strong{font-size:18px}.content-grid{margin-top:22px}.panel{padding:18px;border-radius:19px}.department-grid{gap:10px}.department{padding:14px;min-height:182px}.department h3{font-size:14px}.department p{font-size:11px}.dept-icon{width:39px;height:39px}
+      .side-stack{grid-template-columns:1fr}.completion{grid-row:auto}.footer-inner{padding:24px 18px;align-items:flex-start;flex-direction:column}.footer-links{gap:14px}
+    }
+    @media(max-width:380px){.brand-title{font-size:18px}.brand-tag{letter-spacing:1px}.department-grid{grid-template-columns:1fr}.department{min-height:155px}.main-nav{gap:17px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand-row">
+        <a class="brand" href="library.html" aria-label="GFT Spotlight Studio home">
+          <span class="brand-mark"><i class="fa-solid fa-clapperboard"></i></span>
+          <span>
+            <p class="brand-title">GFT <span>Spotlight</span> Studio</p>
+            <p class="brand-tag">CREATIVITY · KNOWLEDGE · CULTURE</p>
+          </span>
+        </a>
+        <div class="header-actions">
+          <button class="icon-btn" type="button" aria-label="Notifications" data-notice="Notifications will be available after backend integration."><i class="fa-regular fa-bell"></i></button>
+          <a class="profile-mini" href="#account" aria-label="My account">
+            <span class="avatar" id="avatarInitials">GM</span>
+            <span class="profile-text"><strong id="headerMemberName">Guest Member</strong><small>Member space</small></span>
+            <i class="fa-solid fa-chevron-down" style="font-size:11px;color:#a9bad0"></i>
+          </a>
+        </div>
+      </div>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="library.html"><i class="fa-solid fa-house"></i> GFT Home</a>
+        <a href="#dashboard" class="active"><i class="fa-solid fa-table-columns"></i> My Dashboard</a>
+        <a href="#departments"><i class="fa-solid fa-star"></i> Creative Departments</a>
+        <a href="library.html"><i class="fa-solid fa-book-open"></i> Guvaza Library</a>
+        <a href="#account"><i class="fa-solid fa-user-gear"></i> Account</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="dashboard">
+    <section class="welcome-hero">
+      <p class="eyebrow">YOUR CREATIVE WORLD</p>
+      <h1>Welcome to your <span class="highlight">creative space.</span></h1>
+      <p class="welcome-copy">One membership, many possibilities. Explore the Guvaza Library, build your professional presence and bring your ideas into the spotlight—all from one connected space.</p>
+      <div class="hero-actions">
+        <a href="#departments" class="btn btn-primary"><i class="fa-solid fa-wand-magic-sparkles"></i> Explore Departments</a>
+        <a href="gft-spotlight-profile-editor.html" class="btn btn-secondary"><i class="fa-regular fa-id-card"></i> Build My Profile</a>
+      </div>
+    </section>
+
+    <div class="section-head">
+      <div>
+        <h2>Your membership overview</h2>
+        <p>A clear view of your space as it grows with you.</p>
+      </div>
+      <span class="text-link"><i class="fa-solid fa-shield-halved"></i> Member space preview</span>
+    </div>
+    <section class="overview-grid" aria-label="Membership overview">
+      <article class="overview-card">
+        <span class="stat-icon blue"><i class="fa-regular fa-id-card"></i></span>
+        <div><div class="label">Member profile</div><strong>Not completed</strong><div class="note">Add your personal details</div></div>
+      </article>
+      <article class="overview-card">
+        <span class="stat-icon red"><i class="fa-solid fa-layer-group"></i></span>
+        <div><div class="label">Professional profiles</div><strong>0 departments</strong><div class="note">Choose one or more areas</div></div>
+      </article>
+      <article class="overview-card">
+        <span class="stat-icon dark"><i class="fa-solid fa-book-open-reader"></i></span>
+        <div><div class="label">Library activity</div><strong>Ready to explore</strong><div class="note">Discover books and originals</div></div>
+      </article>
+    </section>
+
+    <div class="content-grid">
+      <section class="panel" id="departments">
+        <h2>Choose your creative departments</h2>
+        <p class="panel-intro">You can add more than one department to the same membership. Each department will have its own specialist profile and portfolio tools.</p>
+        <div class="department-grid">
+          <a class="department author" href="#" data-notice="The Author Profile design is the next stage.">
+            <span class="dept-icon"><i class="fa-solid fa-feather-pointed"></i></span>
+            <h3>Author Profiles</h3>
+            <p>Present your books, articles, research, biography and published writing.</p>
+            <span class="dept-link">Explore author tools <i class="fa-solid fa-arrow-right"></i></span>
+          </a>
+          <a class="department artist" href="#" data-notice="The Artist Profile design will include distinct creative disciplines.">
+            <span class="dept-icon"><i class="fa-solid fa-palette"></i></span>
+            <h3>Artist Profiles</h3>
+            <p>Showcase visual art, performance, dance, spoken word and other creative disciplines.</p>
+            <span class="dept-link">Explore artist tools <i class="fa-solid fa-arrow-right"></i></span>
+          </a>
+          <a class="department music" href="#" data-notice="The Music Production Profile design is coming in the profile-design stage.">
+            <span class="dept-icon"><i class="fa-solid fa-music"></i></span>
+            <h3>Music Production</h3>
+            <p>Feature production credits, compositions, audio releases, collaborations and samples.</p>
+            <span class="dept-link">Explore music tools <i class="fa-solid fa-arrow-right"></i></span>
+          </a>
+          <a class="department film" href="#" data-notice="The Film Production Profile design will include roles and production credits.">
+            <span class="dept-icon"><i class="fa-solid fa-film"></i></span>
+            <h3>Film Production</h3>
+            <p>Show your film projects, screen credits, production roles, trailers and showreels.</p>
+            <span class="dept-link">Explore film tools <i class="fa-solid fa-arrow-right"></i></span>
+          </a>
+        </div>
+        <div class="privacy-note"><i class="fa-solid fa-circle-info"></i><span><strong>Designed for your control.</strong> Your professional profile should be published only when you choose to submit it. Publishing, account verification and privacy controls will be connected during backend development.</span></div>
+      </section>
+
+      <aside class="side-stack">
+        <section class="panel completion" id="account">
+          <div class="completion-top"><h2>Profile setup</h2><span class="completion-number">25%</span></div>
+          <p class="panel-intro">This is a visual placeholder to show how your setup progress will appear.</p>
+          <div class="progress" aria-label="Illustrative profile progress"><span></span></div>
+          <div class="check-list">
+            <div class="check-row"><i class="fa-solid fa-circle-check"></i><span>Membership journey planned</span></div>
+            <div class="check-row pending"><i class="fa-regular fa-circle"></i><span>Complete member details</span></div>
+            <div class="check-row pending"><i class="fa-regular fa-circle"></i><span>Add a profile photo</span></div>
+            <div class="check-row pending"><i class="fa-regular fa-circle"></i><span>Choose creative departments</span></div>
+          </div>
+        </section>
+        <section class="panel">
+          <h2>Quick access</h2>
+          <p class="panel-intro">Your key destinations in one place.</p>
+          <div class="quick-list">
+            <a class="quick-link" href="library.html"><i class="fa-solid fa-book-open"></i><span>Browse Guvaza Library</span><i class="fa-solid fa-chevron-right arrow"></i></a>
+            <a class="quick-link" href="#" data-notice="Saved items will be connected when library accounts are integrated."><i class="fa-regular fa-bookmark"></i><span>Saved works</span><i class="fa-solid fa-chevron-right arrow"></i></a>
+            <a class="quick-link" href="#" data-notice="Account settings will be available after secure sign-in is connected."><i class="fa-solid fa-sliders"></i><span>Account settings</span><i class="fa-solid fa-chevron-right arrow"></i></a>
+            <a class="quick-link" href="#" data-notice="Help and support details will be added before launch."><i class="fa-regular fa-circle-question"></i><span>Help and support</span><i class="fa-solid fa-chevron-right arrow"></i></a>
+          </div>
+        </section>
+        <section class="panel">
+          <h2>Recent activity</h2>
+          <p class="panel-intro">Your latest updates will appear here.</p>
+          <div class="activity-empty"><i class="fa-regular fa-clock"></i><p>No activity yet. Once your account is connected, this space can show profile updates, saved works and publication status.</p></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand"><i class="fa-solid fa-clapperboard" style="color:#58aaff;margin-right:8px"></i> GFT Spotlight Studio</div>
+        <div class="footer-sub">A CREATIVE PLATFORM BY THE GUVAZA FAMILY TRUST</div>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="library.html">Guvaza Library</a>
+        <a href="#departments">Creative Departments</a>
+        <a href="#account">My Account</a>
+        <a href="#" data-notice="Privacy information will be added before launch.">Privacy</a>
+        <a href="#" data-notice="Support contacts will be configured before launch.">Support</a>
+      </nav>
+    </div>
+    <div class="copyright">© 2026 The Guvaza Family Trust. GFT Spotlight Studio membership dashboard preview.</div>
+  </footer>
+  <div class="notice" id="notice" role="status" aria-live="polite"></div>
+  <script>
+    const notice = document.getElementById('notice');
+    let noticeTimeout;
+    function showNotice(message) {
+      notice.textContent = message;
+      notice.classList.add('show');
+      clearTimeout(noticeTimeout);
+      noticeTimeout = setTimeout(() => notice.classList.remove('show'), 3600);
+    }
+    document.querySelectorAll('[data-notice]').forEach(element => {
+      element.addEventListener('click', event => {
+        event.preventDefault();
+        showNotice(element.getAttribute('data-notice'));
+      });
+    });
+    // Prototype-only preview name. No account data is stored or sent.
+    const previewName = new URLSearchParams(window.location.search).get('name');
+    if (previewName && previewName.trim()) {
+      const safeName = previewName.trim().slice(0, 45);
+      document.getElementById('headerMemberName').textContent = safeName;
+      document.getElementById('avatarInitials').textContent =
+        safeName.split(/\s+/).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join('');
+    }
+  </script>
+</body>
+</html>

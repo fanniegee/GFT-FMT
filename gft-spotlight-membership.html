@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#211914">
+  <meta name="description" content="Join GFT Spotlight Studio and the wider Guvaza Library community.">
+  <title>GFT Spotlight Studio | Membership</title>
+
+  <!-- Elegant typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Professional icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+  <style>
+    :root {
+      --ink: #10131b;
+      --ink-soft: #202631;
+      --gold: #e6eaf0;
+      --gold-deep: #164b9a;
+      --cream: #f3f5f8;
+      --paper: #ffffff;
+      --muted: #626b78;
+      --line: #dce1e8;
+      --shadow: 0 22px 60px rgba(35, 25, 17, .12);
+      --serif: "Playfair Display", Georgia, serif;
+      --sans: "DM Sans", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 4%, rgba(210,34,49,.10), transparent 26rem),
+        var(--cream);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .site-header {
+      background: var(--ink);
+      color: #fffaf0;
+      border-bottom: 3px solid #d22231;
+    }
+    .header-inner {
+      max-width: 1120px;
+      min-height: 84px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .brand-mark {
+      width: 52px; height: 52px; flex: 0 0 52px;
+      display: grid; place-items: center;
+      border-radius: 50%;
+      color: var(--ink);
+      background: linear-gradient(145deg, #164b9a, #d22231);
+      font-size: 22px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
+    }
+    .brand-name {
+      margin: 0;
+      font: 700 22px/1.15 var(--serif);
+      letter-spacing: -.3px;
+    }
+    .brand-tagline {
+      margin: 5px 0 0;
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: 2.1px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .header-note {
+      color: #ded2c1;
+      font-size: 12px;
+      text-align: right;
+    }
+    .page-shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 46px 24px 60px;
+    }
+    .intro { text-align: center; max-width: 690px; margin: 0 auto 30px; }
+    .eyebrow {
+      color: var(--gold-deep);
+      text-transform: uppercase;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2.6px;
+      margin: 0 0 12px;
+    }
+    h1, h2, h3 { font-family: var(--serif); }
+    .intro h1 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 54px);
+      line-height: 1.12;
+      letter-spacing: -1.2px;
+    }
+    .intro h1 span { color: var(--gold-deep); }
+    .intro-copy {
+      margin: 16px auto 0;
+      max-width: 610px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+    .benefits {
+      display: flex; justify-content: center; flex-wrap: wrap;
+      gap: 10px 22px; margin-top: 22px;
+      color: #5d4b32; font-size: 12px; font-weight: 600;
+    }
+    .benefits span { display: inline-flex; align-items: center; gap: 8px; }
+    .benefits i { color: var(--gold-deep); }
+
+    .membership-layout {
+      display: grid;
+      grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+      align-items: stretch;
+      max-width: 980px;
+      margin: 0 auto;
+      border-radius: 24px;
+      overflow: hidden;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(22,75,154,.14);
+    }
+    .welcome-panel {
+      padding: 38px 34px;
+      position: relative;
+      overflow: hidden;
+      color: #fffaf0;
+      background:
+        radial-gradient(circle at 0% 100%, rgba(210,34,49,.22), transparent 22rem),
+        linear-gradient(150deg, #211914, #30241c 68%, #3b2821);
+    }
+    .welcome-panel::after {
+      content: ""; position: absolute; width: 340px; height: 340px;
+      border: 1px solid rgba(213,182,109,.2); border-radius: 50%;
+      right: -205px; bottom: -120px; pointer-events: none;
+    }
+    .welcome-icon {
+      width: 64px; height: 64px; display: grid; place-items: center;
+      border: 1px solid rgba(255,255,255,.28); border-radius: 18px;
+      color: var(--gold); font-size: 26px; margin-bottom: 30px;
+      background: rgba(255,255,255,.035);
+    }
+    .welcome-panel h2 { font-size: 30px; line-height: 1.2; margin: 0 0 14px; }
+    .welcome-panel > p { color: #e0e5ee; font-size: 14px; line-height: 1.85; margin: 0; }
+    .welcome-list { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 18px; }
+    .welcome-list li { display: flex; gap: 12px; align-items: flex-start; color: #f0e6d7; font-size: 13px; line-height: 1.6; }
+    .welcome-list i { color: var(--gold); width: 18px; margin-top: 3px; text-align: center; }
+    .welcome-footnote {
+      margin-top: 38px; padding-top: 18px; border-top: 1px solid rgba(210,34,49,.28);
+      color: #dbe4f3; font-size: 10px; line-height: 1.8; letter-spacing: 1.5px; text-transform: uppercase;
+    }
+
+    .form-panel { padding: 34px clamp(22px, 4vw, 42px) 36px; min-width: 0; }
+    .tabs {
+      display: grid; grid-template-columns: 1fr 1fr; padding: 5px;
+      background: #e9edf3; border-radius: 12px; gap: 4px; margin-bottom: 27px;
+    }
+    .tab {
+      min-height: 43px; border: 0; border-radius: 9px;
+      background: transparent; color: #6c5c4b; font-size: 13px; font-weight: 700;
+      transition: background .2s, color .2s, box-shadow .2s;
+    }
+    .tab.active { background: #fffdf8; color: var(--ink); box-shadow: 0 2px 8px rgba(33,25,20,.08); }
+    .form-heading { margin: 0 0 6px; font-size: 25px; }
+    .form-subtitle { margin: 0 0 24px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .field { margin-bottom: 17px; }
+    .field label, .group-label { display: block; margin: 0 0 8px; color: #3c3025; font-size: 12px; font-weight: 700; }
+    .input-wrap { position: relative; }
+    .input-wrap > i {
+      position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+      color: #99866c; font-size: 14px; pointer-events: none;
+    }
+    .field input, .field select {
+      display: block; width: 100%; min-height: 48px;
+      border: 1px solid var(--line); border-radius: 10px;
+      background: #fff; color: var(--ink); padding: 12px 14px;
+      outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+    .field input.has-icon, .field select.has-icon { padding-left: 43px; }
+    .field input:focus, .field select:focus {
+      border-color: #164b9a; box-shadow: 0 0 0 3px rgba(22,75,154,.14);
+    }
+    .field input::placeholder { color: #a59b8e; }
+    .section-divider { border: 0; border-top: 1px solid #dce1e8; margin: 23px 0; }
+    .choice-list { display: grid; gap: 10px; }
+    .choice-card {
+      position: relative; display: flex; align-items: flex-start; gap: 12px;
+      border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+      background: #fff; cursor: pointer; transition: border-color .2s, background .2s, box-shadow .2s;
+    }
+    .choice-card:hover { border-color: #d22231; }
+    .choice-card.selected {
+      border-color: #164b9a; background: #f2f6fd;
+      box-shadow: 0 0 0 1px rgba(22,75,154,.08);
+    }
+    .choice-card input { position: absolute; opacity: 0; pointer-events: none; }
+    .choice-icon {
+      display: grid; place-items: center; width: 39px; height: 39px; flex: 0 0 39px;
+      border-radius: 11px; background: #f2e8d4; color: #8b692d; font-size: 16px;
+    }
+    .choice-content { flex: 1; min-width: 0; }
+    .choice-title { display: block; font-size: 13px; font-weight: 700; margin: 1px 0 4px; }
+    .choice-description { display: block; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .choice-check { color: #164b9a; font-size: 17px; margin: 2px 0 0 4px; }
+    .department-list { display: grid; gap: 8px; margin-top: 12px; }
+    .department-card {
+      display: flex; align-items: center; gap: 11px; padding: 11px 12px;
+      border: 1px solid var(--line); border-radius: 10px; background: #fff;
+      cursor: pointer; transition: border-color .2s, background .2s;
+    }
+    .department-card.selected { border-color: #164b9a; background: #f2f6fd; }
+    .department-card input { accent-color: #164b9a; width: 16px; height: 16px; margin: 0; flex: 0 0 auto; }
+    .department-card i { width: 19px; text-align: center; color: #9a762f; }
+    .department-card span { font-size: 12px; font-weight: 600; }
+    .department-card small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; line-height: 1.45; font-weight: 400; }
+    .terms { display: flex; align-items: flex-start; gap: 10px; margin: 20px 0; color: #5f5346; font-size: 11px; line-height: 1.65; }
+    .terms input { margin: 3px 0 0; accent-color: #164b9a; flex: 0 0 auto; }
+    .terms a { color: #164b9a; text-decoration: underline; text-underline-offset: 2px; }
+    .primary-btn {
+      width: 100%; min-height: 49px; border: 0; border-radius: 10px;
+      background: linear-gradient(115deg, #d22231 0%, #171b25 48%, #164b9a 100%);
+      color: #fffaf0; font-size: 13px; font-weight: 700;
+      box-shadow: 0 7px 16px rgba(33,25,20,.13);
+      transition: transform .15s, box-shadow .15s, background .2s;
+    }
+    .primary-btn:hover { box-shadow: 0 10px 20px rgba(33,25,20,.2); background: linear-gradient(115deg, #b91e2b, #123e80); }
+    .primary-btn:active { transform: translateY(1px); }
+    .form-message {
+      display: none; margin: 14px 0 0; border-radius: 9px; padding: 12px;
+      font-size: 12px; line-height: 1.6;
+    }
+    .form-message.show { display: block; }
+    .form-message.info { background: #eef4ff; color: #183b6c; border: 1px solid #c9d8f1; }
+    .form-message.error { background: #fff0f1; color: #8f1d29; border: 1px solid #f0c1c6; }
+    .security-note { display: flex; justify-content: center; align-items: center; gap: 7px; color: #8a7b68; font-size: 10px; line-height: 1.6; text-align: center; margin-top: 16px; }
+    .security-note i { color: #9a762f; }
+    .site-footer { text-align: center; padding: 0 18px 28px; color: #697386; font-size: 11px; line-height: 1.8; }
+    .site-footer strong { color: #202631; font-weight: 700; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 760px) {
+      .header-inner { min-height: 74px; padding: 12px 18px; }
+      .brand-mark { width: 45px; height: 45px; flex-basis: 45px; font-size: 19px; }
+      .brand-name { font-size: 19px; }
+      .brand-tagline { font-size: 8px; letter-spacing: 1.4px; }
+      .header-note { display: none; }
+      .page-shell { padding: 32px 14px 38px; }
+      .intro { margin-bottom: 24px; }
+      .intro h1 { font-size: clamp(33px, 8vw, 43px); }
+      .intro-copy { font-size: 13px; line-height: 1.75; }
+      .benefits { gap: 9px 15px; font-size: 10px; }
+      .membership-layout { grid-template-columns: 1fr; border-radius: 18px; }
+      .welcome-panel { padding: 25px 23px; }
+      .welcome-icon { width: 49px; height: 49px; font-size: 20px; margin-bottom: 18px; border-radius: 14px; }
+      .welcome-panel h2 { font-size: 25px; }
+      .welcome-panel > p { font-size: 12px; }
+      .welcome-list { grid-template-columns: 1fr; gap: 10px; margin-top: 18px; }
+      .welcome-list li { font-size: 11px; }
+      .welcome-footnote { margin-top: 20px; padding-top: 12px; font-size: 9px; }
+      .form-panel { padding: 24px 19px 27px; }
+      .form-heading { font-size: 23px; }
+    }
+    @media (max-width: 380px) {
+      .brand-name { font-size: 17px; }
+      .brand-tagline { letter-spacing: 1px; font-size: 7px; }
+      .form-panel { padding-left: 14px; padding-right: 14px; }
+      .choice-card { padding: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="library.html" aria-label="Guvaza Library home" style="color:inherit;text-decoration:none">
+        <div class="brand-mark" aria-hidden="true"><i class="fa-solid fa-book-open-reader"></i></div>
+        <div>
+          <p class="brand-name">GFT Spotlight Studio</p>
+          <p class="brand-tagline">CREATIVITY · KNOWLEDGE · CULTURE</p>
+        </div>
+      </a>
+      <div class="header-note">THE GUVAZA FAMILY TRUST<br>One community. Many creative voices.</div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">Become part of our community</p>
+      <h1 id="page-title">Your talent deserves the <span>spotlight.</span></h1>
+      <p class="intro-copy">Join the creative community of the Guvaza Family Trust. Build your presence as an author, artist, music producer or filmmaker—or join as a reader and supporter.</p>
+      <div class="benefits" aria-label="Membership benefits">
+        <span><i class="fa-solid fa-book-open" aria-hidden="true"></i> Explore knowledge</span>
+        <span><i class="fa-solid fa-feather-pointed" aria-hidden="true"></i> Share your work</span>
+        <span><i class="fa-solid fa-user-group" aria-hidden="true"></i> One account, many profiles</span>
+      </div>
+    </section>
+
+    <section class="membership-layout" aria-label="Guvaza Library membership">
+      <aside class="welcome-panel">
+        <div class="welcome-icon" aria-hidden="true"><i class="fa-solid fa-landmark"></i></div>
+        <h2>A platform for every creative voice.</h2>
+        <p>GFT Spotlight Studio connects creative professionals and readers through original work, culture and ideas. Start with one membership and grow your profile as your work evolves.</p>
+        <ul class="welcome-list">
+          <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span><strong>For every reader</strong><br>Explore books, research and original works.</span></li>
+          <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span><strong>For every creator</strong><br>Build author, artist, music or film profiles.</span></li>
+          <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span><strong>Your identity, your choice</strong><br>Choose which professional profiles to publish.</span></li>
+        </ul>
+        <div class="welcome-footnote">CREATIVITY · CULTURE · COMMUNITY</div>
+      </aside>
+
+      <div class="form-panel">
+        <div class="tabs" role="tablist" aria-label="Membership options">
+          <button class="tab active" id="registerTab" type="button" role="tab" aria-selected="true" aria-controls="registerPanel">Create account</button>
+          <button class="tab" id="signinTab" type="button" role="tab" aria-selected="false" aria-controls="signinPanel">Sign in</button>
+        </div>
+
+        <div id="registerPanel" role="tabpanel" aria-labelledby="registerTab">
+          <h2 class="form-heading">Membership registration</h2>
+          <p class="form-subtitle">Create one account for the Guvaza community. Readers can explore the library; creators can add one or more professional profiles.</p>
+          <form id="membershipForm" novalidate>
+            <div class="field">
+              <label for="fullName">Full name</label>
+              <div class="input-wrap"><i class="fa-regular fa-user" aria-hidden="true"></i><input class="has-icon" id="fullName" name="fullName" autocomplete="name" placeholder="Enter your full name" required></div>
+            </div>
+            <div class="field">
+              <label for="email">Email address</label>
+              <div class="input-wrap"><i class="fa-regular fa-envelope" aria-hidden="true"></i><input class="has-icon" id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+            </div>
+            <div class="field">
+              <label for="country">Country of residence</label>
+              <div class="input-wrap"><i class="fa-solid fa-globe" aria-hidden="true"></i>
+                <select class="has-icon" id="country" name="country" autocomplete="country-name">
+                  <option value="South Africa">South Africa</option>
+                  <option value="Zimbabwe">Zimbabwe</option>
+                  <option value="Zambia">Zambia</option>
+                  <option value="Botswana">Botswana</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <hr class="section-divider">
+            <p class="group-label">What brings you to the library?</p>
+            <div class="choice-list">
+              <label class="choice-card selected" id="readerCard">
+                <input type="radio" name="memberType" value="reader" checked>
+                <span class="choice-icon"><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i></span>
+                <span class="choice-content"><span class="choice-title">Reader / Library Member</span><span class="choice-description">Explore knowledge, books and publications.</span></span>
+                <i class="fa-solid fa-circle-check choice-check" aria-hidden="true"></i>
+              </label>
+              <label class="choice-card" id="creativeCard">
+                <input type="radio" name="memberType" value="creative">
+                <span class="choice-icon"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span>
+                <span class="choice-content"><span class="choice-title">Creative Professional</span><span class="choice-description">Showcase your work and create professional profiles.</span></span>
+                <i class="fa-regular fa-circle choice-check" aria-hidden="true"></i>
+              </label>
+            </div>
+
+            <div id="departmentsSection" class="hidden" style="margin-top:20px">
+              <p class="group-label">Choose your professional departments</p>
+              <p class="form-subtitle" style="margin-top:-2px;margin-bottom:12px">Select all that apply. Each department can have its own profile.</p>
+              <div class="department-list">
+                <label class="department-card"><input type="checkbox" name="departments" value="author"><i class="fa-solid fa-feather-pointed" aria-hidden="true"></i><span>Author<small>Books, writing, poetry and research</small></span></label>
+                <label class="department-card"><input type="checkbox" name="departments" value="artist"><i class="fa-solid fa-microphone-lines" aria-hidden="true"></i><span>Artist<small>Singers, performers, dancers and visual artists</small></span></label>
+                <label class="department-card"><input type="checkbox" name="departments" value="music"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Music Production<small>Producers, engineers, composers and studios</small></span></label>
+                <label class="department-card"><input type="checkbox" name="departments" value="film"><i class="fa-solid fa-clapperboard" aria-hidden="true"></i><span>Film Production<small>Directors, actors, writers and film crews</small></span></label>
+              </div>
+            </div>
+
+            <label class="terms"><input type="checkbox" id="terms" name="terms" required><span>I agree to the <a href="membership-terms.html">membership terms</a> and <a href="privacy-policy.html">privacy policy</a>.</span></label>
+            <button class="primary-btn" type="submit">Continue Registration</button>
+            <div class="form-message" id="registerMessage" role="status" aria-live="polite"></div>
+            <p class="security-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Secure account creation will be enabled during backend integration.</p>
+          </form>
+        </div>
+
+        <div id="signinPanel" class="hidden" role="tabpanel" aria-labelledby="signinTab">
+          <h2 class="form-heading">Welcome back</h2>
+          <p class="form-subtitle">Sign in to manage your membership and professional profiles.</p>
+          <form id="signinForm" novalidate>
+            <div class="field">
+              <label for="signinEmail">Email address</label>
+              <div class="input-wrap"><i class="fa-regular fa-envelope" aria-hidden="true"></i><input class="has-icon" id="signinEmail" name="email" type="email" autocomplete="email" placeholder="Your registered email" required></div>
+            </div>
+            <div class="field">
+              <label for="signinPassword">Password</label>
+              <div class="input-wrap"><i class="fa-solid fa-lock" aria-hidden="true"></i><input class="has-icon" id="signinPassword" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required></div>
+            </div>
+            <button class="primary-btn" type="submit">Sign In</button>
+            <div class="form-message" id="signinMessage" role="status" aria-live="polite"></div>
+            <p class="security-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Sign-in and password recovery will be connected to secure authentication later.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <strong>GFT SPOTLIGHT STUDIO · THE GUVAZA FAMILY TRUST</strong><br>
+    Creativity. Knowledge. Culture. Community.<br>
+    &copy; <span id="currentYear"></span> The Guvaza Family Trust. All rights reserved.
+  </footer>
+
+  <script>
+    (() => {
+      const registerTab = document.getElementById('registerTab');
+      const signinTab = document.getElementById('signinTab');
+      const registerPanel = document.getElementById('registerPanel');
+      const signinPanel = document.getElementById('signinPanel');
+      const departmentsSection = document.getElementById('departmentsSection');
+      const readerCard = document.getElementById('readerCard');
+      const creativeCard = document.getElementById('creativeCard');
+      const registerForm = document.getElementById('membershipForm');
+      const signinForm = document.getElementById('signinForm');
+      const registerMessage = document.getElementById('registerMessage');
+      const signinMessage = document.getElementById('signinMessage');
+
+      document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+      function showTab(tab) {
+        const registering = tab === 'register';
+        registerPanel.classList.toggle('hidden', !registering);
+        signinPanel.classList.toggle('hidden', registering);
+        registerTab.classList.toggle('active', registering);
+        signinTab.classList.toggle('active', !registering);
+        registerTab.setAttribute('aria-selected', String(registering));
+        signinTab.setAttribute('aria-selected', String(!registering));
+        clearMessage(registerMessage);
+        clearMessage(signinMessage);
+      }
+      registerTab.addEventListener('click', () => showTab('register'));
+      signinTab.addEventListener('click', () => showTab('signin'));
+
+      function updateMemberType() {
+        const creative = registerForm.querySelector('input[name="memberType"]:checked').value === 'creative';
+        departmentsSection.classList.toggle('hidden', !creative);
+        readerCard.classList.toggle('selected', !creative);
+        creativeCard.classList.toggle('selected', creative);
+        readerCard.querySelector('.choice-check').className = creative
+          ? 'fa-regular fa-circle choice-check'
+          : 'fa-solid fa-circle-check choice-check';
+        creativeCard.querySelector('.choice-check').className = creative
+          ? 'fa-solid fa-circle-check choice-check'
+          : 'fa-regular fa-circle choice-check';
+      }
+      registerForm.querySelectorAll('input[name="memberType"]').forEach(input => input.addEventListener('change', updateMemberType));
+      registerForm.querySelectorAll('input[name="departments"]').forEach(input => {
+        input.addEventListener('change', () => input.closest('.department-card').classList.toggle('selected', input.checked));
+      });
+
+      function showMessage(element, text, kind) {
+        element.textContent = text;
+        element.className = 'form-message show ' + kind;
+      }
+      function clearMessage(element) {
+        element.textContent = '';
+        element.className = 'form-message';
+      }
+
+      registerForm.addEventListener('submit', event => {
+        event.preventDefault();
+        clearMessage(registerMessage);
+
+        if (!registerForm.reportValidity()) return;
+        const memberType = registerForm.querySelector('input[name="memberType"]:checked').value;
+        const departments = [...registerForm.querySelectorAll('input[name="departments"]:checked')].map(input => input.value);
+        if (memberType === 'creative' && departments.length === 0) {
+          showMessage(registerMessage, 'Please select at least one professional department.', 'error');
+          return;
+        }
+        if (!document.getElementById('terms').checked) {
+          showMessage(registerMessage, 'Please accept the membership terms and privacy policy to continue.', 'error');
+          return;
+        }
+        showMessage(registerMessage, 'The design is ready for review. No account has been created and no information has been saved. Secure registration will be connected to the server in the backend phase.', 'info');
+      });
+
+      signinForm.addEventListener('submit', event => {
+        event.preventDefault();
+        clearMessage(signinMessage);
+        if (!signinForm.reportValidity()) return;
+        showMessage(signinMessage, 'Sign-in is a visual prototype only. Authentication is not connected yet.', 'info');
+      });
+    })();
+  </script>
+</body>
+</html>
