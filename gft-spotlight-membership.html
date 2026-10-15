@@ -491,6 +491,16 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
               <label for="email">Email address</label>
               <div class="input-wrap"><i class="fa-regular fa-envelope" aria-hidden="true"></i><input class="has-icon" id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
             </div>
+
+            <div class="field">
+              <label for="membershipPassword">Create password</label>
+              <div class="input-wrap"><i class="fa-solid fa-lock" aria-hidden="true"></i><input class="has-icon" id="membershipPassword" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="200" placeholder="At least 12 characters" required></div>
+            </div>
+            <div class="field">
+              <label for="membershipPasswordConfirm">Confirm password</label>
+              <div class="input-wrap"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><input class="has-icon" id="membershipPasswordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="12" maxlength="200" placeholder="Enter your password again" required></div>
+            </div>
+
             <div class="field">
               <label for="country">Country of residence</label>
               <div class="input-wrap"><i class="fa-solid fa-globe" aria-hidden="true"></i>
@@ -535,7 +545,7 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
             <label class="terms"><input type="checkbox" id="terms" name="terms" required><span>I agree to the <a href="membership-terms.html">membership terms</a> and <a href="privacy-policy.html">privacy policy</a>.</span></label>
             <button class="primary-btn" type="submit">Continue Registration</button>
             <div class="form-message" id="registerMessage" role="status" aria-live="polite"></div>
-            <p class="security-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Secure account creation will be enabled during backend integration.</p>
+            <p class="security-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Use a password of at least 12 characters. Your password is stored securely.</p>
           </form>
         </div>
 
@@ -553,7 +563,7 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
             </div>
             <button class="primary-btn" type="submit">Sign In</button>
             <div class="form-message" id="signinMessage" role="status" aria-live="polite"></div>
-            <p class="security-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Sign-in and password recovery will be connected to secure authentication later.</p>
+            <p class="security-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Sign in with the email address and password you used to create your account.</p>
           </form>
         </div>
       </div>
@@ -616,29 +626,121 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
         element.className = 'form-message';
       }
 
-      registerForm.addEventListener('submit', event => {
+      registerForm.addEventListener('submit', async event => {
         event.preventDefault();
         clearMessage(registerMessage);
-
         if (!registerForm.reportValidity()) return;
-        const memberType = registerForm.querySelector('input[name="memberType"]:checked').value;
-        const departments = [...registerForm.querySelectorAll('input[name="departments"]:checked')].map(input => input.value);
-        if (memberType === 'creative' && departments.length === 0) {
+
+        const nameInput = registerForm.querySelector(
+          'input[name="fullName"], #fullName, #registerName'
+        ) || [...registerForm.querySelectorAll('input')].find(input =>
+          /full.?name|your.?name|member.?name/i.test(
+            [input.name, input.id, input.placeholder, input.autocomplete].join(' ')
+          )
+        );
+        const emailInput = registerForm.querySelector(
+          'input[type="email"], input[name="email"]'
+        );
+        const password = document.getElementById('membershipPassword');
+        const confirmation = document.getElementById('membershipPasswordConfirm');
+        const memberType = registerForm.querySelector('input[name="memberType"]:checked');
+        const departments = [...registerForm.querySelectorAll(
+          'input[name="departments"]:checked'
+        )];
+        const terms = document.getElementById('terms');
+
+        if (!nameInput || !emailInput) {
+          showMessage(registerMessage, 'Please enter your full name and email address.', 'error');
+          return;
+        }
+        if (password.value.length < 12) {
+          showMessage(registerMessage, 'Your password must be at least 12 characters long.', 'error');
+          password.focus();
+          return;
+        }
+        if (password.value !== confirmation.value) {
+          showMessage(registerMessage, 'The passwords do not match. Please try again.', 'error');
+          confirmation.focus();
+          return;
+        }
+        if (memberType && memberType.value === 'creative' && departments.length === 0) {
           showMessage(registerMessage, 'Please select at least one professional department.', 'error');
           return;
         }
-        if (!document.getElementById('terms').checked) {
-          showMessage(registerMessage, 'Please accept the membership terms and privacy policy to continue.', 'error');
+        if (terms && !terms.checked) {
+          showMessage(registerMessage, 'Please accept the membership terms and privacy policy.', 'error');
           return;
         }
-        showMessage(registerMessage, 'The design is ready for review. No account has been created and no information has been saved. Secure registration will be connected to the server in the backend phase.', 'info');
+
+        const button = registerForm.querySelector('button[type="submit"], input[type="submit"]');
+        if (button) button.disabled = true;
+        showMessage(registerMessage, 'Creating your account securely…', 'info');
+
+        try {
+          const response = await fetch('/api/spotlight/auth/register', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fullName: nameInput.value.trim(),
+              email: emailInput.value.trim(),
+              password: password.value
+            })
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || 'Registration failed. Please try again.');
+          }
+
+          showMessage(
+            registerMessage,
+            data.message || 'Your account has been created. You can now sign in.',
+            'success'
+          );
+          registerForm.reset();
+          updateMemberType();
+          showTab('signin');
+          showMessage(
+            signinMessage,
+            'Your account has been created. Sign in with your email and new password.',
+            'info'
+          );
+        } catch (error) {
+          showMessage(registerMessage, error.message || 'Unable to create your account. Please try again.', 'error');
+        } finally {
+          if (button) button.disabled = false;
+        }
       });
 
-      signinForm.addEventListener('submit', event => {
+      signinForm.addEventListener('submit', async event => {
         event.preventDefault();
         clearMessage(signinMessage);
         if (!signinForm.reportValidity()) return;
-        showMessage(signinMessage, 'Sign-in is a visual prototype only. Authentication is not connected yet.', 'info');
+
+        const button = signinForm.querySelector('button[type="submit"], input[type="submit"]');
+        const email = document.getElementById('signinEmail').value.trim();
+        const password = document.getElementById('signinPassword').value;
+        if (button) button.disabled = true;
+        showMessage(signinMessage, 'Signing in securely…', 'info');
+
+        try {
+          const response = await fetch('/api/spotlight/auth/login', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok || data.authenticated === false) {
+            throw new Error(data.error || data.message || 'Sign-in failed. Check your email and password.');
+          }
+          showMessage(signinMessage, 'Signed in successfully. Opening your profile editor…', 'success');
+          window.location.href = 'gft-spotlight-profile-editor.html';
+        } catch (error) {
+          showMessage(signinMessage, error.message || 'Unable to sign in. Please try again.', 'error');
+        } finally {
+          if (button) button.disabled = false;
+        }
       });
     })();
   </script>
