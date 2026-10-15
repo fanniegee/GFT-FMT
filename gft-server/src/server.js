@@ -4270,10 +4270,10 @@ app.post('/api/spotlight/auth/register', async (req, res) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
       return res.status(400).json({ ok: false, error: 'Enter a valid email address.' });
     }
-    if (password.length < 12 || password.length > 200) {
+    if (password.length < 8 || password.length > 200) {
       return res.status(400).json({
         ok: false,
-        error: 'Password must be at least 12 characters long.'
+        error: 'Password must be at least 8 characters long.'
       });
     }
 

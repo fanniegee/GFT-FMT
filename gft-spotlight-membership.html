@@ -494,7 +494,7 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
 
             <div class="field">
               <label for="membershipPassword">Create password</label>
-              <div class="input-wrap"><i class="fa-solid fa-lock" aria-hidden="true"></i><input class="has-icon" id="membershipPassword" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="200" placeholder="At least 12 characters" required></div>
+              <div class="input-wrap"><i class="fa-solid fa-lock" aria-hidden="true"></i><input class="has-icon" id="membershipPassword" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="200" placeholder="At least 8 characters" required></div>
             </div>
             <div class="field">
               <label for="membershipPasswordConfirm">Confirm password</label>
@@ -545,7 +545,7 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
             <label class="terms"><input type="checkbox" id="terms" name="terms" required><span>I agree to the <a href="membership-terms.html">membership terms</a> and <a href="privacy-policy.html">privacy policy</a>.</span></label>
             <button class="primary-btn" type="submit">Continue Registration</button>
             <div class="form-message" id="registerMessage" role="status" aria-live="polite"></div>
-            <p class="security-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Use a password of at least 12 characters. Your password is stored securely.</p>
+            <p class="security-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Use a password of at least 8 characters. Your password is stored securely.</p>
           </form>
         </div>
 
@@ -654,7 +654,7 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
           return;
         }
         if (password.value.length < 12) {
-          showMessage(registerMessage, 'Your password must be at least 12 characters long.', 'error');
+          showMessage(registerMessage, 'Your password must be at least 8 characters long.', 'error');
           password.focus();
           return;
         }
