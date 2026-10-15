@@ -13,6 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
   <!-- Professional icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
   <link rel="stylesheet" href="/public-footer.css">
 
   <style>
@@ -574,7 +575,8 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
       const registerMessage = document.getElementById('registerMessage');
       const signinMessage = document.getElementById('signinMessage');
 
-      document.getElementById('currentYear').textContent = new Date().getFullYear();
+      const currentYear = document.getElementById('currentYear');
+      if (currentYear) currentYear.textContent = new Date().getFullYear();
 
       function showTab(tab) {
         const registering = tab === 'register';
@@ -595,12 +597,10 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
         departmentsSection.classList.toggle('hidden', !creative);
         readerCard.classList.toggle('selected', !creative);
         creativeCard.classList.toggle('selected', creative);
-        readerCard.querySelector('.choice-check').className = creative
-          ? 'fa-regular fa-circle choice-check'
-          : 'fa-solid fa-circle-check choice-check';
-        creativeCard.querySelector('.choice-check').className = creative
-          ? 'fa-solid fa-circle-check choice-check'
-          : 'fa-regular fa-circle choice-check';
+        readerCard.querySelector('.choice-check').className =
+          (creative ? 'fa-regular fa-circle' : 'fa-solid fa-circle-check') + ' choice-check';
+        creativeCard.querySelector('.choice-check').className =
+          (creative ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle') + ' choice-check';
       }
       registerForm.querySelectorAll('input[name="memberType"]').forEach(input => input.addEventListener('change', updateMemberType));
       registerForm.querySelectorAll('input[name="departments"]').forEach(input => {
