@@ -498,7 +498,7 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
             </div>
             <div class="field">
               <label for="membershipPasswordConfirm">Confirm password</label>
-              <div class="input-wrap"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><input class="has-icon" id="membershipPasswordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="12" maxlength="200" placeholder="Enter your password again" required></div>
+              <div class="input-wrap"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><input class="has-icon" id="membershipPasswordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="200" placeholder="Enter your password again" required></div>
             </div>
 
             <div class="field">
@@ -653,7 +653,7 @@ body.gft-shared-footer-ready > footer.gft-old-footer {
           showMessage(registerMessage, 'Please enter your full name and email address.', 'error');
           return;
         }
-        if (password.value.length < 12) {
+        if (password.value.length < 8) {
           showMessage(registerMessage, 'Your password must be at least 8 characters long.', 'error');
           password.focus();
           return;
