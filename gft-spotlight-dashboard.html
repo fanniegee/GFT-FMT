@@ -176,7 +176,7 @@
       </article>
       <article class="overview-card">
         <span class="stat-icon red"><i class="fa-solid fa-layer-group"></i></span>
-        <div><div class="label">Professional profiles</div><strong>0 departments</strong><div class="note">Choose one or more areas</div></div>
+        <div><div class="label">Professional profiles</div><strong id="profileDepartmentCount">Loading…</strong><div class="note">Departments with saved profiles</div></div>
       </article>
       <article class="overview-card">
         <span class="stat-icon dark"><i class="fa-solid fa-book-open-reader"></i></span>
@@ -185,33 +185,40 @@
     </section>
 
     <div class="content-grid">
+      <section class="panel" id="my-spotlight-profiles" style="grid-column:1/-1">
+        <h2>My Spotlight Profiles</h2>
+        <p class="panel-intro">Your private saved profiles and drafts. Only you can see your drafts here; publication remains under Founder control.</p>
+        <p id="myProfilesStatus" role="status" aria-live="polite">Loading your saved profiles…</p>
+        <div id="myProfilesGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px"></div>
+        <a class="btn btn-primary" href="gft-spotlight-profile-editor.html?new=1" style="display:inline-flex;margin-top:14px"><i class="fa-solid fa-plus"></i> Create another profile</a>
+      </section>
       <section class="panel" id="departments">
         <h2>Choose your creative departments</h2>
         <p class="panel-intro">You can add more than one department to the same membership. Each department will have its own specialist profile and portfolio tools.</p>
         <div class="department-grid">
-          <a class="department author" href="#" data-notice="The Author Profile design is the next stage.">
+          <a class="department author" href="gft-spotlight-profile-editor.html?department=author" data-department="author">
             <span class="dept-icon"><i class="fa-solid fa-feather-pointed"></i></span>
             <h3>Author Profiles</h3>
             <p>Present your books, articles, research, biography and published writing.</p>
-            <span class="dept-link">Explore author tools <i class="fa-solid fa-arrow-right"></i></span>
+            <span class="dept-link">Open author tools <span class="dept-count" data-count="author"></span> <i class="fa-solid fa-arrow-right"></i></span>
           </a>
-          <a class="department artist" href="#" data-notice="The Artist Profile design will include distinct creative disciplines.">
+          <a class="department artist" href="gft-spotlight-profile-editor.html?department=artist" data-department="artist">
             <span class="dept-icon"><i class="fa-solid fa-palette"></i></span>
             <h3>Artist Profiles</h3>
             <p>Showcase visual art, performance, dance, spoken word and other creative disciplines.</p>
-            <span class="dept-link">Explore artist tools <i class="fa-solid fa-arrow-right"></i></span>
+            <span class="dept-link">Open artist tools <span class="dept-count" data-count="artist"></span> <i class="fa-solid fa-arrow-right"></i></span>
           </a>
-          <a class="department music" href="#" data-notice="The Music Production Profile design is coming in the profile-design stage.">
+          <a class="department music" href="gft-spotlight-profile-editor.html?department=music" data-department="music">
             <span class="dept-icon"><i class="fa-solid fa-music"></i></span>
             <h3>Music Production</h3>
             <p>Feature production credits, compositions, audio releases, collaborations and samples.</p>
-            <span class="dept-link">Explore music tools <i class="fa-solid fa-arrow-right"></i></span>
+            <span class="dept-link">Open music tools <span class="dept-count" data-count="music"></span> <i class="fa-solid fa-arrow-right"></i></span>
           </a>
-          <a class="department film" href="#" data-notice="The Film Production Profile design will include roles and production credits.">
+          <a class="department film" href="gft-spotlight-profile-editor.html?department=film" data-department="film">
             <span class="dept-icon"><i class="fa-solid fa-film"></i></span>
             <h3>Film Production</h3>
             <p>Show your film projects, screen credits, production roles, trailers and showreels.</p>
-            <span class="dept-link">Explore film tools <i class="fa-solid fa-arrow-right"></i></span>
+            <span class="dept-link">Open film tools <span class="dept-count" data-count="film"></span> <i class="fa-solid fa-arrow-right"></i></span>
           </a>
         </div>
         <div class="privacy-note"><i class="fa-solid fa-circle-info"></i><span><strong>Designed for your control.</strong> Your professional profile should be published only when you choose to submit it. Publishing, account verification and privacy controls will be connected during backend development.</span></div>
@@ -290,6 +297,41 @@
         safeName.split(/\s+/).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join('');
     }
   </script>
+<script>
+(function(){
+ const status=document.getElementById('myProfilesStatus');
+ const grid=document.getElementById('myProfilesGrid');
+ if(!status||!grid)return;
+ const labels={author:'Author',artist:'Artist',music:'Music Production',film:'Film Production'};
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ async function loadMyProfiles(){
+  status.textContent='Loading your saved profiles…';grid.replaceChildren();
+  try{
+   const r=await fetch('/api/spotlight/my-profiles',{credentials:'same-origin'});
+   const d=await r.json().catch(()=>({}));
+   if(r.status===401){status.textContent='Please sign in to view your private profiles.';return;}
+   if(!r.ok||!d.ok)throw new Error(d.error||'Could not load your profiles');
+   const profiles=Array.isArray(d.profiles)?d.profiles:[];
+   const drafts=profiles.filter(p=>p.status==='draft');
+   const departments=[...new Set(profiles.map(p=>p.department))];
+   const count=document.getElementById('profileDepartmentCount');if(count)count.textContent=departments.length+' department'+(departments.length===1?'':'s');
+   document.querySelectorAll('[data-count]').forEach(el=>{const n=profiles.filter(p=>p.department===el.dataset.count).length;el.textContent=n?'('+n+' profile'+(n===1?'':'s')+')':'(no profile yet)';});
+   document.querySelectorAll('[data-department]').forEach(card=>{const dep=card.dataset.department;const exists=profiles.some(p=>p.department===dep);card.classList.toggle('has-profile',exists);card.setAttribute('aria-label',(labels[dep]||dep)+(exists?' workroom, saved profile available':' workroom, create a profile'));});
+   if(!profiles.length){status.textContent='You have no saved profiles yet. Use a department card or Create another profile to get started.';return;}
+   status.textContent=profiles.length+' saved profile'+(profiles.length===1?'':'s')+' · '+drafts.length+' draft'+(drafts.length===1?'':'s');
+   profiles.forEach(p=>{
+    const card=document.createElement('article');card.style.cssText='padding:16px;border:1px solid #dbe4ef;border-radius:15px;background:#fff;display:flex;flex-direction:column;gap:8px';
+    const dept=document.createElement('p');dept.style.cssText='margin:0;color:#2876bf;font-size:12px;font-weight:700';dept.textContent=labels[p.department]||p.department;
+    const h=document.createElement('h3');h.style.margin='0';h.textContent=p.display_name||'Untitled profile';
+    const meta=document.createElement('p');meta.style.cssText='margin:0;color:#65758b;font-size:13px';meta.textContent=(p.headline||'Professional profile')+' · '+(p.status||'draft');
+    if(p.status==='draft'){const open=document.createElement('a');open.className='btn btn-primary';open.style.cssText='display:inline-flex;align-self:flex-start;margin-top:auto';open.href='gft-spotlight-profile-editor.html?profile_id='+encodeURIComponent(p.profile_id);open.textContent='Open / Edit Draft';card.append(dept,h,meta,open);}else{card.append(dept,h,meta);}
+    grid.append(card);
+   });
+  }catch(e){status.textContent=e.message||'Unable to load your profiles. Please refresh and try again.';}
+ }
+ loadMyProfiles();
+})();
+</script>
 <script>
 (function(){const status=document.getElementById("spotlightProfilesStatus"),grid=document.getElementById("spotlightProfilesGrid"),filter=document.getElementById("spotlightDepartment");if(!status||!grid||!filter)return;async function load(){status.textContent="Loading published profiles…";grid.replaceChildren();try{const r=await fetch("/api/spotlight/profiles"+(filter.value?"?department="+encodeURIComponent(filter.value):""));const d=await r.json();if(!r.ok||!d.ok)throw Error();if(!d.profiles||!d.profiles.length){status.textContent="No published profiles in this department yet.";return;}d.profiles.forEach(p=>{const c=document.createElement("article");c.style.cssText="padding:18px;border:1px solid #dbe4ef;border-radius:15px;background:#fff";const dept=document.createElement("p");dept.textContent=({author:"Author",artist:"Artist",music:"Music Production",film:"Film Production"})[p.department]||p.department;const h=document.createElement("h3");h.textContent=p.display_name||"Spotlight Professional";const role=document.createElement("p");role.textContent=p.headline||"";const bio=document.createElement("p");bio.textContent=(p.biography||"").slice(0,240);c.append(dept,h,role,bio);grid.append(c)});status.textContent=d.profiles.length+" published profile(s)"}catch(e){status.textContent="Profiles could not be loaded. Please try again later.";console.error(e)}}filter.addEventListener("change",load);load()})();
 </script>
