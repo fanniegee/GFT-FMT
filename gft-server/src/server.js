@@ -4177,41 +4177,6 @@ return res.json({ ok: true });
 /* End GGC patient portal authentication */
 
 // ------------------------------------------------------------
-// SAFE API 404
-// ------------------------------------------------------------
-
-app.use('/api', (_req, res) => {
-  res.status(404).json({
-    ok: false,
-    error: 'API route not found'
-  });
-});
-
-// ------------------------------------------------------------
-// ERROR HANDLING
-// ------------------------------------------------------------
-
-app.use((error, _req, res, _next) => {
-  console.error('Unhandled server error:', error);
-
-  if (error?.message === 'CORS origin not allowed') {
-    return res.status(403).json({
-      ok: false,
-      error: 'CORS origin not allowed'
-    });
-  }
-
-  return res.status(500).json({
-    ok: false,
-    error: 'Internal server error'
-  });
-});
-
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
 // SPOTLIGHT WRITE ACCESS GUARD
 // Public profile reads remain available.
 // Profile creation, editing and publishing stay disabled until
