@@ -185,7 +185,7 @@
     </section>
 
     <div class="content-grid">
-      <section class="panel" id="my-spotlight-profiles" style="grid-column:1/-1">
+      <section class="panel" id="my-spotlight-profiles" style="grid-column:1/-1;display:none">
         <h2>My Spotlight Profiles</h2>
         <p class="panel-intro">Your private saved profiles and drafts. Only you can see your drafts here; publication remains under Founder control.</p>
         <p id="myProfilesStatus" role="status" aria-live="polite">Loading your saved profiles…</p>
@@ -297,6 +297,23 @@
         safeName.split(/\s+/).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join('');
     }
   </script>
+<script>
+(function(){
+ const accountProfiles=document.getElementById('my-spotlight-profiles');
+ if(!accountProfiles)return;
+ function openAccountView(event){
+  if(event)event.preventDefault();
+  accountProfiles.style.display='block';
+  history.replaceState(null,'',window.location.pathname+window.location.search+'#account');
+  accountProfiles.scrollIntoView({behavior:'smooth',block:'start'});
+ }
+ document.querySelectorAll('a[href="#account"]').forEach(link=>link.addEventListener('click',openAccountView));
+ if(window.location.hash==='#account'){
+  accountProfiles.style.display='block';
+  window.addEventListener('load',()=>accountProfiles.scrollIntoView({block:'start'}),{once:true});
+ }
+})();
+</script>
 <script>
 (function(){
  const status=document.getElementById('myProfilesStatus');
