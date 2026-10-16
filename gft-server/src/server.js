@@ -4177,10 +4177,14 @@ return res.json({ ok: true });
 /* End GGC patient portal authentication */
 
 // ------------------------------------------------------------
+
+// ------------------------------------------------------------
+
+// ------------------------------------------------------------
 // SPOTLIGHT WRITE ACCESS GUARD
 // Public profile reads remain available.
-// Profile creation, editing and publishing stay disabled until
-// dedicated Spotlight member authentication is implemented.
+// Member draft writes use the authenticated /my-profiles routes below.
+// This public collection endpoint never accepts member writes.
 // ------------------------------------------------------------
 app.use('/api/spotlight/profiles', (req, res, next) => {
   if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
@@ -4461,6 +4465,81 @@ app.get('/api/spotlight/my-profiles', async (req, res) => {
   }
 });
 
+// Save a new Spotlight draft. This route never publishes a profile.
+app.post('/api/spotlight/my-profiles', async (req, res) => {
+  try {
+    const member = await getAuthenticatedSpotlightMember(req);
+    if (!member) return res.status(401).json({ ok: false, error: 'Spotlight sign-in required' });
+    await ensureSpotlightProfileTable();
+
+    const body = req.body || {};
+    const departmentMap = {
+      'author': 'author', 'artist': 'artist',
+      'music producer': 'music', 'film professional': 'film'
+    };
+    const department = departmentMap[String(body.department || '').trim().toLowerCase()];
+    const displayName = String(body.displayName || '').trim();
+    const headline = String(body.headline || '').trim();
+    const biography = String(body.biography || '').trim();
+    const details = body.details && typeof body.details === 'object' && !Array.isArray(body.details) ? body.details : {};
+
+    if (!department) return res.status(400).json({ ok: false, error: 'Choose a valid Spotlight department.' });
+    if (!displayName || displayName.length > 160) return res.status(400).json({ ok: false, error: 'A display name is required (maximum 160 characters).' });
+    if (headline.length > 240 || biography.length > 10000) return res.status(400).json({ ok: false, error: 'Headline or biography is too long.' });
+
+    const profileId = `SPOT-PROF-${randomBytes(12).toString('hex')}`;
+    const result = await query(`
+      INSERT INTO spotlight_profiles
+        (profile_id, owner_system_id, department, display_name, headline, biography, details, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, 'draft')
+      RETURNING profile_id, department, display_name, headline, biography, details, status, created_at, updated_at
+    `, [profileId, member.system_id, department, displayName, headline, biography, JSON.stringify(details)]);
+
+    return res.status(201).json({ ok: true, profile: result.rows[0] });
+  } catch (error) {
+    console.error('Spotlight draft creation error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to save your draft' });
+  }
+});
+
+// Update only a draft owned by the signed-in member. Status remains draft.
+app.put('/api/spotlight/my-profiles/:profileId', async (req, res) => {
+  try {
+    const member = await getAuthenticatedSpotlightMember(req);
+    if (!member) return res.status(401).json({ ok: false, error: 'Spotlight sign-in required' });
+    await ensureSpotlightProfileTable();
+
+    const body = req.body || {};
+    const departmentMap = {
+      'author': 'author', 'artist': 'artist',
+      'music producer': 'music', 'film professional': 'film'
+    };
+    const department = departmentMap[String(body.department || '').trim().toLowerCase()];
+    const displayName = String(body.displayName || '').trim();
+    const headline = String(body.headline || '').trim();
+    const biography = String(body.biography || '').trim();
+    const details = body.details && typeof body.details === 'object' && !Array.isArray(body.details) ? body.details : {};
+
+    if (!department) return res.status(400).json({ ok: false, error: 'Choose a valid Spotlight department.' });
+    if (!displayName || displayName.length > 160) return res.status(400).json({ ok: false, error: 'A display name is required (maximum 160 characters).' });
+    if (headline.length > 240 || biography.length > 10000) return res.status(400).json({ ok: false, error: 'Headline or biography is too long.' });
+
+    const result = await query(`
+      UPDATE spotlight_profiles
+      SET department = $3, display_name = $4, headline = $5, biography = $6,
+          details = $7::jsonb, updated_at = NOW()
+      WHERE profile_id = $1 AND owner_system_id = $2 AND status = 'draft'
+      RETURNING profile_id, department, display_name, headline, biography, details, status, created_at, updated_at
+    `, [req.params.profileId, member.system_id, department, displayName, headline, biography, JSON.stringify(details)]);
+
+    if (!result.rows.length) return res.status(404).json({ ok: false, error: 'Draft not found, or it is not editable by this account.' });
+    return res.json({ ok: true, profile: result.rows[0] });
+  } catch (error) {
+    console.error('Spotlight draft update error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to update your draft' });
+  }
+});
+
 // GFT SPOTLIGHT PROFILE API
 // Registration and member-write authentication are intentionally
 // deferred. Only published profiles are publicly readable.
@@ -4552,6 +4631,37 @@ app.get('/api/spotlight/health', async (_req, res) => {
   }
 });
 
+
+// ------------------------------------------------------------
+// SAFE API 404
+// ------------------------------------------------------------
+
+app.use('/api', (_req, res) => {
+  res.status(404).json({
+    ok: false,
+    error: 'API route not found'
+  });
+});
+
+// ------------------------------------------------------------
+// ERROR HANDLING
+// ------------------------------------------------------------
+
+app.use((error, _req, res, _next) => {
+  console.error('Unhandled server error:', error);
+
+  if (error?.message === 'CORS origin not allowed') {
+    return res.status(403).json({
+      ok: false,
+      error: 'CORS origin not allowed'
+    });
+  }
+
+  return res.status(500).json({
+    ok: false,
+    error: 'Internal server error'
+  });
+});
 
 // START SERVER
 // ------------------------------------------------------------
