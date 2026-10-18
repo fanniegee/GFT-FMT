@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guvaza Library | Member Sign In</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#211915;--gold:#c9a45c;--gold-light:#ead7a7;--muted:#746a60;--border:#e5d8c6;--blue:#174b91;--red:#c51f36}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 10% 5%,rgba(201,164,92,.17),transparent 30%),#f6f2eb;color:var(--ink);font-family:Inter,Arial,sans-serif}.page{width:100%;max-width:510px}.brand{text-align:center;margin-bottom:22px}.brand-mark{display:inline-grid;place-items:center;width:54px;height:54px;border-radius:17px;background:linear-gradient(135deg,var(--gold-light),#a97a2d);color:var(--ink);font-size:27px}.brand h1{font:700 27px "Playfair Display",Georgia,serif;margin:10px 0 3px}.brand p{margin:0;color:#92713a;font-size:10px;letter-spacing:2px;font-weight:800;text-transform:uppercase}.card{background:#fff;border:1px solid var(--border);border-radius:22px;padding:28px;box-shadow:0 20px 55px rgba(52,39,25,.10)}.tabs{display:grid;grid-template-columns:1fr 1fr;background:#f0ede7;border-radius:13px;padding:5px;gap:5px;margin-bottom:26px}.tab{border:0;border-radius:10px;padding:12px 8px;background:transparent;color:#6f655a;font:700 12px Inter,Arial,sans-serif;cursor:pointer}.tab.active{background:#fff;box-shadow:0 2px 8px #21191514;color:var(--ink)}h2{font:700 29px "Playfair Display",Georgia,serif;margin:0 0 6px}.intro{font-size:12px;line-height:1.65;color:var(--muted);margin:0 0 23px}.field-label{display:block;font-size:12px;font-weight:700;margin:16px 0 8px}.field{position:relative}.field .material-icons-round{position:absolute;left:13px;top:13px;font-size:19px;color:#a17d42}input[type=email],input[type=password]{width:100%;border:1px solid #d9dfe8;border-radius:11px;padding:14px 14px 14px 42px;font:14px Inter,Arial,sans-serif;outline:none;background:#fff;color:#211915}input:focus{border-color:#b8944d;box-shadow:0 0 0 3px #c9a45c24}.options{display:grid;gap:10px;margin:20px 0}.option{display:flex;align-items:center;gap:12px;border:1px solid #ddd7ce;border-radius:13px;padding:14px;cursor:pointer;transition:.15s}.option.selected{border-color:#b38a3f;background:#fffaf0;box-shadow:0 0 0 1px #b38a3f inset}.option-icon{width:42px;height:42px;border-radius:12px;background:#f2e7ce;color:#8c6726;display:grid;place-items:center;flex-shrink:0}.option-copy{flex:1}.option-copy strong{display:block;font-size:13px;margin-bottom:4px}.option-copy small{display:block;font-size:11px;line-height:1.5;color:var(--muted)}.radio{width:19px;height:19px;border:2px solid #9e968c;border-radius:50%;display:grid;place-items:center;flex-shrink:0}.option.selected .radio{border-color:#a77926}.option.selected .radio:after{content:"";width:9px;height:9px;border-radius:50%;background:#a77926}.submit{width:100%;border:0;border-radius:12px;padding:15px;background:linear-gradient(100deg,var(--red),#211915 48%,var(--blue));color:white;font:800 13px Inter,Arial,sans-serif;cursor:pointer;box-shadow:0 9px 18px #2119151b}.notice{display:none;margin-top:15px;padding:12px 13px;border-radius:10px;background:#fff5dd;color:#654b18;font-size:12px;line-height:1.6}.notice.show{display:block}.note{text-align:center;color:#81766a;font-size:10px;line-height:1.6;margin:17px 8px 0}.back{display:block;text-align:center;margin-top:17px;color:#7b5b25;text-decoration:none;font-size:12px;font-weight:700}@media(max-width:480px){body{padding:15px}.card{padding:21px}.brand h1{font-size:24px}h2{font-size:26px}}
+</style>
+</head>
+<body>
+<main class="page">
+<header class="brand"><div class="brand-mark"><span class="material-icons-round">menu_book</span></div><h1>Guvaza Library</h1><p>Knowledge · Heritage · Imagination</p></header>
+<section class="card" aria-labelledby="heading">
+<div class="tabs" role="tablist" aria-label="Account action"><button class="tab" id="createTab" type="button" role="tab" aria-selected="false">Create account</button><button class="tab active" id="signinTab" type="button" role="tab" aria-selected="true">Sign in</button></div>
+<h2 id="heading">Welcome back</h2><p class="intro" id="intro">Sign in to continue to your Library or creative membership space.</p>
+<form id="loginForm">
+<label class="field-label" for="email">Email address</label><div class="field"><span class="material-icons-round">mail_outline</span><input id="email" name="email" type="email" autocomplete="email" placeholder="Your registered email" required></div>
+<label class="field-label" for="password">Password</label><div class="field"><span class="material-icons-round">lock</span><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Your password" required></div>
+<div class="field-label">What brings you to the Library?</div>
+<div class="options">
+<label class="option selected"><input type="radio" name="accountType" value="reader" checked hidden><span class="option-icon"><span class="material-icons-round">menu_book</span></span><span class="option-copy"><strong>Reader / Library Member</strong><small>Explore knowledge, books and publications.</small></span><span class="radio" aria-hidden="true"></span></label>
+<label class="option"><input type="radio" name="accountType" value="professional" hidden><span class="option-icon"><span class="material-icons-round">auto_awesome</span></span><span class="option-copy"><strong>Creative Professional</strong><small>Showcase your work and manage your professional profile.</small></span><span class="radio" aria-hidden="true"></span></label>
+</div>
+<button class="submit" type="submit" id="submitButton">Sign In</button><div class="notice" id="notice" role="status" aria-live="polite"></div>
+</form></section>
+<p class="note">Secure sign-in and account creation are not connected yet. This page will not authenticate or redirect users until server-side verification is implemented.</p><a class="back" href="library.html"> Back to Guvaza Library</a>
+</main>
+
+
+<script>
+(() => {
+  const createTab = document.getElementById('createTab');
+  const signinTab = document.getElementById('signinTab');
+  const heading = document.getElementById('heading');
+  const intro = document.getElementById('intro');
+  const submitButton = document.getElementById('submitButton');
+  const notice = document.getElementById('notice');
+  const form = document.getElementById('loginForm');
+
+  let mode = 'signin';
+
+  function showNotice(message) {
+    notice.textContent = message;
+    notice.classList.add('show');
+  }
+
+  function setMode(next) {
+    mode = next;
+    const creating = mode === 'create';
+
+    createTab.classList.toggle('active', creating);
+    signinTab.classList.toggle('active', !creating);
+    createTab.setAttribute('aria-selected', String(creating));
+    signinTab.setAttribute('aria-selected', String(!creating));
+
+    heading.textContent = creating
+      ? 'Create your membership'
+      : 'Welcome back';
+
+    intro.textContent = creating
+      ? 'Choose the type of account you want to create.'
+      : 'Sign in to continue to your Library or creative membership space.';
+
+    submitButton.textContent = creating
+      ? 'Continue Registration'
+      : 'Sign In';
+
+    document.getElementById('password').autocomplete =
+      creating ? 'new-password' : 'current-password';
+
+    notice.classList.remove('show');
+  }
+
+  createTab.addEventListener('click', () => setMode('create'));
+  signinTab.addEventListener('click', () => setMode('signin'));
+
+  document.querySelectorAll('.option').forEach(option => {
+    option.addEventListener('click', () => {
+      document.querySelectorAll('.option').forEach(item =>
+        item.classList.remove('selected')
+      );
+
+      option.classList.add('selected');
+      option.querySelector('input').checked = true;
+      notice.classList.remove('show');
+    });
+  });
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+
+    const kind = form.querySelector(
+      'input[name="accountType"]:checked'
+    )?.value;
+
+   if (mode === 'create') {
+  window.location.href = 'gft-spotlight-membership.html';
+  return;
+}
+
+    if (kind === 'reader') {
+      showNotice(
+        'Reader / Library Member sign-in is not connected yet. ' +
+        'Please use the Creative Professional option only if you ' +
+        'already have a Spotlight account.'
+      );
+      return;
+    }
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    submitButton.disabled = true;
+    submitButton.textContent = 'Signing in…';
+    notice.classList.remove('show');
+
+    try {
+      const response = await fetch('/api/spotlight/auth/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok || !result.authenticated) {
+        showNotice(
+          result.error || 'Sign-in failed. Please check your details.'
+        );
+        return;
+      }
+
+      window.location.assign('gft-spotlight-dashboard.html');
+    } catch (error) {
+      showNotice(
+        'Unable to reach the sign-in service. Please try again.'
+      );
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = mode === 'create'
+        ? 'Continue Registration'
+        : 'Sign In';
+    }
+  });
+})();
+</script>
+
+
+</body>
+</html>
