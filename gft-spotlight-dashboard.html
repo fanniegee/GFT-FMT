@@ -313,7 +313,15 @@
    document.querySelectorAll('[data-department]').forEach(card=>{const dep=card.dataset.department;const exists=profiles.some(p=>p.department===dep);card.classList.toggle('has-profile',exists);card.setAttribute('aria-label',(labels[dep]||dep)+(exists?' workroom, saved profile available':' workroom, create a profile'));});
    if(!profiles.length){status.textContent='You have no saved profiles yet. Use a department card or Create another profile to get started.';return;}
    status.textContent=profiles.length+' saved profile'+(profiles.length===1?'':'s')+' · '+drafts.length+' draft'+(drafts.length===1?'':'s');
-   
+   profiles.forEach(p=>{
+    const card=document.createElement('article');card.style.cssText='padding:16px;border:1px solid #dbe4ef;border-radius:15px;background:#fff;display:flex;flex-direction:column;gap:8px';
+    const dept=document.createElement('p');dept.style.cssText='margin:0;color:#2876bf;font-size:12px;font-weight:700';dept.textContent=labels[p.department]||p.department;
+    const h=document.createElement('h3');h.style.margin='0';h.textContent=p.display_name||'Untitled profile';
+    const meta=document.createElement('p');meta.style.cssText='margin:0;color:#65758b;font-size:13px';meta.textContent=(p.headline||'Professional profile')+' · '+(p.status||'draft');
+    if(p.status==='draft'){const open=document.createElement('a');open.className='btn btn-primary';open.style.cssText='display:inline-flex;align-self:flex-start;margin-top:auto';open.href='gft-spotlight-profile-editor.html?profile_id='+encodeURIComponent(p.profile_id);open.textContent='Open / Edit Draft';card.append(dept,h,meta,open);}else{card.append(dept,h,meta);}
+    grid.append(card);
+   });
+
   }catch(e){status.textContent=e.message||'Unable to load your profiles. Please refresh and try again.';}
  }
  loadMyProfiles();
