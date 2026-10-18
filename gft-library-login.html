@@ -74,7 +74,9 @@
     notice.classList.remove('show');
   }
 
-  createTab.addEventListener('click', () => setMode('create'));
+  createTab.addEventListener('click', () => {
+  window.location.href = './gft-spotlight-membership.html';
+});
   signinTab.addEventListener('click', () => setMode('signin'));
 
   document.querySelectorAll('.option').forEach(option => {
