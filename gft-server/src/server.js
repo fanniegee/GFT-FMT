@@ -91,6 +91,21 @@ app.use(rateLimit({
   legacyHeaders: false
 }));
 
+
+   // ------------------------------------------------------------
+   // REGISTRATION OTP SEND RATE LIMIT
+   // ------------------------------------------------------------
+   const registrationOtpSendLimiter = rateLimit({
+     windowMs: 15 * 60 * 1000,
+     max: 3,
+     standardHeaders: true,
+     legacyHeaders: false,
+     message: {
+       ok: false,
+       error: 'Too many verification-code requests. Please wait before trying again.'
+     }
+   }); 
+
 // ------------------------------------------------------------
 // HEALTH
 // ------------------------------------------------------------
@@ -684,7 +699,10 @@ app.post('/api/registration/verify-structure', async (req, res) => {
 // REGISTRATION OTP
 // ------------------------------------------------------------
 
-app.post('/api/registration/send-otp', async (req, res) => {
+app.post(
+  '/api/registration/send-otp',
+  registrationOtpSendLimiter,
+  async (req, res) => {
   try {
     const email = String(req.body?.email || '').trim().toLowerCase();
 
@@ -746,7 +764,7 @@ app.post('/api/registration/send-otp', async (req, res) => {
         <p style="font-size:28px;font-weight:bold;letter-spacing:6px;">
           ${otp}
         </p>
-        <p>This code expires in 10 minutes.</p>
+        <p>This code expires in 3 minutes.</p>
         <p>If you did not request this code, you can ignore this email.</p>
       `
     });
@@ -1085,7 +1103,7 @@ const serverSystemId =
   grandparent_system_id,
   status
 )
-       )
+       
       VALUES (
   $1, $2, $3, $4, $5, $6, $7, $8, $9,
   $10, $11, $12, $13, $14, $15, $16, 'PENDING'
