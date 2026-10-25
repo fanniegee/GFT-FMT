@@ -1559,5 +1559,106 @@ renderMembers=function(){
   }catch(e){}
 }
 </script>
+
+<!-- Server-backed registration list integration -->
+<script>
+(async function connectServerRegistrations() {
+  const isAdminPage = location.pathname.toLowerCase().endsWith('admin.html');
+  const listId = isAdminPage ? 'pendingList' : 'benListPending';
+  const countId = isAdminPage ? 'pendingCountBadge' : 'countPending';
+  const container = document.getElementById(listId);
+  if (!container) return;
+
+  async function loadRegistrations() {
+    container.innerHTML = '<p>Loading server registrations...</p>';
+    try {
+      const response = await fetch('/api/registrations', {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store'
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || 'Unable to load registrations');
+      }
+
+      const pending = (data.registrations || []).filter(
+        r => String(r.status || '').toUpperCase() === 'PENDING'
+      );
+
+      if (countId === 'pendingCountBadge') {
+        document.getElementById(countId).textContent = pending.length + ' Pending';
+      } else {
+        document.getElementById(countId).textContent = pending.length;
+      }
+
+      if (!pending.length) {
+        container.innerHTML = '<p>No pending server registrations.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      pending.forEach(reg => {
+        const item = document.createElement('div');
+        item.className = 'ben-item';
+        const info = document.createElement('div');
+        info.className = 'ben-info';
+        const name = document.createElement('b');
+        name.textContent = reg.full_name || 'Unnamed applicant';
+        info.appendChild(name);
+        info.appendChild(document.createElement('br'));
+        info.appendChild(document.createTextNode(
+          'Family ID: ' + (reg.applicant_system_id || 'Not linked')
+        ));
+        info.appendChild(document.createElement('br'));
+        info.appendChild(document.createTextNode(
+          'Parent: ' + (reg.parent_full_name || 'Not recorded')
+        ));
+
+        const actions = document.createElement('div');
+        const approve = document.createElement('button');
+        approve.textContent = 'Approve';
+        approve.className = 'primary';
+        approve.addEventListener('click', async () => {
+          if (!confirm('Approve registration for ' + (reg.full_name || 'this applicant') + '?')) return;
+          approve.disabled = true;
+          try {
+            const result = await fetch(
+              '/api/registrations/' + encodeURIComponent(reg.registration_id) + '/approve',
+              {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+              }
+            );
+            const body = await result.json();
+            if (!result.ok || !body.ok) throw new Error(body.error || 'Approval failed');
+            alert('Registration approved.');
+            await loadRegistrations();
+          } catch (err) {
+            alert(err.message || 'Could not approve registration.');
+            approve.disabled = false;
+          }
+        });
+
+        actions.appendChild(approve);
+        item.appendChild(info);
+        item.appendChild(actions);
+        container.appendChild(item);
+      });
+    } catch (err) {
+      container.textContent = 'Could not load server registrations: ' + (err.message || 'Please sign in and refresh.');
+    }
+  }
+
+  await loadRegistrations();
+  const refresh = document.querySelector(
+    isAdminPage ? 'button[onclick="renderPending()"]' : '#tab-pending'
+  );
+  if (refresh) refresh.addEventListener('click', loadRegistrations);
+})();
+</script>
+
 </body>
 </html>
