@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" width="100%" height="100%">
+  <defs>
+    <!-- Dark Metallic / Charcoal Gradient -->
+    <linearGradient id="charcoalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2C3539" />
+      <stop offset="100%" stop-color="#111618" />
+    </linearGradient>
+
+    <!-- Gold Accent Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F4C430" />
+      <stop offset="50%" stop-color="#E5A93C" />
+      <stop offset="100%" stop-color="#B8860B" />
+    </linearGradient>
+    
+    <!-- Subtle Drop Shadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <!-- Icon Symbol: Shield / Diamond Crest with Pickaxe Negative Space -->
+    <g transform="translate(40, 30)">
+      <!-- Outer Hexagonal Shield (Mining / Earth Strength) -->
+      <polygon points="60,5 110,32 110,88 60,115 10,88 10,32" fill="url(#charcoalGrad)" stroke="url(#goldGrad)" stroke-width="3" />
+      
+      <!-- Mountain Peak / Pickaxe Head -->
+      <polygon points="60,25 90,75 75,75 60,50 45,75 30,75" fill="url(#goldGrad)" />
+      
+      <!-- Diamond Core -->
+      <polygon points="60,58 72,75 60,92 48,75" fill="#FFFFFF" opacity="0.9" />
+      
+      <!-- Base Horizon Lines -->
+      <line x1="25" y1="96" x2="95" y2="96" stroke="url(#goldGrad)" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <!-- Typography: GFT MINING -->
+    <!-- Main Acronym "GFT" -->
+    <text x="175" y="105" font-family="'Cinzel', 'Trajan Pro', 'Georgia', serif" font-size="64" font-weight="bold" fill="url(#charcoalGrad)" letter-spacing="4">
+      GFT
+    </text>
+    
+    <!-- Accent Gold Line -->
+    <line x1="335" y1="60" x2="335" y2="115" stroke="url(#goldGrad)" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Subtitle "MINING COMPANY" -->
+    <text x="350" y="88" font-family="'Montserrat', 'Helvetica Neue', 'Arial', sans-serif" font-size="22" font-weight="700" fill="url(#charcoalGrad)" letter-spacing="6">
+      MINING
+    </text>
+    <text x="350" y="110" font-family="'Montserrat', 'Helvetica Neue', 'Arial', sans-serif" font-size="12" font-weight="500" fill="#666666" letter-spacing="4">
+      CORPORATION
+    </text>
+    
+    <!-- Bottom Classic Accent Ribbon Line -->
+    <line x1="175" y1="130" x2="540" y2="130" stroke="url(#goldGrad)" stroke-width="2" />
+    <circle cx="175" cy="130" r="3" fill="url(#goldGrad)"/>
+    <circle cx="540" cy="130" r="3" fill="url(#goldGrad)"/>
+  </g>
+</svg>
