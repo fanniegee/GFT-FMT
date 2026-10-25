@@ -1497,18 +1497,99 @@ function saveCompanyWallets(){let profits={},total=0;companies.forEach((_,i)=>{l
 (function loadWallets(){let s=JSON.parse(localStorage.getItem('guvaza_profits')||'null');if(s){companies.forEach((_,i)=>{let el=document.getElementById('c'+(i+1));if(el)el.value=s.profits['c'+(i+1)]||0;});saveCompanyWallets();}})();
 let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');let pendingRegs=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');let delLogs=JSON.parse(localStorage.getItem('guvaza_del_log')||'[]');let deleteIndex=-1,editIndex=-1;
 function switchBenTab(tab){document.getElementById('tab-approved').classList.toggle('active', tab==='approved');document.getElementById('tab-pending').classList.toggle('active', tab==='pending');document.getElementById('benListApproved').style.display=tab==='approved'?'block':'none';document.getElementById('benListPending').style.display=tab==='pending'?'block':'none';renderBens();}
-function renderBens(){
-  let listA=document.getElementById('benListApproved');listA.innerHTML='';
-  bens.forEach((b,i)=>{
-    let bal = parseFloat(benWallets[b.id])||0;
-    listA.innerHTML+=`<div class="ben-item"><div class="ben-info"><b>${b.name}</b> <span class="badge blue">Login Wallet $${bal.toFixed(2)}</span><br><small>ID:${b.id} | ${b.phone||''}<br>Personal Wallet: $${bal.toFixed(2)} - Auto 24h from Pool</small></div><div class="ben-actions"><button class="icon-btn edit" onclick="openEditModal(${i})">Edit</button><button class="icon-btn del" onclick="openDeleteModal(${i})">Delete</button></div></div>`;
-  });
-  pendingRegs=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');let listP=document.getElementById('benListPending');listP.innerHTML='';if(pendingRegs.length===0)listP.innerHTML='<p style="color:var(--muted)">No pending</p>';else pendingRegs.forEach((b,i)=>{listP.innerHTML+=`<div class="ben-item" style="border-left:3px solid #f59e0b"><div class="ben-info"><b>${b.name}</b> PENDING<br><small>ID:${b.id}</small></div><div class="ben-actions"><button class="icon-btn approve" onclick="approvePending(${i})">Approve</button><button class="icon-btn del" onclick="rejectPending(${i})">Reject</button></div></div>`;});benCount=bens.length;document.getElementById('countApproved').innerText=bens.length;document.getElementById('countPending').innerText=pendingRegs.length;let badge=document.getElementById('pendingBadge');badge.style.display=pendingRegs.length>0?'inline-flex':'none';badge.innerText=pendingRegs.length+' pending';updateUI();localStorage.setItem('guvaza_bens',JSON.stringify(bens));renderDelLog();
-  let histEl = document.getElementById('benPayoutHistory'); if(histEl){ if(benPoolPayouts.length===0) histEl.innerHTML='No payouts yet - auto after 24h | '+ (wallets.ben>0? `Pool $${wallets.ben.toFixed(2)} waiting`:'Pool empty'); else histEl.innerHTML=benPoolPayouts.slice(0,10).map(p=>`[${p.date}] $${p.total.toFixed(2)}/${p.count}=$${p.perHead.toFixed(2)} each`).join('<br>'); }
+async function renderBens(){
+  const listA=document.getElementById('benListApproved');
+  const listP=document.getElementById('benListPending');
+  if(listA){
+    listA.innerHTML='';
+    bens.forEach((b,i)=>{
+      const bal=parseFloat(benWallets[b.id])||0;
+      listA.innerHTML+=`<div class="ben-item"><div class="ben-info"><b>${b.name}</b> <span class="badge blue">Login Wallet $${bal.toFixed(2)}</span><br><small>ID:${b.id} | ${b.phone||''}<br>Personal Wallet: $${bal.toFixed(2)} - Auto 24h from Pool</small></div><div class="ben-actions"><button class="icon-btn edit" onclick="openEditModal(${i})">Edit</button><button class="icon-btn del" onclick="openDeleteModal(${i})">Delete</button></div></div>`;
+    });
+  }
+
+  if(listP){
+    listP.textContent='Loading server registrations...';
+    try{
+      const response=await fetch('/api/registrations',{
+        method:'GET',credentials:'include',cache:'no-store'
+      });
+      const data=await response.json();
+      if(!response.ok||!data.ok) throw new Error(data.error||'Unable to load registrations');
+
+      pendingRegs=(data.registrations||[]).filter(
+        r=>String(r.status||'').toUpperCase()==='PENDING'
+      );
+      document.getElementById('countPending').innerText=pendingRegs.length;
+      const badge=document.getElementById('pendingBadge');
+      badge.style.display=pendingRegs.length?'inline-flex':'none';
+      badge.innerText=pendingRegs.length+' pending';
+
+      if(!pendingRegs.length){
+        listP.innerHTML='<p style="color:var(--muted)">No pending server registrations</p>';
+      }else{
+        listP.innerHTML='';
+        pendingRegs.forEach((r,i)=>{
+          const item=document.createElement('div');
+          item.className='ben-item';
+          item.style.borderLeft='3px solid #f59e0b';
+          const info=document.createElement('div');
+          info.className='ben-info';
+          const name=document.createElement('b');
+          name.textContent=r.full_name||'Unnamed applicant';
+          info.appendChild(name);
+          info.appendChild(document.createElement('br'));
+          info.appendChild(document.createTextNode('Family ID: '+(r.applicant_system_id||'Not linked')));
+          info.appendChild(document.createElement('br'));
+          info.appendChild(document.createTextNode('Parent: '+(r.parent_full_name||'Not recorded')));
+          const actions=document.createElement('div');
+          actions.className='ben-actions';
+          const approve=document.createElement('button');
+          approve.className='icon-btn approve';
+          approve.textContent='Approve';
+          approve.onclick=async()=>{
+            if(!confirm('Approve registration for '+(r.full_name||'this applicant')+'?'))return;
+            approve.disabled=true;
+            try{
+              const result=await fetch('/api/registrations/'+encodeURIComponent(r.registration_id)+'/approve',{
+                method:'POST',credentials:'include',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({})
+              });
+              const body=await result.json();
+              if(!result.ok||!body.ok)throw new Error(body.error||'Approval failed');
+              alert('Registration approved.');
+              await renderBens();
+            }catch(error){
+              alert(error.message||'Approval failed.');
+              approve.disabled=false;
+            }
+          };
+          actions.appendChild(approve);
+          item.appendChild(info);
+          item.appendChild(actions);
+          listP.appendChild(item);
+        });
+      }
+    }catch(error){
+      listP.textContent='Could not load server registrations: '+(error.message||'Please sign in and refresh.');
+    }
+  }
+
+  benCount=bens.length;
+  document.getElementById('countApproved').innerText=bens.length;
+  updateUI();
+  localStorage.setItem('guvaza_bens',JSON.stringify(bens));
+  renderDelLog();
+  const histEl=document.getElementById('benPayoutHistory');
+  if(histEl){
+    if(benPoolPayouts.length===0)histEl.innerHTML='No payouts yet - auto after 24h | '+(wallets.ben>0?`Pool $${wallets.ben.toFixed(2)} waiting`:'Pool empty');
+    else histEl.innerHTML=benPoolPayouts.slice(0,10).map(p=>`[${p.date}] $${p.total.toFixed(2)}/${p.count}=$${p.perHead.toFixed(2)} each`).join('<br>');
+  }
 }
 function addBen(){let name=document.getElementById('newBenName').value.trim();let id=document.getElementById('newBenID').value.trim();let phone=document.getElementById('newBenPhone').value.trim();if(!name||!id)return alert('Name+ID');if(bens.some(b=>b.id===id))return alert('ID exists');bens.push({name,id,phone,dateAdded:new Date().toLocaleString()});if(!(id in benWallets)) benWallets[id]=0;saveWallets();document.getElementById('newBenName').value='';document.getElementById('newBenID').value='';document.getElementById('newBenPhone').value='';renderBens();log(`Added ${name}`);}
-function approvePending(i){let p=pendingRegs[i];if(bens.some(b=>b.id===p.id))return alert('ID exists');bens.push({name:p.name,id:p.id,phone:p.phone||'',dateAdded:new Date().toLocaleString()});if(!(p.id in benWallets)) benWallets[p.id]=0;saveWallets();pendingRegs.splice(i,1);localStorage.setItem('guvaza_pending_regs',JSON.stringify(pendingRegs));localStorage.setItem('guvaza_bens',JSON.stringify(bens));renderBens();log(`Approved ${p.name}`);}
-function rejectPending(i){pendingRegs.splice(i,1);localStorage.setItem('guvaza_pending_regs',JSON.stringify(pendingRegs));renderBens();}
+async function approvePending(i){await renderBens();}
+function rejectPending(i){alert('Rejection is not available yet because the server has no registration rejection endpoint. This application remains pending.');}
 function openEditModal(i){editIndex=i;document.getElementById('editNameInput').value=bens[i].name;document.getElementById('editIDInput').value=bens[i].id;document.getElementById('editPhoneInput').value=bens[i].phone||'';document.getElementById('editModal').classList.add('show');}
 function closeEditModal(){document.getElementById('editModal').classList.remove('show');}
 function confirmEdit(){let nn=document.getElementById('editNameInput').value.trim();let nid=document.getElementById('editIDInput').value.trim();let nphone=document.getElementById('editPhoneInput').value.trim();if(!nn||!nid||editIndex<0)return;if(bens.some((b,idx)=>idx!==editIndex && b.id===nid))return alert('ID used');let oldId=bens[editIndex].id;if(oldId!==nid && benWallets[oldId]!=null){benWallets[nid]=(benWallets[nid]||0)+(benWallets[oldId]||0);delete benWallets[oldId];}bens[editIndex].name=nn;bens[editIndex].id=nid;bens[editIndex].phone=nphone;localStorage.setItem('guvaza_bens',JSON.stringify(bens));saveWallets();renderBens();closeEditModal();}
@@ -1518,7 +1599,7 @@ function confirmDelete(){if(deleteIndex<0)return;let removed=bens.splice(deleteI
 function renderDelLog(){let el=document.getElementById('delLog');if(!el)return;if(delLogs.length===0){el.innerText='No deletions';return;}el.innerHTML=delLogs.map(d=>`[${d.time}] ${d.name} ID:${d.id} - ${d.reason}`).join('<br>');}
 renderBens();
 function autoApprovePendingRegs(){if(!autoApprove)return;pendingRegs=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');if(pendingRegs.length===0)return;let rem=[];pendingRegs.forEach(p=>{if(p.id&&p.name&&!bens.some(b=>b.id===p.id)){bens.push({name:p.name,id:p.id,phone:p.phone||'',dateAdded:new Date().toLocaleString()+' (AUTO)'});if(!(p.id in benWallets)) benWallets[p.id]=0;saveWallets();log(`AUTO APPROVED ${p.name}`);}else rem.push(p);});localStorage.setItem('guvaza_bens',JSON.stringify(bens));localStorage.setItem('guvaza_pending_regs',JSON.stringify(rem));renderBens();}
-setInterval(autoApprovePendingRegs,3000);
+// Automatic local-storage approval disabled: server registrations require authorised review.
 let funeralRequests=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');let funeralPaid=JSON.parse(localStorage.getItem('guvaza_funeral_paid')||'[]');
 function switchFunTab(tab){document.getElementById('funTab-pending').classList.toggle('active', tab==='pending');document.getElementById('funTab-paid').classList.toggle('active', tab==='paid');document.getElementById('funListPending').style.display=tab==='pending'?'block':'none';document.getElementById('funListPaid').style.display=tab==='paid'?'block':'none';renderFuneral();}
 function renderFuneral(){funeralRequests=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');funeralPaid=JSON.parse(localStorage.getItem('guvaza_funeral_paid')||'[]');let listP=document.getElementById('funListPending');listP.innerHTML='';if(funeralRequests.length===0)listP.innerHTML='<p style="color:var(--muted)">No pending funeral</p>';else funeralRequests.forEach((r,i)=>{listP.innerHTML+=`<div class="deceased-card"><b>Deceased: ${r.deceasedName}</b> ID:${r.deceasedID} PayTo:${r.payTo}<br><small>${r.dateSubmitted}</small><div class="ben-actions"><button class="icon-btn view" onclick="viewCert(${i},'pending','funeral')">View Cert</button><button class="icon-btn approve" onclick="approveFuneral(${i})">Force Pay $${CFG.caps.funeralPayout}</button><button class="icon-btn del" onclick="rejectFuneral(${i})">Reject</button></div></div>`;});let listPaid=document.getElementById('funListPaid');listPaid.innerHTML='';if(funeralPaid.length===0)listPaid.innerHTML='<p style="color:var(--muted)">No paid</p>';else funeralPaid.forEach((r,i)=>{listPaid.innerHTML+=`<div class="ben-item" style="border-left:4px solid #10b981"><div class="ben-info"><b>${r.deceasedName}</b> - $${r.amount} → ${r.payTo}<br><small>ID:${r.deceasedID} | ${r.datePaid}</small></div><div class="ben-actions"><button class="icon-btn view" onclick="viewCert(${i},'paid','funeral')">Cert</button></div></div>`;});document.getElementById('countFunPending').innerText=funeralRequests.length;document.getElementById('countFunPaid').innerText=funeralPaid.length;document.getElementById('funPendingBadge').style.display=funeralRequests.length>0?'inline-flex':'none';document.getElementById('funPendingBadge').innerText=funeralRequests.length+' claims';}
@@ -2410,106 +2491,6 @@ function resolveHeskiaSilent(){
 document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(updateHeskiaCard, 800); });
 </script>
 
-
-<!-- Server-backed registration list integration -->
-<script>
-(async function connectServerRegistrations() {
-  const isAdminPage = location.pathname.toLowerCase().endsWith('admin.html');
-  const listId = isAdminPage ? 'pendingList' : 'benListPending';
-  const countId = isAdminPage ? 'pendingCountBadge' : 'countPending';
-  const container = document.getElementById(listId);
-  if (!container) return;
-
-  async function loadRegistrations() {
-    container.innerHTML = '<p>Loading server registrations...</p>';
-    try {
-      const response = await fetch('/api/registrations', {
-        method: 'GET',
-        credentials: 'include',
-        cache: 'no-store'
-      });
-      const data = await response.json();
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error || 'Unable to load registrations');
-      }
-
-      const pending = (data.registrations || []).filter(
-        r => String(r.status || '').toUpperCase() === 'PENDING'
-      );
-
-      if (countId === 'pendingCountBadge') {
-        document.getElementById(countId).textContent = pending.length + ' Pending';
-      } else {
-        document.getElementById(countId).textContent = pending.length;
-      }
-
-      if (!pending.length) {
-        container.innerHTML = '<p>No pending server registrations.</p>';
-        return;
-      }
-
-      container.innerHTML = '';
-      pending.forEach(reg => {
-        const item = document.createElement('div');
-        item.className = 'ben-item';
-        const info = document.createElement('div');
-        info.className = 'ben-info';
-        const name = document.createElement('b');
-        name.textContent = reg.full_name || 'Unnamed applicant';
-        info.appendChild(name);
-        info.appendChild(document.createElement('br'));
-        info.appendChild(document.createTextNode(
-          'Family ID: ' + (reg.applicant_system_id || 'Not linked')
-        ));
-        info.appendChild(document.createElement('br'));
-        info.appendChild(document.createTextNode(
-          'Parent: ' + (reg.parent_full_name || 'Not recorded')
-        ));
-
-        const actions = document.createElement('div');
-        const approve = document.createElement('button');
-        approve.textContent = 'Approve';
-        approve.className = 'primary';
-        approve.addEventListener('click', async () => {
-          if (!confirm('Approve registration for ' + (reg.full_name || 'this applicant') + '?')) return;
-          approve.disabled = true;
-          try {
-            const result = await fetch(
-              '/api/registrations/' + encodeURIComponent(reg.registration_id) + '/approve',
-              {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-              }
-            );
-            const body = await result.json();
-            if (!result.ok || !body.ok) throw new Error(body.error || 'Approval failed');
-            alert('Registration approved.');
-            await loadRegistrations();
-          } catch (err) {
-            alert(err.message || 'Could not approve registration.');
-            approve.disabled = false;
-          }
-        });
-
-        actions.appendChild(approve);
-        item.appendChild(info);
-        item.appendChild(actions);
-        container.appendChild(item);
-      });
-    } catch (err) {
-      container.textContent = 'Could not load server registrations: ' + (err.message || 'Please sign in and refresh.');
-    }
-  }
-
-  await loadRegistrations();
-  const refresh = document.querySelector(
-    isAdminPage ? 'button[onclick="renderPending()"]' : '#tab-pending'
-  );
-  if (refresh) refresh.addEventListener('click', loadRegistrations);
-})();
-</script>
 
 </body>
 </html>

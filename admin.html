@@ -1261,27 +1261,92 @@ renderAboutSectionsAdmin();
 alert('Converted! Now about.html will show About → Gallery with both-side edging + hover');
 }
 
-function renderPending(){
- let pending=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');
- document.getElementById('pendingCountBadge').innerText=pending.length+' Pending';
- let list=document.getElementById('pendingList');
- if(pending.length===0){list.innerHTML='<p style="color:var(--muted)">No pending</p>';return;}
- list.innerHTML=''; pending.forEach((p,i)=>{
-  list.innerHTML+=`<div class="ben-item" style="border-left:4px solid #f59e0b;border-right:4px solid #f59e0b"><div class="ben-info"><b>${p.name}</b> ID:${p.id}<br><small>${p.phone||''}</small></div><div style="display:flex;gap:6px"><button class="primary" onclick="approvePendingAdmin(${i})">Approve</button><button class="danger" onclick="rejectPendingAdmin(${i})">Reject</button></div></div>`;
- });
+async function renderPending(){
+ const badge=document.getElementById('pendingCountBadge');
+ const list=document.getElementById('pendingList');
+ if(!list || !badge) return;
+ list.innerHTML='<p>Loading registrations from server...</p>';
+
+ try{
+  const response=await fetch('/api/registrations',{
+   method:'GET',credentials:'include',cache:'no-store'
+  });
+  const data=await response.json();
+  if(!response.ok || !data.ok) throw new Error(data.error||'Unable to load registrations');
+
+  const pending=(data.registrations||[]).filter(
+   r=>String(r.status||'').toUpperCase()==='PENDING'
+  );
+  badge.innerText=pending.length+' Pending';
+
+  if(!pending.length){
+   list.innerHTML='<p style="color:var(--muted)">No pending server registrations</p>';
+   return;
+  }
+
+  list.innerHTML='';
+  pending.forEach(r=>{
+   const item=document.createElement('div');
+   item.className='ben-item';
+   item.style.borderLeft='4px solid #f59e0b';
+   item.style.borderRight='4px solid #f59e0b';
+
+   const info=document.createElement('div');
+   info.className='ben-info';
+   const name=document.createElement('b');
+   name.textContent=r.full_name||'Unnamed applicant';
+   info.appendChild(name);
+   info.appendChild(document.createElement('br'));
+   info.appendChild(document.createTextNode('Family ID: '+(r.applicant_system_id||'Not linked')));
+   info.appendChild(document.createElement('br'));
+   info.appendChild(document.createTextNode('Parent: '+(r.parent_full_name||'Not recorded')));
+
+   const actions=document.createElement('div');
+   actions.style.display='flex';
+   actions.style.gap='6px';
+
+   const approve=document.createElement('button');
+   approve.className='primary';
+   approve.textContent='Approve';
+   approve.addEventListener('click',async()=>{
+    if(!confirm('Approve registration for '+(r.full_name||'this applicant')+'?')) return;
+    approve.disabled=true;
+    try{
+     const result=await fetch('/api/registrations/'+encodeURIComponent(r.registration_id)+'/approve',{
+      method:'POST',credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({})
+     });
+     const body=await result.json();
+     if(!result.ok||!body.ok) throw new Error(body.error||'Approval failed');
+     alert('Registration approved.');
+     await renderPending();
+     if(typeof renderMembers==='function') renderMembers();
+    }catch(error){
+     alert(error.message||'Approval failed.');
+     approve.disabled=false;
+    }
+   });
+
+   actions.appendChild(approve);
+   item.appendChild(info);
+   item.appendChild(actions);
+   list.appendChild(item);
+  });
+ }catch(error){
+  badge.innerText='Unavailable';
+  list.textContent='Could not load registrations: '+(error.message||'Please sign in again and refresh.');
+ }
 }
-function approvePendingAdmin(i){
- let pending=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');
- let p=pending[i];
- let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');
- if(bens.some(b=>b.id===p.id)) return alert('ID exists');
- bens.push({name:p.name,id:p.id,phone:p.phone||'',dateAdded:new Date().toLocaleString()+' (Approved by '+currentAdmin.name+')'});
- pending.splice(i,1);
- localStorage.setItem('guvaza_bens',JSON.stringify(bens));
- localStorage.setItem('guvaza_pending_regs',JSON.stringify(pending));
- renderPending(); renderMembers();
+
+async function approvePendingAdmin(i){
+ await renderPending();
 }
-function rejectPendingAdmin(i){let pending=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]'); pending.splice(i,1); localStorage.setItem('guvaza_pending_regs',JSON.stringify(pending)); renderPending();}
+
+async function rejectPendingAdmin(i){
+ alert('Rejection is not available yet because the server has no registration rejection endpoint. The application remains pending.');
+}
+
 function renderMembers(){
  let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');
  let list=document.getElementById('membersList');
@@ -1558,106 +1623,6 @@ renderMembers=function(){
     }
   }catch(e){}
 }
-</script>
-
-<!-- Server-backed registration list integration -->
-<script>
-(async function connectServerRegistrations() {
-  const isAdminPage = location.pathname.toLowerCase().endsWith('admin.html');
-  const listId = isAdminPage ? 'pendingList' : 'benListPending';
-  const countId = isAdminPage ? 'pendingCountBadge' : 'countPending';
-  const container = document.getElementById(listId);
-  if (!container) return;
-
-  async function loadRegistrations() {
-    container.innerHTML = '<p>Loading server registrations...</p>';
-    try {
-      const response = await fetch('/api/registrations', {
-        method: 'GET',
-        credentials: 'include',
-        cache: 'no-store'
-      });
-      const data = await response.json();
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error || 'Unable to load registrations');
-      }
-
-      const pending = (data.registrations || []).filter(
-        r => String(r.status || '').toUpperCase() === 'PENDING'
-      );
-
-      if (countId === 'pendingCountBadge') {
-        document.getElementById(countId).textContent = pending.length + ' Pending';
-      } else {
-        document.getElementById(countId).textContent = pending.length;
-      }
-
-      if (!pending.length) {
-        container.innerHTML = '<p>No pending server registrations.</p>';
-        return;
-      }
-
-      container.innerHTML = '';
-      pending.forEach(reg => {
-        const item = document.createElement('div');
-        item.className = 'ben-item';
-        const info = document.createElement('div');
-        info.className = 'ben-info';
-        const name = document.createElement('b');
-        name.textContent = reg.full_name || 'Unnamed applicant';
-        info.appendChild(name);
-        info.appendChild(document.createElement('br'));
-        info.appendChild(document.createTextNode(
-          'Family ID: ' + (reg.applicant_system_id || 'Not linked')
-        ));
-        info.appendChild(document.createElement('br'));
-        info.appendChild(document.createTextNode(
-          'Parent: ' + (reg.parent_full_name || 'Not recorded')
-        ));
-
-        const actions = document.createElement('div');
-        const approve = document.createElement('button');
-        approve.textContent = 'Approve';
-        approve.className = 'primary';
-        approve.addEventListener('click', async () => {
-          if (!confirm('Approve registration for ' + (reg.full_name || 'this applicant') + '?')) return;
-          approve.disabled = true;
-          try {
-            const result = await fetch(
-              '/api/registrations/' + encodeURIComponent(reg.registration_id) + '/approve',
-              {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-              }
-            );
-            const body = await result.json();
-            if (!result.ok || !body.ok) throw new Error(body.error || 'Approval failed');
-            alert('Registration approved.');
-            await loadRegistrations();
-          } catch (err) {
-            alert(err.message || 'Could not approve registration.');
-            approve.disabled = false;
-          }
-        });
-
-        actions.appendChild(approve);
-        item.appendChild(info);
-        item.appendChild(actions);
-        container.appendChild(item);
-      });
-    } catch (err) {
-      container.textContent = 'Could not load server registrations: ' + (err.message || 'Please sign in and refresh.');
-    }
-  }
-
-  await loadRegistrations();
-  const refresh = document.querySelector(
-    isAdminPage ? 'button[onclick="renderPending()"]' : '#tab-pending'
-  );
-  if (refresh) refresh.addEventListener('click', loadRegistrations);
-})();
 </script>
 
 </body>
