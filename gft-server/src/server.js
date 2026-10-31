@@ -786,7 +786,7 @@ app.post(
 
     return res.json({
       ok: true,
-      expiresInSeconds: 600
+      expiresInSeconds: 180
     });
 
   } catch (error) {
@@ -991,12 +991,29 @@ app.post(
       String(record.grandparentName || '').trim() || null;
 
     const idNumber =
-      String(record.idNumber || record.id_number || '').trim() || null;
+      String(record.idNumber || record.id_number || record.documentNumber || '').trim() || null;
 
     if (!fullName) {
       return res.status(400).json({
         ok: false,
         error: 'Full name is required'
+      });
+    }
+
+    if (!idNumber) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Applicant identity or birth-document number is required'
+      });
+    }
+
+    // The browser's required attribute is not a security boundary.
+    // Require the primary document again on the server before saving.
+    const applicantDocument = req.files?.applicantDocument?.[0];
+    if (!applicantDocument) {
+      return res.status(400).json({
+        ok: false,
+        error: 'The applicant primary document must be uploaded'
       });
     }
 
@@ -1083,102 +1100,125 @@ const verifiedGrandparentId =
 const serverSystemId =
   await generateGftSystemId(verifiedGeneration);
 
-    const result = await query(
-      `INSERT INTO registrations (
-  applicant_system_id,
-  full_name,
-  username,
-  phone,
-  id_number,
-  parent_full_name,
-  grandparent_full_name,
-  email,
-  date_of_birth,
-  gender,
-  current_surname,
-  generation,
-  branch_code,
-  wife_no,
-  parent_system_id,
-  grandparent_system_id,
-  status
-)
-       
-      VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9,
-  $10, $11, $12, $13, $14, $15, $16, 'PENDING'
-)
-       RETURNING
-         registration_id,
-         applicant_system_id,
-         status,
-         submitted_at`,
-     [
- serverSystemId,
-  fullName,
-  username,
-  phone,
-  idNumber,
-  parentName,
-  grandparentName,
-  registrationEmail,
-  record.dateOfBirth || null,
-  record.gender || null,
-  record.currentSurname || null,
-  verifiedGeneration,
-  verifiedBranch,
-  verifiedWifeNo,
-  verifiedParentId,
-  verifiedGrandparentId
-]
-    );
+    let saved;
+    const serverVerification = {
+      emailStatus: 'VERIFIED',
+      lineageStatus: 'LINEAGE_CONFIRMED',
+      familyStructureStatus: 'VERIFIED',
+      identityStatus: 'PENDING_DOCUMENT_VERIFICATION',
+      beneficiaryStatus: 'PENDING_VERIFICATION',
+      founderVerificationStatus: 'PENDING',
+      walletEligible: false,
+      payoutEligible: false
+    };
 
-    const saved = result.rows[0];
-  const serverVerification = {
-  emailStatus: 'VERIFIED',
-  lineageStatus: 'LINEAGE_CONFIRMED',
-  familyStructureStatus: 'VERIFIED',
-  identityStatus: 'PENDING_DOCUMENT_VERIFICATION',
-  beneficiaryStatus: 'PENDING_VERIFICATION',
-  founderVerificationStatus: 'PENDING',
-  walletEligible: false,
-  payoutEligible: false
-};
+    const uploadedDocuments = [
+      { field: 'applicantDocument', type: 'APPLICANT_DOCUMENT' },
+      { field: 'parentDocument', type: 'PARENT_DOCUMENT' },
+      { field: 'additionalDocument', type: 'ADDITIONAL_DOCUMENT' }
+    ];
 
-const uploadedDocuments = [
-  {
-    field: 'applicantDocument',
-    type: 'APPLICANT_DOCUMENT'
-  },
-  {
-    field: 'parentDocument',
-    type: 'PARENT_DOCUMENT'
-  },
-  {
-    field: 'additionalDocument',
-    type: 'ADDITIONAL_DOCUMENT'
-  }
-];
+    // Save the application, its documents, and OTP consumption atomically.
+    await withTransaction(async (client) => {
+      const otpResult = await client.query(
+        `SELECT otp_id
+         FROM registration_otps
+         WHERE email = $1
+           AND verified_at IS NOT NULL
+           AND expires_at > NOW()
+         ORDER BY verified_at DESC
+         LIMIT 1
+         FOR UPDATE`,
+        [registrationEmail]
+      );
 
-for (const document of uploadedDocuments) {
-  const file = req.files?.[document.field]?.[0];
+      if (!otpResult.rows.length) {
+        const otpError = new Error('Email verification is required or has already been used');
+        otpError.code = 'REGISTRATION_OTP_REQUIRED';
+        throw otpError;
+      }
 
-  if (!file) continue;
+      const result = await client.query(
+        `INSERT INTO registrations (
+          applicant_system_id,
+          full_name,
+          username,
+          phone,
+          id_number,
+          parent_full_name,
+          grandparent_full_name,
+          email,
+          date_of_birth,
+          gender,
+          current_surname,
+          generation,
+          branch_code,
+          wife_no,
+          parent_system_id,
+          grandparent_system_id,
+          status
+        )
+        VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9,
+          $10, $11, $12, $13, $14, $15, $16, 'PENDING'
+        )
+        RETURNING
+          registration_id,
+          applicant_system_id,
+          status,
+          submitted_at`,
+        [
+          serverSystemId,
+          fullName,
+          username,
+          phone,
+          idNumber,
+          parentName,
+          grandparentName,
+          registrationEmail,
+          record.dateOfBirth || null,
+          record.gender || null,
+          record.currentSurname || null,
+          verifiedGeneration,
+          verifiedBranch,
+          verifiedWifeNo,
+          verifiedParentId,
+          verifiedGrandparentId
+        ]
+      );
 
-  await query(
-    `INSERT INTO registration_documents
-       (registration_id, document_type, file_name, mime_type, file_size, file_data)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
-    [
-      saved.registration_id,
-      document.type,
-      file.originalname,
-      file.mimetype,
-      file.size,
-      file.buffer
-    ]
-  );
-}
+      saved = result.rows[0];
+
+      for (const document of uploadedDocuments) {
+        const file = req.files?.[document.field]?.[0];
+        if (!file) continue;
+
+        await client.query(
+          `INSERT INTO registration_documents
+             (registration_id, document_type, file_name, mime_type, file_size, file_data)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            saved.registration_id,
+            document.type,
+            file.originalname,
+            file.mimetype,
+            file.size,
+            file.buffer
+          ]
+        );
+      }
+
+      const consumedOtp = await client.query(
+        `DELETE FROM registration_otps
+         WHERE otp_id = $1
+         RETURNING otp_id`,
+        [otpResult.rows[0].otp_id]
+      );
+
+      if (!consumedOtp.rows.length) {
+        throw new Error('Registration verification code could not be consumed');
+      }
+    });
 
     return res.status(201).json({
       ok: true,
@@ -1191,6 +1231,13 @@ for (const document of uploadedDocuments) {
     });
 
   } catch (error) {
+    if (error?.code === 'REGISTRATION_OTP_REQUIRED') {
+      return res.status(400).json({
+        ok: false,
+        error: 'Email verification is required. Please request and verify a new code.'
+      });
+    }
+
     console.error('Registration submission error:', error);
 
     return res.status(500).json({

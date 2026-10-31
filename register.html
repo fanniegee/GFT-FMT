@@ -222,9 +222,11 @@ footer{max-width:1080px;margin:0 auto 40px;padding:0 18px;color:var(--muted);fon
   GFT REGISTER — canonical registration front end.
 
   Production integration points:
+    POST /api/registration/verify-lineage
+    POST /api/registration/verify-structure
     POST /api/registration/send-otp
     POST /api/registration/verify-otp
-    POST /api/registration/submit
+    POST /api/registrations (multipart submission)
 
   The browser deliberately does NOT generate/store OTPs or store document binaries.
   The backend must perform secure OTP generation/hashing/rate limiting, OCR,
@@ -766,7 +768,7 @@ async function api(path,options={}){
     ...options,headers:{"Content-Type":"application/json",...(options.headers||{})}
   });
   let data={};try{data=await res.json()}catch{}
-  if(!res.ok) throw new Error(data.message||`Verification service returned HTTP ${res.status}`);
+  if(!res.ok) throw new Error(data.error || data.message || `Verification service returned HTTP ${res.status}`);
   return data;
 }
 
@@ -776,11 +778,12 @@ async function sendOtp(){
   $("sendOtpBtn").disabled=true;
   try{
     const data=await api("/send-otp",{method:"POST",body:JSON.stringify({email})});
-    state.otpExpiresAt=Date.now()+180000;
+    const expirySeconds = Number(data.expiresInSeconds || 180);
+    state.otpExpiresAt=Date.now()+(expirySeconds*1000);
     startOtpTimer();
-    showOtpResult(data.message||"OTP sent. It expires in 180 seconds.","ok");
+    showOtpResult(data.message||`OTP sent. It expires in ${expirySeconds} seconds.`,"ok");
   }catch(e){
-    showOtpResult("Email verification service is not configured or could not be reached. No client-side OTP is generated because doing so would expose the verification secret.","danger");
+    showOtpResult(e.message || "Unable to send the verification code. No client-side OTP is generated.","danger");
   }finally{setTimeout(()=>$("sendOtpBtn").disabled=false,15000);}
 }
 function startOtpTimer(){
@@ -807,33 +810,18 @@ async function verifyOtp(){
   }catch(e){showOtpResult(e.message||"Email verification failed.","danger");}
 }
 
-function nextGftId(generation){
-  const records=allRecords();
-  const prefix=`GFT-GEN${generation}-`;
-  let max=0;
-  records.forEach(r=>{
-    const id=getPersonId(r)||"";
-    if(id.startsWith(prefix)){
-      const n=parseInt(id.slice(prefix.length),10);if(Number.isFinite(n))max=Math.max(max,n);
-    }
-  });
-  return `${prefix}${String(max+1).padStart(3,"0")}`;
-}
-
 function createCanonicalRecord(){
   const gen=state.structure?.generation || ((getGeneration(state.lineage?.parent)||0)+1);
-  const systemId=nextGftId(gen);
   const parent=state.lineage?.parent,gp=state.lineage?.grandparent;
   const femaleGrace=state.structure?.femaleGrace || {eligible:false};
   const structureNeedsReview=state.wifeFrozen || !state.wifeVerified || state.lineage?.status!=="LINEAGE_CONFIRMED";
   return {
-  systemId,
   fullName:fieldValue("fullName"),
   dateOfBirth:fieldValue("dateOfBirth"),
   gender:fieldValue("gender"),
   rootSurname:"Guvaza",
   currentSurname:fieldValue("currentSurname"),
-  documentNumber:fieldValue("documentNumber"),
+  idNumber:fieldValue("documentNumber"),
 
     parentId:getPersonId(parent),
     parentName:parent?getFullName(parent):fieldValue("parentName"),
@@ -872,9 +860,9 @@ async function submitRegistration(){
 
 formData.append("record", JSON.stringify(record));
 
-const applicantFile = $("#applicantDocument")?.files?.[0];
-const parentFile = $("#parentDocument")?.files?.[0];
-const additionalFile = $("#additionalDocument")?.files?.[0];
+const applicantFile = $("applicantDocument")?.files?.[0];
+const parentFile = $("parentDocument")?.files?.[0];
+const additionalFile = $("additionalDocument")?.files?.[0];
 
 if (applicantFile) {
   formData.append("applicantDocument", applicantFile);
@@ -898,8 +886,8 @@ try{
 
     if(!response.ok){
       throw new Error(
-        result.message ||
         result.error ||
+        result.message ||
         "Registration could not be submitted."
       );
     }
