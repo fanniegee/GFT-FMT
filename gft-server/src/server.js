@@ -1262,7 +1262,7 @@ const serverSystemId = structureConfirmed
 // Reads directly from PostgreSQL.
 // ------------------------------------------------------------
 
-app.get('/api/registrations', requireAdmin, async (req, res) => {
+app.get('/api/registrations', requireRegistrationReviewer, async (req, res) => {
   try {
     const result = await query(
       `SELECT
@@ -1303,6 +1303,143 @@ app.get('/api/registrations', requireAdmin, async (req, res) => {
       ok: false,
       error: 'Unable to load registrations'
     });
+  }
+});
+
+// ------------------------------------------------------------
+// FOUNDER REGISTRATION REVIEW — APPLICATION DETAILS
+// Returns submitted application fields and document metadata.
+// File bytes are delivered only through the protected document route.
+// ------------------------------------------------------------
+app.get('/api/registrations/:registrationId/review', requireRegistrationReviewer, async (req, res) => {
+  try {
+    const registrationId = String(req.params.registrationId || '').trim();
+    const registrationResult = await query(
+      `SELECT registration_id, applicant_system_id, full_name, username,
+              phone, id_number, email, date_of_birth, gender, current_surname,
+              generation, branch_code, wife_no, parent_system_id,
+              grandparent_system_id, parent_full_name, grandparent_full_name,
+              status, submitted_at, reviewed_at, review_notes
+       FROM registrations WHERE registration_id = $1 LIMIT 1`,
+      [registrationId]
+    );
+    if (!registrationResult.rows.length) {
+      return res.status(404).json({ ok: false, error: 'Registration not found' });
+    }
+    const documentsResult = await query(
+      `SELECT document_id, document_type, file_name, mime_type, file_size, created_at
+       FROM registration_documents WHERE registration_id = $1 ORDER BY created_at ASC`,
+      [registrationId]
+    );
+    return res.json({
+      ok: true,
+      registration: registrationResult.rows[0],
+      documents: documentsResult.rows,
+      serverAuthoritative: true
+    });
+  } catch (error) {
+    console.error('Registration review detail error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to load registration details' });
+  }
+});
+
+// ------------------------------------------------------------
+// FOUNDER REGISTRATION REVIEW — SECURE DOCUMENT DELIVERY
+// ------------------------------------------------------------
+app.get('/api/registrations/:registrationId/documents/:documentId', requireRegistrationReviewer, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT file_name, mime_type, file_data
+       FROM registration_documents
+       WHERE registration_id = $1 AND document_id = $2 LIMIT 1`,
+      [String(req.params.registrationId || '').trim(), String(req.params.documentId || '').trim()]
+    );
+    if (!result.rows.length) {
+      return res.status(404).json({ ok: false, error: 'Registration document not found' });
+    }
+    const document = result.rows[0];
+    const allowedTypes = new Set(['application/pdf', 'image/jpeg', 'image/png']);
+    const mimeType = allowedTypes.has(document.mime_type) ? document.mime_type : 'application/octet-stream';
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(document.file_name || 'registration-document')}`);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'private, no-store');
+    return res.send(document.file_data);
+  } catch (error) {
+    console.error('Registration document delivery error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to retrieve registration document' });
+  }
+});
+
+// ------------------------------------------------------------
+// FOUNDER REGISTRATION REVIEW — NON-APPROVAL DECISIONS
+// A reason is required and the application remains server-recorded.
+// ------------------------------------------------------------
+app.post('/api/registrations/:registrationId/decision', requireRegistrationReviewer, async (req, res) => {
+  try {
+    const registrationId = String(req.params.registrationId || '').trim();
+    const decision = String(req.body?.decision || '').trim().toUpperCase();
+    const reason = String(req.body?.reason || '').trim();
+    const allowedDecisions = new Set(['REJECTED', 'NEEDS_INFORMATION', 'REFERRED']);
+    if (!registrationId) return res.status(400).json({ ok: false, error: 'Registration ID is required' });
+    if (!allowedDecisions.has(decision)) return res.status(400).json({ ok: false, error: 'Choose a valid review decision' });
+    if (reason.length < 5) return res.status(400).json({ ok: false, error: 'Please provide a review note of at least 5 characters' });
+
+    // NEEDS_INFORMATION and REFERRED remain PENDING so they can be
+    // revisited after the applicant responds or verification is completed.
+    // REJECTED is the only terminal non-approval status used here.
+    const nextStatus = decision === 'REJECTED' ? 'REJECTED' : 'PENDING';
+    const reviewerLabel = req.admin?.email || req.admin?.admin_id || 'Authorised Admin';
+    const reviewerId = req.admin?.admin_id || null;
+    const note = `Decision: ${decision}\nReviewed by: ${reviewerLabel}\nReviewer ID: ${reviewerId || 'Unavailable'}\nReason: ${reason}`;
+
+    const result = await withTransaction(async (client) => {
+      const updated = await client.query(
+        `UPDATE registrations
+         SET status = $2,
+             reviewed_at = NOW(),
+             review_notes = CASE WHEN COALESCE(review_notes, '') = '' THEN $3 ELSE review_notes || E'\n\n' || $3 END
+         WHERE registration_id = $1 AND UPPER(status) = 'PENDING'
+         RETURNING registration_id, applicant_system_id, status, reviewed_at, review_notes`,
+        [registrationId, nextStatus, note]
+      );
+      if (!updated.rows.length) {
+        const exists = await client.query('SELECT status FROM registrations WHERE registration_id = $1 LIMIT 1', [registrationId]);
+        if (!exists.rows.length) {
+          const err = new Error('Registration not found'); err.httpStatus = 404; throw err;
+        }
+        const err = new Error(`This application is not currently reviewable (current status: ${exists.rows[0].status})`); err.httpStatus = 409; throw err;
+      }
+      await client.query(
+        `INSERT INTO gft_admin_audit_events (event_id, admin_id, admin_email, action, details, ip_address, user_agent)
+         VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7)`,
+        [`AUD-${randomBytes(10).toString('hex')}`, reviewerId, req.admin?.email || null, `REGISTRATION_${decision}`, JSON.stringify({ registrationId, nextStatus, reason }), req.ip || null, req.get('user-agent') || null]
+      );
+      return updated.rows[0];
+    });
+    return res.json({ ok: true, registration: result, serverAuthoritative: true });
+  } catch (error) {
+    if (error.httpStatus) return res.status(error.httpStatus).json({ ok: false, error: error.message });
+    console.error('Registration review decision error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to save the review decision' });
+  }
+});
+
+// ------------------------------------------------------------
+// FOUNDER APPROVED BENEFICIARY POOL — SERVER SOURCE OF TRUTH
+// Does not modify the legacy browser-stored pool or payout records.
+// ------------------------------------------------------------
+app.get('/api/beneficiaries/admin/pool', requireRegistrationReviewer, async (_req, res) => {
+  try {
+    const result = await query(
+      `SELECT beneficiary_id, system_id, membership, full_name, username,
+              phone, identity_status, lineage_status, status, created_at
+       FROM beneficiaries ORDER BY created_at DESC, full_name ASC`
+    );
+    return res.json({ ok: true, count: result.rows.length, beneficiaries: result.rows, serverAuthoritative: true });
+  } catch (error) {
+    console.error('Founder approved beneficiary pool error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to load approved beneficiaries' });
   }
 });
 
@@ -1406,370 +1543,138 @@ async function issueGftVisaCard({
 
 app.post(
   '/api/registrations/:registrationId/approve',
-  requireAdmin,
+  requireRegistrationReviewer,
   async (req, res) => {
     try {
-      const registrationId =
-        String(req.params.registrationId || '').trim();
+      const registrationId = String(req.params.registrationId || '').trim();
+      const reason = String(req.body?.reason || 'Approved after registration review').trim();
+      if (!registrationId) return res.status(400).json({ ok: false, error: 'Registration ID is required' });
 
-      if (!registrationId) {
-        return res.status(400).json({
-          ok: false,
-          error: 'Registration ID is required'
-        });
-      }
+      let registration;
+      let beneficiary;
+      let updatedRegistration;
+      const reviewerId = req.admin?.admin_id || null;
+      const reviewerEmail = req.admin?.email || null;
 
-      // --------------------------------------------------------
-      // 1. Load the registration
-      // --------------------------------------------------------
-
-      const registrationResult = await query(
-        `SELECT
-           registration_id,
-           applicant_system_id,
-           full_name,
-           username,
-           phone,
-           id_number,
-           email,
-           date_of_birth,
-           gender,
-           current_surname,
-           generation,
-           branch_code,
-           wife_no,
-           parent_system_id,
-           grandparent_system_id,
-           parent_full_name,
-           grandparent_full_name,
-           status
-         FROM registrations
-         WHERE registration_id = $1
-         LIMIT 1`,
-        [registrationId]
-      );
-
-      if (registrationResult.rows.length === 0) {
-        return res.status(404).json({
-          ok: false,
-          error: 'Registration not found'
-        });
-      }
-
-      const registration =
-        registrationResult.rows[0];
-
-      // --------------------------------------------------------
-      // 2. Only PENDING registrations may be approved
-      // --------------------------------------------------------
-
-      if (
-        String(registration.status || '')
-          .toUpperCase() !== 'PENDING'
-      ) {
-        return res.status(409).json({
-          ok: false,
-          error:
-            `Registration cannot be approved because its current status is ${registration.status}`
-        });
-      }
-
-      // --------------------------------------------------------
-      // 3. Make sure the applicant has a valid GFT System ID
-      // --------------------------------------------------------
-
-      const systemId =
-        String(
-          registration.applicant_system_id || ''
-        ).trim();
-
-      if (!systemId) {
-        return res.status(400).json({
-          ok: false,
-          error:
-            'Registration does not have a valid GFT System ID'
-        });
-      }
-
-      // --------------------------------------------------------
-      // 4. Check whether this registration was already converted
-      // into a beneficiary.
-      //
-      // This protects against duplicate beneficiary creation.
-      // --------------------------------------------------------
-
-      const existingBeneficiaryResult =
-        await query(
-          `SELECT
-             beneficiary_id,
-             system_id,
-             membership,
-             full_name,
-             status
-           FROM beneficiaries
-           WHERE system_id = $1
-           LIMIT 1`,
-          [systemId]
+      await withTransaction(async (client) => {
+        const registrationResult = await client.query(
+          `SELECT registration_id, applicant_system_id, full_name, username, phone, id_number,
+                  email, date_of_birth, gender, current_surname, generation, branch_code,
+                  wife_no, parent_system_id, grandparent_system_id, parent_full_name,
+                  grandparent_full_name, status
+           FROM registrations WHERE registration_id = $1 LIMIT 1 FOR UPDATE`,
+          [registrationId]
         );
-
-      if (
-        existingBeneficiaryResult.rows.length > 0
-      ) {
-        const existing =
-          existingBeneficiaryResult.rows[0];
-
-        return res.status(409).json({
-          ok: false,
-          error:
-            'This registration already has a beneficiary record',
-          beneficiary: {
-            beneficiaryId:
-              existing.beneficiary_id,
-            systemId:
-              existing.system_id,
-            membership:
-              existing.membership,
-            fullName:
-              existing.full_name,
-            status:
-              existing.status
-          }
-        });
-      }
-
-      // --------------------------------------------------------
-      // 5. Create the official beneficiary
-      //
-      // Membership is server-generated from the official
-      // GFT System ID.
-      // --------------------------------------------------------
-
-      const membership =
-        `GFT-MEM-${systemId}`;
-
-      const profile = {
-        parentId:
-          registration.parent_system_id || null,
-
-        grandparentId:
-          registration.grandparent_system_id || null,
-
-        parentName:
-          registration.parent_full_name || null,
-
-        grandparentName:
-          registration.grandparent_full_name || null,
-
-        generation:
-          registration.generation || null,
-
-        branch:
-          registration.branch_code || null,
-
-        wifeNo:
-          registration.wife_no || null,
-
-        gender:
-          registration.gender || null,
-
-        dateOfBirth:
-          registration.date_of_birth || null,
-
-        currentSurname:
-          registration.current_surname || null,
-
-        email:
-          registration.email || null,
-
-        registrationId:
-          registration.registration_id,
-
-        approvedAt:
-          new Date().toISOString(),
-
-        approvedByAdminId:
-          req.admin?.admin_id || null,
-
-        approvedByAdminEmail:
-          req.admin?.email || null
-      };
-
-      const beneficiaryResult =
-        await query(
-          `INSERT INTO beneficiaries
-             (
-               system_id,
-               membership,
-               full_name,
-               username,
-               phone,
-               id_number,
-               identity_status,
-               lineage_status,
-               status,
-               profile
-             )
-           VALUES
-             (
-               $1,
-               $2,
-               $3,
-               $4,
-               $5,
-               $6,
-               'VERIFIED',
-               'VERIFIED',
-               'ACTIVE',
-               $7::jsonb
-             )
-           RETURNING
-             beneficiary_id,
-             system_id,
-             membership,
-             full_name,
-             username,
-             phone,
-             identity_status,
-             lineage_status,
-             status,
-             profile,
-             created_at`,
-          [
-            systemId,
-            membership,
-            registration.full_name,
-            registration.username,
-            registration.phone,
-            registration.id_number,
-            JSON.stringify(profile)
-          ]
+        if (!registrationResult.rows.length) {
+          const err = new Error('Registration not found'); err.httpStatus = 404; throw err;
+        }
+        registration = registrationResult.rows[0];
+        if (String(registration.status || '').toUpperCase() !== 'PENDING') {
+          const err = new Error(`Registration cannot be approved because its current status is ${registration.status}`); err.httpStatus = 409; throw err;
+        }
+        const systemId = String(registration.applicant_system_id || '').trim();
+        if (!systemId) {
+          const err = new Error('Registration does not have a valid GFT System ID'); err.httpStatus = 400; throw err;
+        }
+        const existing = await client.query(
+          `SELECT beneficiary_id, system_id, membership, full_name, status
+           FROM beneficiaries WHERE system_id = $1 LIMIT 1`, [systemId]
         );
+        if (existing.rows.length) {
+          const err = new Error('This registration already has a beneficiary record'); err.httpStatus = 409; throw err;
+        }
 
-      const beneficiary =
-        beneficiaryResult.rows[0];
-
-      // --------------------------------------------------------
-      // 6. Mark the registration as APPROVED
-      // --------------------------------------------------------
-
-      const updatedRegistrationResult =
-        await query(
-          `UPDATE registrations
-           SET
-             status = 'APPROVED',
-             reviewed_at = NOW(),
-             review_notes = $2
-           WHERE registration_id = $1
-           RETURNING
-             registration_id,
-             applicant_system_id,
-             status,
-             reviewed_at`,
-          [
-            registrationId,
-            'Registration approved and beneficiary activated'
-          ]
+        const membership = `GFT-MEM-${systemId}`;
+        const profile = {
+          parentId: registration.parent_system_id || null,
+          grandparentId: registration.grandparent_system_id || null,
+          parentName: registration.parent_full_name || null,
+          grandparentName: registration.grandparent_full_name || null,
+          generation: registration.generation || null,
+          branch: registration.branch_code || null,
+          wifeNo: registration.wife_no || null,
+          gender: registration.gender || null,
+          dateOfBirth: registration.date_of_birth || null,
+          currentSurname: registration.current_surname || null,
+          email: registration.email || null,
+          registrationId: registration.registration_id,
+          approvedAt: new Date().toISOString(),
+          approvedByAdminId: reviewerId,
+          approvedByAdminEmail: reviewerEmail
+        };
+        const beneficiaryResult = await client.query(
+          `INSERT INTO beneficiaries (system_id, membership, full_name, username, phone, id_number,
+             identity_status, lineage_status, status, profile)
+           VALUES ($1, $2, $3, $4, $5, $6, 'VERIFIED', 'VERIFIED', 'ACTIVE', $7::jsonb)
+           RETURNING beneficiary_id, system_id, membership, full_name, username, phone,
+                     identity_status, lineage_status, status, profile, created_at`,
+          [systemId, membership, registration.full_name, registration.username, registration.phone,
+           registration.id_number, JSON.stringify(profile)]
         );
+        beneficiary = beneficiaryResult.rows[0];
 
-      const updatedRegistration =
-        updatedRegistrationResult.rows[0];
+        const note = `Decision: APPROVED\nReviewed by: ${reviewerEmail || reviewerId || 'Authorised Admin'}\nReviewer ID: ${reviewerId || 'Unavailable'}\nReason: ${reason}`;
+        const updatedResult = await client.query(
+          `UPDATE registrations SET status = 'APPROVED', reviewed_at = NOW(),
+             review_notes = CASE WHEN COALESCE(review_notes, '') = '' THEN $2 ELSE review_notes || E'\n\n' || $2 END
+           WHERE registration_id = $1 AND UPPER(status) = 'PENDING'
+           RETURNING registration_id, applicant_system_id, status, reviewed_at`,
+          [registrationId, note]
+        );
+        if (!updatedResult.rows.length) {
+          const err = new Error('Registration status changed before approval could be completed'); err.httpStatus = 409; throw err;
+        }
+        updatedRegistration = updatedResult.rows[0];
+        await client.query(
+          `INSERT INTO gft_admin_audit_events (event_id, admin_id, admin_email, action, details, ip_address, user_agent)
+           VALUES ($1, $2, $3, 'REGISTRATION_APPROVED', $4::jsonb, $5, $6)`,
+          [`AUD-${randomBytes(10).toString('hex')}`, reviewerId, reviewerEmail,
+           JSON.stringify({ registrationId, beneficiaryId: beneficiary.beneficiary_id, systemId, reason }),
+           req.ip || null, req.get('user-agent') || null]
+        );
+      });
 
-      // --------------------------------------------------------
-      // 7. Return the newly created beneficiary
-      //
-      // GFT VISA card is intentionally NOT created here yet.
-      // --------------------------------------------------------
+      // Existing Visa-card issuance behaviour is preserved. It runs after
+      // the atomic beneficiary/registration approval transaction completes.
+      const gftVisaCard = await issueGftVisaCard({
+        beneficiaryId: beneficiary.beneficiary_id,
+        systemId: beneficiary.system_id
+      });
 
-       const gftVisaCard =
-        await issueGftVisaCard({
-          beneficiaryId:
-            beneficiary.beneficiary_id,
-
-          systemId:
-            beneficiary.system_id
-        });    
-
-       return res.json({
+      return res.json({
         ok: true,
-
         registration: {
-          registrationId:
-            updatedRegistration.registration_id,
-
-          systemId:
-            updatedRegistration.applicant_system_id,
-
-          status:
-            updatedRegistration.status,
-
-          reviewedAt:
-            updatedRegistration.reviewed_at
+          registrationId: updatedRegistration.registration_id,
+          systemId: updatedRegistration.applicant_system_id,
+          status: updatedRegistration.status,
+          reviewedAt: updatedRegistration.reviewed_at
         },
-
         beneficiary: {
-          beneficiaryId:
-            beneficiary.beneficiary_id,
-
-          systemId:
-            beneficiary.system_id,
-
-          membership:
-            beneficiary.membership,
-
-          fullName:
-            beneficiary.full_name,
-
-          username:
-            beneficiary.username,
-
-          identityStatus:
-            beneficiary.identity_status,
-
-          lineageStatus:
-            beneficiary.lineage_status,
-
-          status:
-            beneficiary.status,
-
-          profile:
-            beneficiary.profile
+          beneficiaryId: beneficiary.beneficiary_id,
+          systemId: beneficiary.system_id,
+          membership: beneficiary.membership,
+          fullName: beneficiary.full_name,
+          username: beneficiary.username,
+          identityStatus: beneficiary.identity_status,
+          lineageStatus: beneficiary.lineage_status,
+          status: beneficiary.status,
+          profile: beneficiary.profile
         },
-
-     gftVisaCard: {
+        gftVisaCard: {
           created: true,
-          cardId:
-            gftVisaCard.card_id,
-
-          cardNumber:
-            gftVisaCard.card_number,
-
-          cardLast4:
-            gftVisaCard.card_last4,
-
-          cardStatus:
-            gftVisaCard.card_status,
-
-          issuedAt:
-            gftVisaCard.issued_at,
-
-          expiresAt:
-            gftVisaCard.expires_at
+          cardId: gftVisaCard.card_id,
+          cardNumber: gftVisaCard.card_number,
+          cardLast4: gftVisaCard.card_last4,
+          cardStatus: gftVisaCard.card_status,
+          issuedAt: gftVisaCard.issued_at,
+          expiresAt: gftVisaCard.expires_at
         },
-
         serverAuthoritative: true
       });
-
     } catch (error) {
-      console.error(
-        'Registration approval error:',
-        error
-      );
-
-      return res.status(500).json({
-        ok: false,
-        error:
-          'Unable to approve registration'
-      });
+      if (error.httpStatus) return res.status(error.httpStatus).json({ ok: false, error: error.message });
+      console.error('Registration approval error:', error);
+      return res.status(500).json({ ok: false, error: 'Unable to approve registration' });
     }
   }
 );
@@ -3329,6 +3234,54 @@ app.get('/api/founder/admins', requireAdmin, async (req, res) => {
   }
 });
 
+
+// ------------------------------------------------------------
+// FOUNDER — GRANT / REVOKE REGISTRATION REVIEW AUTHORITY
+// This permission is independent of role templates and controlled only
+// by the Founder. It is stored in deployment.permissions.
+// ------------------------------------------------------------
+app.put('/api/founder/admins/:adminId/registration-review', requireAdmin, async (req, res) => {
+  try {
+    if (String(req.admin.role || '').toUpperCase() !== FOUNDER_ROLE) {
+      return res.status(403).json({ ok: false, error: 'Founder authorization required' });
+    }
+    const adminId = String(req.params.adminId || '').trim();
+    const enabled = req.body?.enabled === true;
+    if (!adminId) return res.status(400).json({ ok: false, error: 'Admin ID is required' });
+    const found = await query(
+      `SELECT admin_id, email, role, deployment FROM gft_admin_accounts WHERE admin_id = $1 LIMIT 1`, [adminId]
+    );
+    if (!found.rows.length) return res.status(404).json({ ok: false, error: 'Admin account not found' });
+    if (String(found.rows[0].role || '').toUpperCase() === FOUNDER_ROLE) {
+      return res.status(400).json({ ok: false, error: 'Founder authority is permanent and cannot be toggled here' });
+    }
+    const deployment = found.rows[0].deployment && typeof found.rows[0].deployment === 'object'
+      ? found.rows[0].deployment : {};
+    const permissions = Array.isArray(deployment.permissions) ? deployment.permissions.slice() : [];
+    const permissionKey = 'REGISTRATION_REVIEW_APPROVE';
+    const nextPermissions = enabled
+      ? [...new Set([...permissions, permissionKey])]
+      : permissions.filter(value => String(value).toUpperCase() !== permissionKey);
+    const nextDeployment = { ...deployment, permissions: nextPermissions };
+    await query(
+      `UPDATE gft_admin_accounts SET deployment = $1::jsonb, updated_at = NOW() WHERE admin_id = $2`,
+      [JSON.stringify(nextDeployment), adminId]
+    );
+    await query(
+      `INSERT INTO gft_admin_audit_events (event_id, admin_id, admin_email, action, details, ip_address, user_agent)
+       VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7)`,
+      [`AUD-${randomBytes(10).toString('hex')}`, req.admin.admin_id, req.admin.email,
+       enabled ? 'REGISTRATION_REVIEW_AUTHORITY_GRANTED' : 'REGISTRATION_REVIEW_AUTHORITY_REVOKED',
+       JSON.stringify({ targetAdminId: adminId, targetAdminEmail: found.rows[0].email, enabled }),
+       req.ip || null, req.get('user-agent') || null]
+    );
+    return res.json({ ok: true, adminId, email: found.rows[0].email, registrationReviewApproval: enabled, serverAuthoritative: true });
+  } catch (error) {
+    console.error('Founder registration review authority update error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to update registration review authority' });
+  }
+});
+
 // ------------------------------------------------------------
 // ADMIN AUTHORIZATION HELPER
 // ------------------------------------------------------------
@@ -3354,6 +3307,43 @@ async function requireAdmin(req, res, next) {
       ok: false,
       error: 'Unable to verify Admin authorization'
     });
+  }
+}
+
+
+// ------------------------------------------------------------
+// REGISTRATION REVIEW AUTHORITY
+// Founder always has authority. Other Admins require an explicit
+// Founder-granted REGISTRATION_REVIEW_APPROVE deployment permission.
+// ------------------------------------------------------------
+function hasRegistrationReviewAuthority(admin) {
+  if (String(admin?.role || '').toUpperCase() === 'FOUNDER') return true;
+  const direct = Array.isArray(admin?.permissions) ? admin.permissions : [];
+  const deployed = Array.isArray(admin?.deployment?.permissions)
+    ? admin.deployment.permissions
+    : [];
+  return [...direct, ...deployed].some(value =>
+    String(value || '').toUpperCase() === 'REGISTRATION_REVIEW_APPROVE'
+  );
+}
+
+async function requireRegistrationReviewer(req, res, next) {
+  try {
+    const admin = await getAuthenticatedAdmin(req);
+    if (!admin) {
+      return res.status(401).json({ ok: false, error: 'Admin authentication required' });
+    }
+    req.admin = admin;
+    if (!hasRegistrationReviewAuthority(admin)) {
+      return res.status(403).json({
+        ok: false,
+        error: 'Founder approval authority for beneficiary registration review has not been granted to this Admin'
+      });
+    }
+    return next();
+  } catch (error) {
+    console.error('Registration reviewer authorization error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to verify registration review authority' });
   }
 }
 

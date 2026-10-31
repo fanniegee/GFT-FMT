@@ -395,6 +395,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
     <div id="adminControlEditor" style="display:none;margin-top:12px">
       <div class="control-grid">
         <div class="control-card"><h3>Admin Identity</h3><div id="selectedAdminIdentity" style="font-size:11px;color:var(--muted)"></div></div>
+        <div class="control-card" style="border-left:3px solid #f59e0b"><h3>Beneficiary Registration Review Authority</h3><p style="font-size:11px;color:var(--muted)">Only the Founder can grant or revoke this authority. An authorised Admin can inspect applications and approve or reject them.</p><label style="display:flex;align-items:center;gap:8px"><input id="adminRegistrationReviewAuthority" type="checkbox" style="width:auto"> Allow this Admin to review and approve/reject beneficiary registrations</label><button type="button" class="purple" style="margin-top:10px" onclick="saveRegistrationReviewAuthority()">Save review authority</button><div id="registrationReviewAuthorityResult" style="font-size:11px;margin-top:7px"></div></div>
         <div class="control-card"><h3>Account Status</h3><select id="adminDeployStatus"><option>ACTIVE</option><option>PENDING</option><option>SUSPENDED</option><option>REVOKED</option><option>ARCHIVED</option></select><p style="margin-bottom:0">Suspended/revoked accounts are blocked by the Admin application.</p></div>
         <div class="control-card"><h3>Role Template</h3><select id="adminDeployRole" onchange="applyRoleTemplateToEditor()"></select><p id="adminRoleTemplateDescription" style="margin-bottom:0"></p></div>
         <div class="control-card"><h3>Deployment Metadata</h3><div id="adminDeploymentMeta" style="font-size:11px;color:var(--muted)"></div></div>
@@ -533,6 +534,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <div id="deleteModal" class="modal"><div class="modal-box"><h2>Delete Beneficiary</h2><p id="deleteName"></p><p id="deleteID" style="font-size:12px"></p><select id="deleteReason"><option value="Death">Death</option><option value="False">False</option><option value="Custom">Custom</option></select><input id="customReason" placeholder="Custom" style="display:none"><div style="display:flex;gap:8px;margin-top:16px"><button class="danger" onclick="confirmDelete()">Delete</button><button onclick="closeDeleteModal()">Cancel</button></div></div></div>
 <div id="editModal" class="modal"><div class="modal-box"><h2>Edit</h2><input id="editNameInput"><input id="editIDInput" style="margin-top:8px"><input id="editPhoneInput" placeholder="Phone for WhatsApp" style="margin-top:8px"><div style="display:flex;gap:8px;margin-top:16px"><button class="primary" onclick="confirmEdit()">Save</button><button onclick="closeEditModal()">Cancel</button></div></div></div>
 <div id="certModal" class="modal"><div class="modal-box" style="max-width:700px"><h2>Document Viewer</h2><p id="certInfo" style="font-size:12px"></p><div id="certPreview" style="margin-top:12px;max-height:60vh;overflow:auto;text-align:center"></div><button onclick="closeCertModal()" style="margin-top:12px">Close</button></div></div>
+<div id="registrationReviewModal" class="modal"><div class="modal-box" style="max-width:900px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><h2 style="margin:0">Beneficiary Registration Review</h2><button type="button" onclick="closeRegistrationReview()">Close</button></div><p id="reviewStatus" class="badge wait" style="margin:10px 0">Loading application...</p><div id="reviewApplicant" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0"></div><h3 style="margin:16px 0 8px">Supporting documents</h3><div id="reviewDocuments" class="log">Loading documents...</div><h3 style="margin:16px 0 8px">Founder review note / reason</h3><textarea id="reviewReason" rows="3" style="width:100%;box-sizing:border-box" placeholder="Record the reason for rejection, further information, or referral. Required for non-approval decisions."></textarea><div id="reviewDecisionActions" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px"><button class="primary" onclick="decideRegistration('APPROVE')">Approve application</button><button class="danger" onclick="decideRegistration('REJECTED')">Reject</button><button class="orange" onclick="decideRegistration('NEEDS_INFORMATION')">Request information</button><button class="blue" onclick="decideRegistration('REFERRED')">Refer for further review</button></div><p style="font-size:11px;color:var(--muted);margin-top:12px">Approval creates the server beneficiary record. Requesting information, rejecting, or referring records a decision and note. No payout decision is made here.</p></div></div>
 
 <script>
 function refreshConfigDisplay(){let badge=document.getElementById('configLoadedBadge');let disp=document.getElementById('configDisplay');if(badge)badge.innerHTML=`<span style="color:#10b981">✔ CONFIG.JS LOADED: ${CFG.name} - Funeral $${CFG.caps.funeral} School $${CFG.caps.school} Payout $${CFG.caps.funeralPayout} - Companies ${(CFG.companies||[]).length} - Family ${(CFG.about.familyMembers||[]).length} - Social ${(CFG.social||[]).length} - Cards ${(CFG.homepage.cards||[]).length} - FBP NEW ACTIVE</span>`;if(disp)disp.innerHTML=`Name: ${CFG.name}<br>Email: ${CFG.email}<br>Logo: ${CFG.logo||''}<br>Caps: Funeral $${CFG.caps.funeral} | School $${CFG.caps.school} | Payout $${CFG.caps.funeralPayout}<br>Companies: ${(CFG.companies||[]).length} | Family: ${(CFG.about.familyMembers||[]).length} | Social: ${(CFG.social||[]).length} | Cards: ${(CFG.homepage.cards||[]).length}<br><b>12 companies + banner + gallery + family + cards ACTIVE - FBP ACCOUNT ADDED - 7 CARDS NOW</b>`;let allocLabel=document.getElementById('allocLabel');if(allocLabel)allocLabel.innerText=`${CFG.rules.expansion} / ${CFG.rules.pool}`;let funCap=document.getElementById('funCapLabel');if(funCap)funCap.innerText=`Cap $${CFG.caps.funeral} - AUTO - 10% of Dist`;let schCap=document.getElementById('schCapLabel');if(schCap)schCap.innerText=`Cap $${CFG.caps.school} - AUTO + VERIFIED - 15% of Dist`;}
@@ -1500,93 +1502,131 @@ function switchBenTab(tab){document.getElementById('tab-approved').classList.tog
 async function renderBens(){
   const listA=document.getElementById('benListApproved');
   const listP=document.getElementById('benListPending');
+  let serverBeneficiaries=[];
+
+  // Legacy Founder entries remain intact and retain their existing controls.
   if(listA){
     listA.innerHTML='';
     bens.forEach((b,i)=>{
       const bal=parseFloat(benWallets[b.id])||0;
-      listA.innerHTML+=`<div class="ben-item"><div class="ben-info"><b>${b.name}</b> <span class="badge blue">Login Wallet $${bal.toFixed(2)}</span><br><small>ID:${b.id} | ${b.phone||''}<br>Personal Wallet: $${bal.toFixed(2)} - Auto 24h from Pool</small></div><div class="ben-actions"><button class="icon-btn edit" onclick="openEditModal(${i})">Edit</button><button class="icon-btn del" onclick="openDeleteModal(${i})">Delete</button></div></div>`;
+      listA.innerHTML+=`<div class="ben-item"><div class="ben-info"><b>${b.name}</b> <span class="badge blue">Legacy local record</span> <span class="badge blue">Login Wallet $${bal.toFixed(2)}</span><br><small>ID:${b.id} | ${b.phone||''}<br>Personal Wallet: $${bal.toFixed(2)} - Existing local wallet record</small></div><div class="ben-actions"><button class="icon-btn edit" onclick="openEditModal(${i})">Edit</button><button class="icon-btn del" onclick="openDeleteModal(${i})">Delete</button></div></div>`;
     });
+    try{
+      const poolResponse=await fetch('/api/beneficiaries/admin/pool',{credentials:'include',cache:'no-store'});
+      const poolData=await poolResponse.json();
+      if(!poolResponse.ok||!poolData.ok)throw new Error(poolData.error||'Unable to load server beneficiaries');
+      serverBeneficiaries=poolData.beneficiaries||[];
+      if(serverBeneficiaries.length){
+        const heading=document.createElement('div');
+        heading.style.cssText='margin:16px 0 8px;font-weight:700;color:var(--muted)';
+        heading.textContent='SERVER-APPROVED BENEFICIARIES';
+        listA.appendChild(heading);
+        serverBeneficiaries.forEach(b=>{
+          const item=document.createElement('div'); item.className='ben-item'; item.style.borderLeft='3px solid #10b981';
+          const info=document.createElement('div'); info.className='ben-info';
+          const name=document.createElement('b'); name.textContent=b.full_name||'Unnamed beneficiary'; info.appendChild(name);
+          const badge=document.createElement('span'); badge.className='badge ok'; badge.style.marginLeft='8px'; badge.textContent='SERVER APPROVED'; info.appendChild(badge);
+          const details=document.createElement('small'); details.style.display='block';
+          details.textContent=`System ID: ${b.system_id||'—'} | Membership: ${b.membership||'—'} | Phone: ${b.phone||'—'} | Identity: ${b.identity_status||'—'} | Lineage: ${b.lineage_status||'—'} | Status: ${b.status||'—'}`;
+          info.appendChild(details); item.appendChild(info); listA.appendChild(item);
+        });
+      }
+    }catch(error){
+      const warning=document.createElement('p'); warning.style.color='#f59e0b';
+      warning.textContent='Server-approved records could not be loaded: '+(error.message||'Please refresh after signing in.'); listA.appendChild(warning);
+    }
   }
 
   if(listP){
     listP.textContent='Loading server registrations...';
     try{
-      const response=await fetch('/api/registrations',{
-        method:'GET',credentials:'include',cache:'no-store'
-      });
+      const response=await fetch('/api/registrations',{method:'GET',credentials:'include',cache:'no-store'});
       const data=await response.json();
-      if(!response.ok||!data.ok) throw new Error(data.error||'Unable to load registrations');
-
-      pendingRegs=(data.registrations||[]).filter(
-        r=>String(r.status||'').toUpperCase()==='PENDING'
-      );
+      if(!response.ok||!data.ok)throw new Error(data.error||'Unable to load registrations');
+      pendingRegs=(data.registrations||[]).filter(r=>String(r.status||'').toUpperCase()==='PENDING');
       document.getElementById('countPending').innerText=pendingRegs.length;
       const badge=document.getElementById('pendingBadge');
-      badge.style.display=pendingRegs.length?'inline-flex':'none';
-      badge.innerText=pendingRegs.length+' pending';
-
-      if(!pendingRegs.length){
-        listP.innerHTML='<p style="color:var(--muted)">No pending server registrations</p>';
-      }else{
+      if(badge){badge.style.display=pendingRegs.length?'inline-flex':'none';badge.innerText=pendingRegs.length+' pending';}
+      if(!pendingRegs.length){listP.innerHTML='<p style="color:var(--muted)">No pending server registrations</p>';}
+      else{
         listP.innerHTML='';
-        pendingRegs.forEach((r,i)=>{
-          const item=document.createElement('div');
-          item.className='ben-item';
-          item.style.borderLeft='3px solid #f59e0b';
-          const info=document.createElement('div');
-          info.className='ben-info';
-          const name=document.createElement('b');
-          name.textContent=r.full_name||'Unnamed applicant';
-          info.appendChild(name);
-          info.appendChild(document.createElement('br'));
-          info.appendChild(document.createTextNode('Family ID: '+(r.applicant_system_id||'Not linked')));
-          info.appendChild(document.createElement('br'));
-          info.appendChild(document.createTextNode('Parent: '+(r.parent_full_name||'Not recorded')));
-          const actions=document.createElement('div');
-          actions.className='ben-actions';
-          const approve=document.createElement('button');
-          approve.className='icon-btn approve';
-          approve.textContent='Approve';
-          approve.onclick=async()=>{
-            if(!confirm('Approve registration for '+(r.full_name||'this applicant')+'?'))return;
-            approve.disabled=true;
-            try{
-              const result=await fetch('/api/registrations/'+encodeURIComponent(r.registration_id)+'/approve',{
-                method:'POST',credentials:'include',
-                headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({})
-              });
-              const body=await result.json();
-              if(!result.ok||!body.ok)throw new Error(body.error||'Approval failed');
-              alert('Registration approved.');
-              await renderBens();
-            }catch(error){
-              alert(error.message||'Approval failed.');
-              approve.disabled=false;
-            }
-          };
-          actions.appendChild(approve);
-          item.appendChild(info);
-          item.appendChild(actions);
-          listP.appendChild(item);
+        pendingRegs.forEach(r=>{
+          const item=document.createElement('div'); item.className='ben-item'; item.style.borderLeft='3px solid #f59e0b';
+          const info=document.createElement('div'); info.className='ben-info';
+          const name=document.createElement('b'); name.textContent=r.full_name||'Unnamed applicant'; info.appendChild(name);
+          const details=document.createElement('small'); details.style.display='block';
+          details.textContent=`Family ID: ${r.applicant_system_id||'Not linked'} | Parent: ${r.parent_full_name||'Not recorded'} | Submitted: ${r.submitted_at?new Date(r.submitted_at).toLocaleString():'—'}`;
+          info.appendChild(details);
+          const actions=document.createElement('div'); actions.className='ben-actions';
+          const review=document.createElement('button'); review.className='icon-btn approve'; review.textContent='Review application';
+          review.onclick=()=>reviewRegistration(r.registration_id); actions.appendChild(review);
+          item.appendChild(info); item.appendChild(actions); listP.appendChild(item);
         });
       }
-    }catch(error){
-      listP.textContent='Could not load server registrations: '+(error.message||'Please sign in and refresh.');
-    }
+    }catch(error){listP.textContent='Could not load server registrations: '+(error.message||'Please sign in and refresh.');}
   }
 
+  // Keep legacy payout calculations isolated from the new server registry.
   benCount=bens.length;
-  document.getElementById('countApproved').innerText=bens.length;
+  document.getElementById('countApproved').innerText=bens.length+serverBeneficiaries.length;
   updateUI();
   localStorage.setItem('guvaza_bens',JSON.stringify(bens));
   renderDelLog();
   const histEl=document.getElementById('benPayoutHistory');
   if(histEl){
-    if(benPoolPayouts.length===0)histEl.innerHTML='No payouts yet - auto after 24h | '+(wallets.ben>0?`Pool $${wallets.ben.toFixed(2)} waiting`:'Pool empty');
+    if(benPoolPayouts.length===0)histEl.innerHTML='No payouts yet - existing local pool only | '+(wallets.ben>0?`Pool $${wallets.ben.toFixed(2)} waiting`:'Pool empty');
     else histEl.innerHTML=benPoolPayouts.slice(0,10).map(p=>`[${p.date}] $${p.total.toFixed(2)}/${p.count}=$${p.perHead.toFixed(2)} each`).join('<br>');
   }
 }
+
+let activeReviewRegistrationId=null;
+async function reviewRegistration(registrationId){
+  activeReviewRegistrationId=registrationId;
+  document.getElementById('registrationReviewModal').classList.add('show');
+  document.getElementById('reviewStatus').textContent='Loading application...';
+  document.getElementById('reviewApplicant').innerHTML='';
+  document.getElementById('reviewDocuments').textContent='Loading documents...';
+  document.getElementById('reviewReason').value='';
+  document.getElementById('reviewDecisionActions').style.display='flex';
+  try{
+    const response=await fetch('/api/registrations/'+encodeURIComponent(registrationId)+'/review',{credentials:'include',cache:'no-store'});
+    const data=await response.json();
+    if(!response.ok||!data.ok)throw new Error(data.error||'Unable to open application');
+    const r=data.registration;
+    document.getElementById('reviewStatus').textContent='Status: '+(r.status||'PENDING')+' | Submitted: '+(r.submitted_at?new Date(r.submitted_at).toLocaleString():'—');
+    const fields=[['Applicant name',r.full_name],['Family / System ID',r.applicant_system_id],['Username',r.username],['Phone',r.phone],['Email',r.email],['ID number',r.id_number],['Date of birth',r.date_of_birth],['Gender',r.gender],['Current surname',r.current_surname],['Generation',r.generation],['Branch',r.branch_code],['Wife number',r.wife_no],['Parent name',r.parent_full_name],['Parent System ID',r.parent_system_id],['Grandparent name',r.grandparent_full_name],['Grandparent System ID',r.grandparent_system_id],['Previous review note',r.review_notes]];
+    const grid=document.getElementById('reviewApplicant');
+    fields.forEach(([label,value])=>{const cell=document.createElement('div');cell.style.cssText='background:rgba(148,163,184,.08);padding:9px;border-radius:8px;min-width:0';const strong=document.createElement('b');strong.style.display='block';strong.style.fontSize='11px';strong.style.color='var(--muted)';strong.textContent=label;const val=document.createElement('span');val.style.overflowWrap='anywhere';val.textContent=value===null||value===undefined||value===''?'Not provided':String(value);cell.append(strong,val);grid.appendChild(cell);});
+    const docs=document.getElementById('reviewDocuments'); docs.innerHTML='';
+    if(!data.documents?.length){docs.textContent='No supporting documents were attached.';}
+    else data.documents.forEach(doc=>{const row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)';const label=document.createElement('span');label.textContent=`${doc.document_type.replaceAll('_',' ')} — ${doc.file_name} (${Math.round((doc.file_size||0)/1024)} KB)`;const link=document.createElement('a');link.href='/api/registrations/'+encodeURIComponent(registrationId)+'/documents/'+encodeURIComponent(doc.document_id);link.target='_blank';link.rel='noopener';link.textContent='Open document';link.style.color='var(--accent)';row.append(label,link);docs.appendChild(row);});
+    const isPending=String(r.status||'').toUpperCase()==='PENDING';
+    document.getElementById('reviewDecisionActions').style.display=isPending?'flex':'none';
+    if(!isPending)document.getElementById('reviewReason').disabled=true;else document.getElementById('reviewReason').disabled=false;
+  }catch(error){document.getElementById('reviewStatus').textContent='Unable to load: '+(error.message||'Please try again');document.getElementById('reviewDocuments').textContent='The application could not be loaded.';}
+}
+function closeRegistrationReview(){document.getElementById('registrationReviewModal').classList.remove('show');activeReviewRegistrationId=null;}
+async function decideRegistration(decision){
+  if(!activeReviewRegistrationId)return;
+  const reason=document.getElementById('reviewReason').value.trim();
+  if(reason.length<5)return alert('Please enter a review note of at least 5 characters before recording your decision.');
+  const label=decision==='APPROVE'?'approve':decision==='REJECTED'?'reject':decision==='NEEDS_INFORMATION'?'request further information':'refer this application';
+  if(!confirm('Are you sure you want to '+label+'?'))return;
+  const buttons=[...document.querySelectorAll('#reviewDecisionActions button')];buttons.forEach(b=>b.disabled=true);
+  try{
+    let response,body;
+    if(decision==='APPROVE'){
+      response=await fetch('/api/registrations/'+encodeURIComponent(activeReviewRegistrationId)+'/approve',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({reason})});
+    }else{
+      response=await fetch('/api/registrations/'+encodeURIComponent(activeReviewRegistrationId)+'/decision',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({decision,reason})});
+    }
+    body=await response.json();
+    if(!response.ok||!body.ok)throw new Error(body.error||'Unable to save review decision');
+    alert(decision==='APPROVE'?'Registration approved and added to the server beneficiary pool.':`Review decision saved: ${decision.replaceAll('_',' ')}.`);
+    closeRegistrationReview();await renderBens();
+  }catch(error){alert(error.message||'Review decision failed.');buttons.forEach(b=>b.disabled=false);}
+}
+
 function addBen(){let name=document.getElementById('newBenName').value.trim();let id=document.getElementById('newBenID').value.trim();let phone=document.getElementById('newBenPhone').value.trim();if(!name||!id)return alert('Name+ID');if(bens.some(b=>b.id===id))return alert('ID exists');bens.push({name,id,phone,dateAdded:new Date().toLocaleString()});if(!(id in benWallets)) benWallets[id]=0;saveWallets();document.getElementById('newBenName').value='';document.getElementById('newBenID').value='';document.getElementById('newBenPhone').value='';renderBens();log(`Added ${name}`);}
 async function approvePending(i){await renderBens();}
 function rejectPending(i){alert('Rejection is not available yet because the server has no registration rejection endpoint. This application remains pending.');}
@@ -1869,6 +1909,35 @@ function openAdminControlCentre(index){
 // ------------------------------------------------------------
 // ADMIN CONTROL — SERVER DATA VIEW
 // ------------------------------------------------------------
+async function saveRegistrationReviewAuthority(){
+  const index = document.getElementById('controlAdminSelect')?.value;
+  if(index === '' || index == null || !admins[index]) return alert('Select an Admin first.');
+  const admin = admins[index];
+  if(String(admin.role || '').toUpperCase() === 'FOUNDER') return alert('Founder authority cannot be changed here.');
+  const enabled = document.getElementById('adminRegistrationReviewAuthority').checked;
+  const adminId = admin.admin_id || admin.adminId;
+  if(!adminId) return alert('The selected Admin has no server Admin ID.');
+  if(!confirm((enabled ? 'Grant' : 'Revoke')+' beneficiary registration review authority for '+(admin.email||admin.name)+'?')) return;
+  const result = document.getElementById('registrationReviewAuthorityResult');
+  result.textContent = 'Saving...';
+  try{
+    const response = await fetch('/api/founder/admins/'+encodeURIComponent(adminId)+'/registration-review',{
+      method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({enabled})
+    });
+    const data = await response.json().catch(()=>({}));
+    if(!response.ok || !data.ok) throw new Error(data.error || 'Unable to save authority');
+    admin.deployment = admin.deployment || {};
+    admin.deployment.permissions = Array.isArray(admin.deployment.permissions) ? admin.deployment.permissions : [];
+    admin.deployment.permissions = enabled
+      ? [...new Set([...admin.deployment.permissions,'REGISTRATION_REVIEW_APPROVE'])]
+      : admin.deployment.permissions.filter(value=>value!=='REGISTRATION_REVIEW_APPROVE');
+    result.textContent = enabled ? 'Authority granted and recorded on the server.' : 'Authority revoked and recorded on the server.';
+  }catch(error){
+    result.textContent = error.message || 'Unable to save authority.';
+    document.getElementById('adminRegistrationReviewAuthority').checked = !enabled;
+  }
+}
+
 function moduleChecked(id, selected){
   return selected.includes(id) ? 'checked' : '';
 }
@@ -1902,6 +1971,14 @@ function loadAdminControlCentre(){
       Admin ID: ${admin.admin_id || admin.adminId || 'Not supplied'}
     `;
   }
+  const reviewAuthority = document.getElementById('adminRegistrationReviewAuthority');
+  if(reviewAuthority){
+    const permissions = Array.isArray(admin.deployment?.permissions) ? admin.deployment.permissions : [];
+    reviewAuthority.checked = permissions.includes('REGISTRATION_REVIEW_APPROVE');
+    reviewAuthority.disabled = String(admin.role || '').toUpperCase() === 'FOUNDER';
+  }
+  const reviewAuthorityResult = document.getElementById('registrationReviewAuthorityResult');
+  if(reviewAuthorityResult) reviewAuthorityResult.textContent = '';
 
   const role = document.getElementById('adminDeployRole');
 
