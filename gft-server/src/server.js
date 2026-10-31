@@ -1045,66 +1045,74 @@ if (verifiedEmailResult.rows.length === 0) {
   });
 }
 
-const structureResult = await query(
-  `
-  SELECT
-    child.system_id,
-    child.parent_system_id,
-    child.generation,
-    child.branch_code,
-    child.profile->>'wifeNo' AS wife_no,
-    parent.parent_system_id AS grandparent_system_id
-  FROM family_people child
-  LEFT JOIN family_people parent
-    ON parent.system_id = child.parent_system_id
-  WHERE LOWER(TRIM(child.full_name)) = LOWER(TRIM($1))
-    AND child.parent_system_id = $2
-  LIMIT 1
-  `,
-  [
-    fullName,
-    String(record.parentId || '').trim()
-  ]
-);
+// Confirm family structure against the authoritative family register.
+// If the record cannot be confirmed automatically, retain the application
+// for Founder/Admin review instead of rejecting the entire submission.
+const submittedParentId = String(record.parentId || '').trim();
+let verifiedStructure = null;
+let verifiedWifeNo = null;
+let verifiedGeneration = null;
+let verifiedBranch = null;
+let verifiedParentId = null;
+let verifiedGrandparentId = null;
+let structureConfirmed = false;
 
-if (structureResult.rows.length === 0) {
-  return res.status(400).json({
-    ok: false,
-    error: 'Server-side family structure verification failed'
-  });
+if (submittedParentId) {
+  const structureResult = await query(
+    `
+    SELECT
+      child.system_id,
+      child.parent_system_id,
+      child.generation,
+      child.branch_code,
+      child.profile->>'wifeNo' AS wife_no,
+      parent.parent_system_id AS grandparent_system_id
+    FROM family_people child
+    LEFT JOIN family_people parent
+      ON parent.system_id = child.parent_system_id
+    WHERE LOWER(TRIM(child.full_name)) = LOWER(TRIM($1))
+      AND child.parent_system_id = $2
+    LIMIT 2
+    `,
+    [fullName, submittedParentId]
+  );
+
+  if (structureResult.rows.length === 1) {
+    const candidate = structureResult.rows[0];
+    const wifeMatch = String(candidate.wife_no || '').match(/^WIFE(\d+)(?:_|$)/i);
+    const storedWifeNo = wifeMatch ? Number(wifeMatch[1]) : null;
+    const selectedWifeNo = Number(record.wifeNo);
+    const candidateGeneration = Number(candidate.generation);
+
+    if (
+      storedWifeNo !== null &&
+      Number.isInteger(selectedWifeNo) &&
+      selectedWifeNo === storedWifeNo &&
+      Number.isInteger(candidateGeneration) &&
+      candidateGeneration >= 1
+    ) {
+      verifiedStructure = candidate;
+      verifiedWifeNo = storedWifeNo;
+      verifiedGeneration = candidateGeneration;
+      verifiedBranch = candidate.branch_code || null;
+      verifiedParentId = candidate.parent_system_id || null;
+      verifiedGrandparentId = candidate.grandparent_system_id || null;
+      structureConfirmed = true;
+    }
+  }
 }
 
-const verifiedStructure = structureResult.rows[0];
-
-const verifiedWifeNo = Number(
-  String(verifiedStructure.wife_no || '').replace(/\D/g, '')
-);
-
-if (
-  !Number.isInteger(verifiedWifeNo) ||
-  verifiedWifeNo !== Number(record.wifeNo)
-) {
-  return res.status(400).json({
-    ok: false,
-    error: 'Server-side wife number verification failed'
-  });
-}
-
-const verifiedGeneration = Number(verifiedStructure.generation);
-
-const verifiedBranch = verifiedStructure.branch_code || null;
-const verifiedParentId = verifiedStructure.parent_system_id || null;
-const verifiedGrandparentId =
-  verifiedStructure.grandparent_system_id || null;
-
-const serverSystemId =
-  await generateGftSystemId(verifiedGeneration);
+// Only issue a generation-based GFT System ID after the server has
+// independently confirmed the applicant's family structure.
+const serverSystemId = structureConfirmed
+  ? await generateGftSystemId(verifiedGeneration)
+  : null;
 
     let saved;
     const serverVerification = {
       emailStatus: 'VERIFIED',
-      lineageStatus: 'LINEAGE_CONFIRMED',
-      familyStructureStatus: 'VERIFIED',
+      lineageStatus: structureConfirmed ? 'LINEAGE_CONFIRMED' : 'PENDING_REVIEW',
+      familyStructureStatus: structureConfirmed ? 'VERIFIED' : 'PENDING_REVIEW',
       identityStatus: 'PENDING_DOCUMENT_VERIFICATION',
       beneficiaryStatus: 'PENDING_VERIFICATION',
       founderVerificationStatus: 'PENDING',
@@ -1223,7 +1231,8 @@ const serverSystemId =
     return res.status(201).json({
       ok: true,
       registrationId: saved.registration_id,
-      systemId: saved.applicant_system_id,
+      systemId: saved.applicant_system_id || null,
+      applicationReference: saved.registration_id,
       registrationStatus: saved.status,
       submittedAt: saved.submitted_at,
       verification: serverVerification,

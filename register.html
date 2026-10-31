@@ -748,16 +748,14 @@ if (!applicantFile) {
   if (err){showDocResult(err,"danger");return;}
   if (rule.code==="NATIONAL_ID" && !validateIdentityNumber(fieldValue("documentNumber"))){showDocResult("The applicant's National ID number is not in an accepted format.","danger");return;}
   if (rule.code==="BIRTH_CERTIFICATE" && (!fieldValue("guardianName") || !fieldValue("guardianRelationship") || !fieldValue("guardianPhone"))){showDocResult("Under-16 registration requires guardian details in addition to the birth certificate.","danger");return;}
-
-state.identity={
-  expectedDocument:rule.code,
-  primaryFileName:applicantFile.name,
-  parentDocumentProvided:Boolean(parentFile),
-  additionalDocumentProvided:Boolean(additionalFile),
-  status:"PENDING_DOCUMENT_VERIFICATION",
-  clientChecks:["FILE_TYPE","FILE_SIZE","BASIC_FILE_PRESENCE"]
-};
-
+  state.identity={
+    expectedDocument:rule.code,
+    primaryFileName:applicantFile.name,
+    parentDocumentProvided:Boolean(parentFile),
+    additionalDocumentProvided:Boolean(additional),
+    status:"PENDING_DOCUMENT_VERIFICATION",
+    clientChecks:["FILE_TYPE","FILE_SIZE","BASIC_FILE_PRESENCE"]
+  };
   showDocResult("Basic document checks passed. OCR, document structure, duplicate detection, tamper screening and authoritative verification remain backend verification tasks.","ok");
   setTimeout(()=>showStep(5),350);
 }
@@ -910,9 +908,14 @@ try{
     }
 
     record.storageMode = "SERVER";
+    record.registrationId = result.registrationId || null;
+    record.applicationReference =
+      result.applicationReference ||
+      result.registrationId ||
+      null;
     record.registrationStatus =
       result.registrationStatus ||
-      "PENDING_REVIEW";
+      "PENDING";
 
 if (result.verification) {
   Object.assign(record, result.verification);
@@ -941,13 +944,20 @@ alert(
 function renderFinal(){
   const r=state.application;
   const review = r.beneficiaryStatus==="AUTO_VERIFIED" ? "AUTO_VERIFIED" : "PENDING_VERIFICATION";
-  $("finalStatus").innerHTML=`<h3>Registration received</h3><p>Your permanent GFT system ID is <b>${esc(r.systemId)}</b>.</p><span class="badge ${review==="AUTO_VERIFIED"?"ok":"pending"}">${esc(review)}</span><p style="margin-bottom:0">Registration does <b>not</b> authorize payout. Wallet and payout eligibility remain false until the required Founder approval process is completed.</p>`;
+  const hasSystemId = Boolean(r.systemId);
+  const reference = r.applicationReference || r.registrationId || "Pending";
+  const referenceLabel = hasSystemId ? "Your GFT system ID is" : "Your application reference is";
+  const referenceValue = hasSystemId ? r.systemId : reference;
+
+  $("finalStatus").innerHTML=`<h3>Registration received</h3><p>${referenceLabel} <b>${esc(referenceValue)}</b>.</p><span class="badge ${review==="AUTO_VERIFIED"?"ok":"pending"}">${esc(review)}</span><p style="margin-bottom:0">If family details could not be confirmed automatically, the application has been retained for Founder/Admin review. Registration does <b>not</b> authorize payout. Wallet and payout eligibility remain false until the required approval process is completed.</p>`;
   const rows=[
-    ["GFT ID",r.systemId],["Lineage status",r.lineageStatus],["Identity status",r.identityStatus],
-    ["Founder verification","PENDING"],["Beneficiary status",r.beneficiaryStatus],
+    [hasSystemId ? "GFT ID" : "Application reference",referenceValue],
+    ["Lineage status",r.lineageStatus],["Family structure",r.familyStructureStatus],
+    ["Identity status",r.identityStatus],["Founder verification","PENDING"],
+    ["Beneficiary status",r.beneficiaryStatus],
     ["Wallet eligible",String(r.walletEligible)],["Payout eligible",String(r.payoutEligible)]
   ];
-  $("finalDetails").innerHTML=rows.map(x=>`<div class="review-row"><b>${esc(x[0])}</b><span>${esc(x[1])}</span></div>`).join("");
+  $("finalDetails").innerHTML=rows.map(x=>`<div class="review-row"><b>${esc(x[0])}</b><span>${esc(x[1] ?? "Pending review")}</span></div>`).join("");
 }
 
 function resetForm(){
