@@ -726,9 +726,17 @@ function updateDocumentRule(){
 function validateDocuments(){
   updateDocumentRule();
   const rule=expectedDocumentForAge(fieldValue("dateOfBirth"));
-  const applicantFile=$("applicantDocument").files[0];
-  const parentFile=$("parentDocument").files[0];
-  const additional=$("additionalDocument").files[0];
+
+// Read selected documents using the page's ID helper.
+const applicantFile = $("applicantDocument")?.files?.[0] || null;
+const parentFile = $("parentDocument")?.files?.[0] || null;
+const additionalFile = $("additionalDocument")?.files?.[0] || null;
+
+// The primary applicant document is mandatory.
+if (!applicantFile) {
+  throw new Error("The applicant's primary document was not attached.");
+}
+
   let err=validateFile(applicantFile,true) || validateFile(additional,false) || validateFile(parentFile,false);
   if (err){showDocResult(err,"danger");return;}
   if (rule.code==="NATIONAL_ID" && !validateIdentityNumber(fieldValue("documentNumber"))){showDocResult("The applicant's National ID number is not in an accepted format.","danger");return;}
@@ -911,13 +919,13 @@ if (result.verification) {
     showStep(6);
 
   }catch(error){
-    console.error("GFT registration submission failed:", error);
+   console.error("GFT registration submission failed:", error);
 
-    alert(
-      "Registration was not submitted to the Trust server.\n\n" +
-      "Please check your connection and try again.\n\n" +
-      "No beneficiary record was saved locally."
-    );
+alert(
+  "Registration failed:\n\n" +
+  (error.message || "Unknown server error") +
+  "\n\nPlease contact the Trust administrator if the problem continues."
+);
   }
 }
 
