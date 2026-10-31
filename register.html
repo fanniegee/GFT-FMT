@@ -734,7 +734,11 @@ const additionalFile = $("additionalDocument")?.files?.[0] || null;
 
 // The primary applicant document is mandatory.
 if (!applicantFile) {
-  throw new Error("The applicant's primary document was not attached.");
+  showDocResult(
+    "The applicant's primary document has not been selected.",
+    "danger"
+  );
+  return;
 }
 
   let err=validateFile(applicantFile,true) || validateFile(additional,false) || validateFile(parentFile,false);
