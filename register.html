@@ -748,14 +748,16 @@ if (!applicantFile) {
   if (err){showDocResult(err,"danger");return;}
   if (rule.code==="NATIONAL_ID" && !validateIdentityNumber(fieldValue("documentNumber"))){showDocResult("The applicant's National ID number is not in an accepted format.","danger");return;}
   if (rule.code==="BIRTH_CERTIFICATE" && (!fieldValue("guardianName") || !fieldValue("guardianRelationship") || !fieldValue("guardianPhone"))){showDocResult("Under-16 registration requires guardian details in addition to the birth certificate.","danger");return;}
-  state.identity={
-    expectedDocument:rule.code,
-    primaryFileName:applicantFile.name,
-    parentDocumentProvided:Boolean(parentFile),
-    additionalDocumentProvided:Boolean(additional),
-    status:"PENDING_DOCUMENT_VERIFICATION",
-    clientChecks:["FILE_TYPE","FILE_SIZE","BASIC_FILE_PRESENCE"]
-  };
+
+state.identity={
+  expectedDocument:rule.code,
+  primaryFileName:applicantFile.name,
+  parentDocumentProvided:Boolean(parentFile),
+  additionalDocumentProvided:Boolean(additionalFile),
+  status:"PENDING_DOCUMENT_VERIFICATION",
+  clientChecks:["FILE_TYPE","FILE_SIZE","BASIC_FILE_PRESENCE"]
+};
+
   showDocResult("Basic document checks passed. OCR, document structure, duplicate detection, tamper screening and authoritative verification remain backend verification tasks.","ok");
   setTimeout(()=>showStep(5),350);
 }
