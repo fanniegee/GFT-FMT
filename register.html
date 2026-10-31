@@ -741,7 +741,10 @@ if (!applicantFile) {
   return;
 }
 
-  let err=validateFile(applicantFile,true) || validateFile(additional,false) || validateFile(parentFile,false);
+  let err =
+  validateFile(applicantFile, true) ||
+  validateFile(additionalFile, false) ||
+  validateFile(parentFile, false);
   if (err){showDocResult(err,"danger");return;}
   if (rule.code==="NATIONAL_ID" && !validateIdentityNumber(fieldValue("documentNumber"))){showDocResult("The applicant's National ID number is not in an accepted format.","danger");return;}
   if (rule.code==="BIRTH_CERTIFICATE" && (!fieldValue("guardianName") || !fieldValue("guardianRelationship") || !fieldValue("guardianPhone"))){showDocResult("Under-16 registration requires guardian details in addition to the birth certificate.","danger");return;}
