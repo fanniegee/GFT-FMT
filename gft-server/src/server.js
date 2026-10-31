@@ -1375,6 +1375,139 @@ app.get('/api/registrations', requireRegistrationReviewer, async (req, res) => {
 });
 
 // ------------------------------------------------------------
+// FOUNDER — READ-ONLY PENDING REGISTRATION RECONCILIATION PREVIEW
+// Compares pending applications with the canonical family_people
+// table. This endpoint NEVER updates registrations or beneficiaries.
+// ------------------------------------------------------------
+app.get('/api/registrations/reconciliation-preview', requireRegistrationReviewer, async (_req, res) => {
+  try {
+    const [pendingResult, peopleResult] = await Promise.all([
+      query(`SELECT registration_id, applicant_system_id, full_name,
+                    parent_full_name, grandparent_full_name,
+                    parent_system_id, grandparent_system_id,
+                    generation, branch_code, wife_no, status, submitted_at,
+                    id_number
+             FROM registrations
+             WHERE UPPER(status) = 'PENDING'
+             ORDER BY submitted_at DESC`),
+      query(`SELECT system_id, parent_system_id, full_name, generation,
+                    branch_code, profile
+             FROM family_people
+             ORDER BY generation, system_id`)
+    ]);
+
+    const people = peopleResult.rows;
+    const byId = new Map(people.map(person => [String(person.system_id), person]));
+    const norm = value => String(value || '').trim().replace(/\s+/g, ' ').toUpperCase();
+    const byName = new Map();
+    for (const person of people) {
+      const key = norm(person.full_name);
+      if (!byName.has(key)) byName.set(key, []);
+      byName.get(key).push(person);
+    }
+
+    const duplicateCounts = new Map();
+    for (const row of pendingResult.rows) {
+      const key = String(row.id_number || '').replace(/\s+/g, '').toUpperCase();
+      if (key) duplicateCounts.set(key, (duplicateCounts.get(key) || 0) + 1);
+    }
+
+    const results = pendingResult.rows.map(reg => {
+      let candidates = [];
+      const submittedId = String(reg.applicant_system_id || '').trim();
+      if (submittedId) {
+        const bySystemId = byId.get(submittedId);
+        candidates = bySystemId ? [bySystemId] : [];
+      } else {
+        candidates = byName.get(norm(reg.full_name)) || [];
+        if (reg.parent_system_id) {
+          candidates = candidates.filter(person => String(person.parent_system_id || '') === String(reg.parent_system_id));
+        } else if (reg.parent_full_name) {
+          const parentMatches = byName.get(norm(reg.parent_full_name)) || [];
+          const parentIds = new Set(parentMatches.map(person => String(person.system_id)));
+          candidates = candidates.filter(person => parentIds.has(String(person.parent_system_id || '')));
+        }
+      }
+
+      let status = 'NO_MATCH';
+      let match = null;
+      let parent = null;
+      let grandparent = null;
+      let grandmotherWifeNo = null;
+      let notes = [];
+
+      if (candidates.length > 1) {
+        status = 'AMBIGUOUS_MATCH';
+        notes.push('More than one family-tree person matches; Founder review is required.');
+      } else if (candidates.length === 1) {
+        match = candidates[0];
+        const nameMatches = norm(match.full_name) === norm(reg.full_name);
+        const submittedIdMatches = !submittedId || submittedId === String(match.system_id);
+        if (!nameMatches || !submittedIdMatches) {
+          status = 'CONFLICT_REVIEW';
+          notes.push('Submitted identity and family-tree identity do not agree.');
+        } else {
+          parent = byId.get(String(match.parent_system_id || '')) || null;
+          grandparent = parent ? byId.get(String(parent.parent_system_id || '')) || null : null;
+          const parentNameMatches = !reg.parent_full_name || (parent && norm(reg.parent_full_name) === norm(parent.full_name));
+          const grandparentNameMatches = !reg.grandparent_full_name || (grandparent && norm(reg.grandparent_full_name) === norm(grandparent.full_name));
+          if (!parent) notes.push('Parent record is missing from the family tree.');
+          if (parent && !grandparent) notes.push('Grandparent record is missing from the family tree.');
+          if (!parentNameMatches || !grandparentNameMatches) {
+            status = 'CONFLICT_REVIEW';
+            notes.push('Submitted parent or grandparent name conflicts with the family tree.');
+          } else if (match.profile && match.profile.isPlaceholder) {
+            status = 'PLACEHOLDER_REVIEW';
+            notes.push('The matching family-tree entry is marked as a placeholder.');
+          } else if (parent && grandparent) {
+            grandmotherWifeNo = parent.profile?.wifeNo || null;
+            status = 'EXACT_MATCH';
+            if (!grandmotherWifeNo) notes.push('Grandmother wife-number is not recorded on the parent family-tree entry.');
+          } else {
+            status = 'PARTIAL_MATCH';
+          }
+        }
+      } else {
+        notes.push('No exact family-tree match was found using the available applicant and parent details.');
+      }
+
+      const duplicateKey = String(reg.id_number || '').replace(/\s+/g, '').toUpperCase();
+      const duplicateApplication = Boolean(duplicateKey && duplicateCounts.get(duplicateKey) > 1);
+      if (duplicateApplication) notes.push('Another pending application uses the same identity number; retain both for Founder reconciliation.');
+
+      return {
+        registrationId: reg.registration_id,
+        applicantName: reg.full_name,
+        submittedSystemId: submittedId || null,
+        matchedSystemId: match?.system_id || null,
+        parentName: parent?.full_name || reg.parent_full_name || null,
+        parentSystemId: parent?.system_id || match?.parent_system_id || null,
+        grandparentName: grandparent?.full_name || reg.grandparent_full_name || null,
+        grandparentSystemId: grandparent?.system_id || parent?.parent_system_id || null,
+        generation: match?.generation ?? reg.generation ?? null,
+        branch: match?.branch_code || reg.branch_code || null,
+        grandmotherWifeNo,
+        status,
+        duplicateApplication,
+        submittedAt: reg.submitted_at,
+        notes
+      };
+    });
+
+    const summary = results.reduce((acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      if (item.duplicateApplication) acc.duplicateApplications += 1;
+      return acc;
+    }, { total: results.length, duplicateApplications: 0 });
+
+    return res.json({ ok: true, summary, registrations: results, readOnly: true, serverAuthoritative: true });
+  } catch (error) {
+    console.error('Registration reconciliation preview error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to prepare reconciliation preview' });
+  }
+});
+
+// ------------------------------------------------------------
 // FOUNDER REGISTRATION REVIEW — APPLICATION DETAILS
 // Returns submitted application fields and document metadata.
 // File bytes are delivered only through the protected document route.

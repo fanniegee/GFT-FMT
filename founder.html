@@ -375,7 +375,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 </div>
 </div>
 <div id="sec-wallets" class="section"><h1><span class="mi lg">account_balance_wallet</span> Company Wallets (12)</h1><div class="grid" style="margin-top:16px" id="walletGrid"></div><div class="card" style="margin-top:16px"><h2><span class="mi">pie_chart</span> Live Preview</h2><div class="amt" id="totalProfit">$0</div><div id="livePreview"></div></div></div>
-<div id="sec-ben" class="section"><div class="card ben"><h2><span class="mi">group</span> Beneficiary Pool</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0"><input id="newBenName" placeholder="Full Name *"><input id="newBenID" placeholder="ID Number *"><input id="newBenPhone" placeholder="Phone for WhatsApp" style="grid-column:span 2"></div><button class="primary" onclick="addBen()"><span class="mi">person_add</span> Add with ID</button><button class="blue" onclick="exportBenPDF()"><span class="mi">picture_as_pdf</span> Export PDF</button><div class="tabs"><div class="tab active" id="tab-approved" onclick="switchBenTab('approved')">Approved (<span id="countApproved">0</span>)</div><div class="tab" id="tab-pending" onclick="switchBenTab('pending')">Pending Auto (<span id="countPending">0</span>)</div></div><div id="benListApproved"></div><div id="benListPending" style="display:none"></div></div><div class="card" style="margin-top:12px"><h2><span class="mi">history</span> Deletion Log</h2><div class="log" id="delLog">No deletions yet...</div></div></div>
+<div id="sec-ben" class="section"><div class="card ben"><h2><span class="mi">group</span> Beneficiary Pool</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0"><input id="newBenName" placeholder="Full Name *"><input id="newBenID" placeholder="ID Number *"><input id="newBenPhone" placeholder="Phone for WhatsApp" style="grid-column:span 2"></div><button class="primary" onclick="addBen()"><span class="mi">person_add</span> Add with ID</button><button class="blue" onclick="exportBenPDF()"><span class="mi">picture_as_pdf</span> Export PDF</button><button class="blue" onclick="previewRegistrationReconciliation()"><span class="mi">fact_check</span> Preview Family Reconciliation</button><div id="registrationReconciliationPreview" style="display:none;margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:10px"><h3 style="margin:0 0 8px">Read-only Family Reconciliation Preview</h3><p id="registrationReconciliationSummary" style="color:var(--muted)"></p><div id="registrationReconciliationRows"></div></div><div class="tabs"><div class="tab active" id="tab-approved" onclick="switchBenTab('approved')">Approved (<span id="countApproved">0</span>)</div><div class="tab" id="tab-pending" onclick="switchBenTab('pending')">Pending Auto (<span id="countPending">0</span>)</div></div><div id="benListApproved"></div><div id="benListPending" style="display:none"></div></div><div class="card" style="margin-top:12px"><h2><span class="mi">history</span> Deletion Log</h2><div class="log" id="delLog">No deletions yet...</div></div></div>
 <div id="sec-fun" class="section"><h1><span class="mi lg">church</span> Funeral</h1><div class="grid"><div class="card fun"><h2><span class="title-main">BALANCE</span></h2><div class="amt" id="funAmt2">$0 / $6,000</div><div id="funStatus2" class="badge wait"></div><div class="log" id="funPayLog2" style="margin-top:10px">No payments</div></div><div class="card"><h2>Test Simulate Claim</h2><input id="testDeceasedName" placeholder="Deceased Name"><input id="testDeceasedID" placeholder="Deceased ID"><select id="testPayTo"><option value="Parlour">Parlour</option><option value="Church">Church</option></select><input type="file" id="testCertFile" accept="image/*,.pdf"><button class="orange" onclick="simulateFuneralClaim()">Submit Cert</button></div></div><div class="card" style="margin-top:16px"><div class="tabs"><div class="tab funTab active" id="funTab-pending" onclick="switchFunTab('pending')">Pending (<span id="countFunPending">0</span>)</div><div class="tab funTab" id="funTab-paid" onclick="switchFunTab('paid')">Paid (<span id="countFunPaid">0</span>)</div></div><div id="funListPending"></div><div id="funListPaid" style="display:none"></div><button class="orange" onclick="exportFuneralPDF()" style="margin-top:12px"><span class="mi">picture_as_pdf</span> Export Funeral PDF</button></div></div>
 <div id="sec-sch" class="section"><h1><span class="mi lg">school</span> School Fees</h1><div class="grid"><div class="card sch"><h2><span class="title-main">BALANCE</span></h2><div class="amt" id="schAmt2">$0 / $5,000</div><div id="schStatus2" class="badge wait"></div><div class="log" id="schPayLog2" style="margin-top:10px">No payments</div></div><div class="card"><h2>Test Simulate Invoice</h2><input id="testStudentName" placeholder="Student Name *"><input id="testStudentID" placeholder="Student ID"><input id="testSchoolName" placeholder="School Name *"><input id="testSchoolAccount" placeholder="School Account *"><input id="testSchoolAmount" type="number" placeholder="Amount *"><input type="file" id="testInvoiceFile" accept="image/*,.pdf"><button class="purple" onclick="simulateSchoolClaim()">Submit Invoice</button></div></div><div class="card" style="margin-top:16px"><h2><span class="mi">verified</span> Verified Schools List</h2><div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0"><input id="newVerifiedSchool" placeholder="School Name"><input id="newVerifiedAccountPrefix" placeholder="Prefix"><button class="purple" onclick="addVerifiedSchool()">Add Verified School</button></div><div id="verifiedSchoolsList" class="log" style="max-height:120px"></div></div><div class="card" style="margin-top:16px"><div class="tabs"><div class="tab schTab active" id="schTab-pending" onclick="switchSchTab('pending')">Pending (<span id="countSchPending">0</span>)</div><div class="tab schTab" id="schTab-paid" onclick="switchSchTab('paid')">Paid Ledger (<span id="countSchPaid">0</span>)</div></div><div id="schListPending"></div><div id="schListPaid" style="display:none"></div><button class="purple" onclick="exportSchoolPDF()" style="margin-top:12px"><span class="mi">picture_as_pdf</span> Export School PDF</button></div></div>
 
@@ -395,7 +395,6 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
     <div id="adminControlEditor" style="display:none;margin-top:12px">
       <div class="control-grid">
         <div class="control-card"><h3>Admin Identity</h3><div id="selectedAdminIdentity" style="font-size:11px;color:var(--muted)"></div></div>
-        <div class="control-card" style="border-left:3px solid #f59e0b"><h3>Beneficiary Registration Review Authority</h3><p style="font-size:11px;color:var(--muted)">Only the Founder can grant or revoke this authority. An authorised Admin can inspect applications and approve or reject them.</p><label style="display:flex;align-items:center;gap:8px"><input id="adminRegistrationReviewAuthority" type="checkbox" style="width:auto"> Allow this Admin to review and approve/reject beneficiary registrations</label><button type="button" class="purple" style="margin-top:10px" onclick="saveRegistrationReviewAuthority()">Save review authority</button><div id="registrationReviewAuthorityResult" style="font-size:11px;margin-top:7px"></div></div>
         <div class="control-card"><h3>Account Status</h3><select id="adminDeployStatus"><option>ACTIVE</option><option>PENDING</option><option>SUSPENDED</option><option>REVOKED</option><option>ARCHIVED</option></select><p style="margin-bottom:0">Suspended/revoked accounts are blocked by the Admin application.</p></div>
         <div class="control-card"><h3>Role Template</h3><select id="adminDeployRole" onchange="applyRoleTemplateToEditor()"></select><p id="adminRoleTemplateDescription" style="margin-bottom:0"></p></div>
         <div class="control-card"><h3>Deployment Metadata</h3><div id="adminDeploymentMeta" style="font-size:11px;color:var(--muted)"></div></div>
@@ -1499,6 +1498,31 @@ function saveCompanyWallets(){let profits={},total=0;companies.forEach((_,i)=>{l
 (function loadWallets(){let s=JSON.parse(localStorage.getItem('guvaza_profits')||'null');if(s){companies.forEach((_,i)=>{let el=document.getElementById('c'+(i+1));if(el)el.value=s.profits['c'+(i+1)]||0;});saveCompanyWallets();}})();
 let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');let pendingRegs=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');let delLogs=JSON.parse(localStorage.getItem('guvaza_del_log')||'[]');let deleteIndex=-1,editIndex=-1;
 function switchBenTab(tab){document.getElementById('tab-approved').classList.toggle('active', tab==='approved');document.getElementById('tab-pending').classList.toggle('active', tab==='pending');document.getElementById('benListApproved').style.display=tab==='approved'?'block':'none';document.getElementById('benListPending').style.display=tab==='pending'?'block':'none';renderBens();}
+async function previewRegistrationReconciliation(){
+  const panel=document.getElementById('registrationReconciliationPreview');
+  const summary=document.getElementById('registrationReconciliationSummary');
+  const rows=document.getElementById('registrationReconciliationRows');
+  panel.style.display='block'; summary.textContent='Preparing read-only comparison with the canonical family tree...'; rows.textContent='';
+  try{
+    const response=await fetch('/api/registrations/reconciliation-preview',{credentials:'include',cache:'no-store'});
+    const data=await response.json();
+    if(!response.ok||!data.ok)throw new Error(data.error||'Unable to prepare preview');
+    const s=data.summary||{};
+    summary.textContent=`${s.total||0} pending registrations | Exact matches: ${s.EXACT_MATCH||0} | Partial: ${s.PARTIAL_MATCH||0} | Ambiguous: ${s.AMBIGUOUS_MATCH||0} | Conflicts: ${s.CONFLICT_REVIEW||0} | Placeholder: ${s.PLACEHOLDER_REVIEW||0} | No match: ${s.NO_MATCH||0} | Possible duplicates: ${s.duplicateApplications||0}. No records have been changed.`;
+    if(!data.registrations?.length){rows.textContent='There are no pending server registrations to reconcile.';return;}
+    data.registrations.forEach(r=>{
+      const card=document.createElement('div');card.style.cssText='padding:10px;margin-top:8px;border:1px solid var(--border);border-radius:8px';
+      const title=document.createElement('b');title.textContent=`${r.applicantName||'Unnamed applicant'} — ${r.status}${r.duplicateApplication?' — POSSIBLE DUPLICATE':''}`;card.appendChild(title);
+      const detail=document.createElement('div');detail.style.cssText='font-size:12px;line-height:1.6;margin-top:5px;overflow-wrap:anywhere';
+      detail.textContent=`Applicant ID: ${r.matchedSystemId||r.submittedSystemId||'Not matched'} | Parent: ${r.parentName||'—'} (${r.parentSystemId||'—'}) | Grandparent: ${r.grandparentName||'—'} (${r.grandparentSystemId||'—'}) | Generation: ${r.generation??'—'} | Branch: ${r.branch||'—'} | Grandmother wife-number: ${r.grandmotherWifeNo||'Not recorded'}`;
+      card.appendChild(detail);
+      if(r.notes?.length){const note=document.createElement('small');note.style.cssText='display:block;color:#d97706;margin-top:5px';note.textContent=r.notes.join(' ');card.appendChild(note);}
+      const review=document.createElement('button');review.className='icon-btn approve';review.textContent='Open application';review.style.marginTop='7px';review.onclick=()=>reviewRegistration(r.registrationId);card.appendChild(review);
+      rows.appendChild(card);
+    });
+  }catch(error){summary.textContent='Preview unavailable: '+(error.message||'Please sign in and try again.');}
+}
+
 async function renderBens(){
   const listA=document.getElementById('benListApproved');
   const listP=document.getElementById('benListPending');
@@ -1538,11 +1562,22 @@ async function renderBens(){
   }
 
   if(listP){
-    listP.textContent='Loading server registrations...';
+    listP.textContent='Loading full server registration details...';
     try{
-      const response=await fetch('/api/registrations',{method:'GET',credentials:'include',cache:'no-store'});
+      // Load submitted registration data and the read-only family-tree matches.
+      const [response, reconciliationResponse]=await Promise.all([
+        fetch('/api/registrations',{method:'GET',credentials:'include',cache:'no-store'}),
+        fetch('/api/registrations/reconciliation-preview',{method:'GET',credentials:'include',cache:'no-store'})
+      ]);
       const data=await response.json();
       if(!response.ok||!data.ok)throw new Error(data.error||'Unable to load registrations');
+      let reconciliationById=new Map();
+      if(reconciliationResponse.ok){
+        const reconciliationData=await reconciliationResponse.json();
+        if(reconciliationData.ok&&Array.isArray(reconciliationData.registrations)){
+          reconciliationById=new Map(reconciliationData.registrations.map(r=>[String(r.registrationId),r]));
+        }
+      }
       pendingRegs=(data.registrations||[]).filter(r=>String(r.status||'').toUpperCase()==='PENDING');
       document.getElementById('countPending').innerText=pendingRegs.length;
       const badge=document.getElementById('pendingBadge');
@@ -1551,11 +1586,41 @@ async function renderBens(){
       else{
         listP.innerHTML='';
         pendingRegs.forEach(r=>{
+          const match=reconciliationById.get(String(r.registration_id))||{};
           const item=document.createElement('div'); item.className='ben-item'; item.style.borderLeft='3px solid #f59e0b';
-          const info=document.createElement('div'); info.className='ben-info';
-          const name=document.createElement('b'); name.textContent=r.full_name||'Unnamed applicant'; info.appendChild(name);
-          const details=document.createElement('small'); details.style.display='block';
-          details.textContent=`Family ID: ${r.applicant_system_id||'Not linked'} | Parent: ${r.parent_full_name||'Not recorded'} | Submitted: ${r.submitted_at?new Date(r.submitted_at).toLocaleString():'—'}`;
+          item.style.alignItems='flex-start';
+          const info=document.createElement('div'); info.className='ben-info'; info.style.width='100%';
+          const heading=document.createElement('div'); heading.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+          const name=document.createElement('b'); name.textContent=r.full_name||'Unnamed applicant'; heading.appendChild(name);
+          const statusBadge=document.createElement('span'); statusBadge.className='badge wait'; statusBadge.textContent='PENDING'; heading.appendChild(statusBadge);
+          if(match.status){const matchBadge=document.createElement('span');matchBadge.className='badge '+(match.status==='EXACT_MATCH'?'ok':'wait');matchBadge.textContent=match.status.replaceAll('_',' ');heading.appendChild(matchBadge);}
+          info.appendChild(heading);
+
+          const details=document.createElement('details'); details.style.cssText='margin-top:8px;border-top:1px solid var(--border);padding-top:8px';
+          const summary=document.createElement('summary'); summary.textContent='Full registration information'; summary.style.cssText='cursor:pointer;font-weight:600;color:var(--accent)';
+          details.appendChild(summary);
+          const grid=document.createElement('div'); grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:7px;margin-top:9px';
+          const fields=[
+            ['Applicant / Family System ID',match.matchedSystemId||r.applicant_system_id],
+            ['Username',r.username],['Phone',r.phone],['Email',r.email],['Identity / Document number',r.id_number],
+            ['Date of birth',r.date_of_birth],['Gender',r.gender],['Current surname',r.current_surname],
+            ['Generation',match.generation??r.generation],['Family branch',match.branch||r.branch_code],
+            ['Grandmother wife number',match.grandmotherWifeNo||r.wife_no],
+            ['Parent name',match.parentName||r.parent_full_name],['Parent System ID',match.parentSystemId||r.parent_system_id],
+            ['Grandparent name',match.grandparentName||r.grandparent_full_name],['Grandparent System ID',match.grandparentSystemId||r.grandparent_system_id],
+            ['Submitted',r.submitted_at?new Date(r.submitted_at).toLocaleString():null],
+            ['Family-tree match',match.status],['Previous review note',r.review_notes]
+          ];
+          fields.forEach(([label,value])=>{
+            const cell=document.createElement('div');cell.style.cssText='background:rgba(148,163,184,.08);padding:8px;border-radius:7px;min-width:0';
+            const key=document.createElement('b');key.style.cssText='display:block;font-size:10px;color:var(--muted);margin-bottom:3px';key.textContent=label;
+            const val=document.createElement('span');val.style.cssText='font-size:12px;overflow-wrap:anywhere';val.textContent=value===null||value===undefined||value===''?'Not recorded':String(value);
+            cell.append(key,val);grid.appendChild(cell);
+          });
+          details.appendChild(grid);
+          if(Array.isArray(match.notes)&&match.notes.length){
+            const note=document.createElement('p');note.style.cssText='font-size:12px;color:#d97706;margin:8px 0 0';note.textContent=match.notes.join(' ');details.appendChild(note);
+          }
           info.appendChild(details);
           const actions=document.createElement('div'); actions.className='ben-actions';
           const review=document.createElement('button'); review.className='icon-btn approve'; review.textContent='Review application';
@@ -1909,35 +1974,6 @@ function openAdminControlCentre(index){
 // ------------------------------------------------------------
 // ADMIN CONTROL — SERVER DATA VIEW
 // ------------------------------------------------------------
-async function saveRegistrationReviewAuthority(){
-  const index = document.getElementById('controlAdminSelect')?.value;
-  if(index === '' || index == null || !admins[index]) return alert('Select an Admin first.');
-  const admin = admins[index];
-  if(String(admin.role || '').toUpperCase() === 'FOUNDER') return alert('Founder authority cannot be changed here.');
-  const enabled = document.getElementById('adminRegistrationReviewAuthority').checked;
-  const adminId = admin.admin_id || admin.adminId;
-  if(!adminId) return alert('The selected Admin has no server Admin ID.');
-  if(!confirm((enabled ? 'Grant' : 'Revoke')+' beneficiary registration review authority for '+(admin.email||admin.name)+'?')) return;
-  const result = document.getElementById('registrationReviewAuthorityResult');
-  result.textContent = 'Saving...';
-  try{
-    const response = await fetch('/api/founder/admins/'+encodeURIComponent(adminId)+'/registration-review',{
-      method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({enabled})
-    });
-    const data = await response.json().catch(()=>({}));
-    if(!response.ok || !data.ok) throw new Error(data.error || 'Unable to save authority');
-    admin.deployment = admin.deployment || {};
-    admin.deployment.permissions = Array.isArray(admin.deployment.permissions) ? admin.deployment.permissions : [];
-    admin.deployment.permissions = enabled
-      ? [...new Set([...admin.deployment.permissions,'REGISTRATION_REVIEW_APPROVE'])]
-      : admin.deployment.permissions.filter(value=>value!=='REGISTRATION_REVIEW_APPROVE');
-    result.textContent = enabled ? 'Authority granted and recorded on the server.' : 'Authority revoked and recorded on the server.';
-  }catch(error){
-    result.textContent = error.message || 'Unable to save authority.';
-    document.getElementById('adminRegistrationReviewAuthority').checked = !enabled;
-  }
-}
-
 function moduleChecked(id, selected){
   return selected.includes(id) ? 'checked' : '';
 }
@@ -1971,14 +2007,6 @@ function loadAdminControlCentre(){
       Admin ID: ${admin.admin_id || admin.adminId || 'Not supplied'}
     `;
   }
-  const reviewAuthority = document.getElementById('adminRegistrationReviewAuthority');
-  if(reviewAuthority){
-    const permissions = Array.isArray(admin.deployment?.permissions) ? admin.deployment.permissions : [];
-    reviewAuthority.checked = permissions.includes('REGISTRATION_REVIEW_APPROVE');
-    reviewAuthority.disabled = String(admin.role || '').toUpperCase() === 'FOUNDER';
-  }
-  const reviewAuthorityResult = document.getElementById('registrationReviewAuthorityResult');
-  if(reviewAuthorityResult) reviewAuthorityResult.textContent = '';
 
   const role = document.getElementById('adminDeployRole');
 
