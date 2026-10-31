@@ -611,17 +611,27 @@ app.post('/api/registration/verify-structure', async (req, res) => {
         .replace(/\s+/g, ' ')
         .toUpperCase();
 
+    // The registration form asks for the wife number of the applicant's
+    // grandparent. That value belongs to the verified PARENT record, not
+    // the applicant's own record (which describes the next generation).
     const childResult = await query(
       `SELECT
-         system_id,
-         full_name,
-         parent_system_id,
-         generation,
-         branch_code,
-         profile->>'wifeNo' AS wife_no
-       FROM family_people
-       WHERE parent_system_id = $1
-         AND UPPER(TRIM(full_name)) = $2
+         child.system_id,
+         child.full_name,
+         child.parent_system_id,
+         child.generation,
+         child.branch_code,
+         parent.profile->>'wifeNo' AS wife_no,
+         parent.full_name AS verified_parent_name,
+         parent.parent_system_id AS grandparent_system_id,
+         grandparent.full_name AS verified_grandparent_name
+       FROM family_people child
+       LEFT JOIN family_people parent
+         ON parent.system_id = child.parent_system_id
+       LEFT JOIN family_people grandparent
+         ON grandparent.system_id = parent.parent_system_id
+       WHERE child.parent_system_id = $1
+         AND UPPER(TRIM(child.full_name)) = $2
        LIMIT 10`,
       [parentSystemId, normalize(fullName)]
     );
@@ -679,6 +689,7 @@ app.post('/api/registration/verify-structure', async (req, res) => {
         systemId: child.system_id,
         fullName: child.full_name,
         parentSystemId: child.parent_system_id,
+        grandparentSystemId: child.grandparent_system_id || null,
         generation: child.generation,
         branch: child.branch_code
       },
@@ -1062,14 +1073,19 @@ if (submittedParentId) {
     `
     SELECT
       child.system_id,
+      child.full_name,
       child.parent_system_id,
       child.generation,
       child.branch_code,
-      child.profile->>'wifeNo' AS wife_no,
-      parent.parent_system_id AS grandparent_system_id
+      parent.profile->>'wifeNo' AS wife_no,
+      parent.full_name AS verified_parent_name,
+      parent.parent_system_id AS grandparent_system_id,
+      grandparent.full_name AS verified_grandparent_name
     FROM family_people child
     LEFT JOIN family_people parent
       ON parent.system_id = child.parent_system_id
+    LEFT JOIN family_people grandparent
+      ON grandparent.system_id = parent.parent_system_id
     WHERE LOWER(TRIM(child.full_name)) = LOWER(TRIM($1))
       AND child.parent_system_id = $2
     LIMIT 2
@@ -1102,10 +1118,10 @@ if (submittedParentId) {
   }
 }
 
-// Only issue a generation-based GFT System ID after the server has
-// independently confirmed the applicant's family structure.
+// A person already present in the authoritative family tree MUST keep
+// their permanent existing System ID. Never mint a second ID for them.
 const serverSystemId = structureConfirmed
-  ? await generateGftSystemId(verifiedGeneration)
+  ? String(verifiedStructure.system_id)
   : null;
 
     let saved;
@@ -1144,6 +1160,27 @@ const serverSystemId = structureConfirmed
         const otpError = new Error('Email verification is required or has already been used');
         otpError.code = 'REGISTRATION_OTP_REQUIRED';
         throw otpError;
+      }
+
+      // Prevent repeat submissions for the same identity or permanent GFT ID.
+      // Existing historical duplicates are preserved for Founder reconciliation.
+      await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [idNumber]);
+      const duplicateResult = await client.query(
+        `SELECT registration_id, applicant_system_id, status
+         FROM registrations
+         WHERE (id_number = $1 OR ($2::text IS NOT NULL AND applicant_system_id = $2))
+           AND UPPER(COALESCE(status, '')) <> 'REJECTED'
+         ORDER BY submitted_at DESC
+         LIMIT 1`,
+        [idNumber, serverSystemId]
+      );
+      if (duplicateResult.rows.length) {
+        const duplicate = duplicateResult.rows[0];
+        const duplicateError = new Error('A registration for this identity or GFT family record already exists. Please contact the Founder/Admin; do not submit another application.');
+        duplicateError.code = 'REGISTRATION_DUPLICATE';
+        duplicateError.registrationId = duplicate.registration_id;
+        duplicateError.systemId = duplicate.applicant_system_id || null;
+        throw duplicateError;
       }
 
       const result = await client.query(
@@ -1235,11 +1272,42 @@ const serverSystemId = structureConfirmed
       applicationReference: saved.registration_id,
       registrationStatus: saved.status,
       submittedAt: saved.submitted_at,
+      registration: {
+        registrationId: saved.registration_id,
+        systemId: saved.applicant_system_id || null,
+        fullName,
+        dateOfBirth: record.dateOfBirth || null,
+        gender: record.gender || null,
+        rootSurname: 'Guvaza',
+        currentSurname: record.currentSurname || null,
+        email: registrationEmail,
+        username,
+        phone,
+        parentName: verifiedStructure?.verified_parent_name || parentName,
+        parentId: verifiedParentId,
+        grandparentName: verifiedStructure?.verified_grandparent_name || grandparentName,
+        grandparentId: verifiedGrandparentId,
+        generation: verifiedGeneration,
+        branch: verifiedBranch,
+        wifeNo: verifiedWifeNo,
+        status: saved.status,
+        submittedAt: saved.submitted_at
+      },
       verification: serverVerification,
       serverAuthoritative: true,
     });
 
   } catch (error) {
+    if (error?.code === 'REGISTRATION_DUPLICATE') {
+      return res.status(409).json({
+        ok: false,
+        code: error.code,
+        error: error.message,
+        existingRegistrationId: error.registrationId,
+        systemId: error.systemId || null
+      });
+    }
+
     if (error?.code === 'REGISTRATION_OTP_REQUIRED') {
       return res.status(400).json({
         ok: false,

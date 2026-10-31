@@ -153,7 +153,7 @@ footer{max-width:1080px;margin:0 auto 40px;padding:0 18px;color:var(--muted);fon
     <!-- STEP 3 -->
     <section class="step" data-step="3">
       <h2>Family Structure</h2>
-      <p class="step-intro">The system derives generation, branch and parent IDs. The applicant then selects WIFE 1–WIFE 8 manually. The correct choice is never disclosed after a failed attempt.</p>
+      <p class="step-intro">The system derives generation, branch and parent IDs. The applicant must identify their grandmother’s wife number by selecting WIFE 1–WIFE 8. The correct choice is never disclosed after a failed attempt.</p>
       <div id="structureSummary" class="summary"></div>
       <div class="notice warn" id="wifeAttemptNotice">Two verification attempts are available. After the second incorrect attempt, family-structure verification is frozen and Founder/Admin review is required.</div>
       <div class="wife-grid" id="wifeGrid"></div>
@@ -726,25 +726,10 @@ function updateDocumentRule(){
 function validateDocuments(){
   updateDocumentRule();
   const rule=expectedDocumentForAge(fieldValue("dateOfBirth"));
-
-// Read selected documents using the page's ID helper.
-const applicantFile = $("applicantDocument")?.files?.[0] || null;
-const parentFile = $("parentDocument")?.files?.[0] || null;
-const additionalFile = $("additionalDocument")?.files?.[0] || null;
-
-// The primary applicant document is mandatory.
-if (!applicantFile) {
-  showDocResult(
-    "The applicant's primary document has not been selected.",
-    "danger"
-  );
-  return;
-}
-
-  let err =
-  validateFile(applicantFile, true) ||
-  validateFile(additionalFile, false) ||
-  validateFile(parentFile, false);
+  const applicantFile=$("applicantDocument").files[0];
+  const parentFile=$("parentDocument").files[0];
+  const additional=$("additionalDocument").files[0];
+  let err=validateFile(applicantFile,true) || validateFile(additional,false) || validateFile(parentFile,false);
   if (err){showDocResult(err,"danger");return;}
   if (rule.code==="NATIONAL_ID" && !validateIdentityNumber(fieldValue("documentNumber"))){showDocResult("The applicant's National ID number is not in an accepted format.","danger");return;}
   if (rule.code==="BIRTH_CERTIFICATE" && (!fieldValue("guardianName") || !fieldValue("guardianRelationship") || !fieldValue("guardianPhone"))){showDocResult("Under-16 registration requires guardian details in addition to the birth certificate.","danger");return;}
@@ -752,7 +737,7 @@ if (!applicantFile) {
     expectedDocument:rule.code,
     primaryFileName:applicantFile.name,
     parentDocumentProvided:Boolean(parentFile),
-   additionalDocumentProvided:Boolean(additionalFile),
+    additionalDocumentProvided:Boolean(additional),
     status:"PENDING_DOCUMENT_VERIFICATION",
     clientChecks:["FILE_TYPE","FILE_SIZE","BASIC_FILE_PRESENCE"]
   };
@@ -771,7 +756,7 @@ function buildReview(){
     ["Root surname","Guvaza"],["Current surname",fieldValue("currentSurname")],["Email",fieldValue("email")],
     ["Parent",p?getFullName(p):fieldValue("parentName")],["Grandparent",g?getFullName(g):fieldValue("grandparentName")],
     ["Generation",s?.generation ? "GEN"+s.generation : "Review required"],["Branch",s?.branch||"Review required"],
-    ["Wife choice",s?.wifeNo ? `WIFE ${s.wifeNo}` : "Not automatically verified"],["Lineage status",state.lineage?.status||"PENDING"],
+    ["Grandmother’s wife number",s?.wifeNo ? `WIFE ${s.wifeNo}` : "Not automatically verified"],["Lineage status",state.lineage?.status||"PENDING"],
     ["Family structure",state.wifeFrozen?"FAMILY_STRUCTURE_FROZEN":state.wifeVerified?"VERIFIED":"PENDING"],
     ["Identity status",state.identity?.status||"PENDING"]
   ];
@@ -908,20 +893,20 @@ try{
     }
 
     record.storageMode = "SERVER";
-    record.registrationId = result.registrationId || null;
-    record.applicationReference =
-      result.applicationReference ||
-      result.registrationId ||
-      null;
     record.registrationStatus =
       result.registrationStatus ||
-      "PENDING";
+      "PENDING_REVIEW";
 
-if (result.verification) {
-  Object.assign(record, result.verification);
-}
+    // The server response is authoritative for permanent IDs and lineage.
+    if (result.registration && typeof result.registration === "object") {
+      Object.assign(record, result.registration);
+    }
 
-    if(result.systemId){
+    if (result.verification) {
+      Object.assign(record, result.verification);
+    }
+
+    if (result.systemId) {
       record.systemId = result.systemId;
     }
 
@@ -931,33 +916,50 @@ if (result.verification) {
     showStep(6);
 
   }catch(error){
-   console.error("GFT registration submission failed:", error);
+    console.error("GFT registration submission failed:", error);
 
-alert(
-  "Registration failed:\n\n" +
-  (error.message || "Unknown server error") +
-  "\n\nPlease contact the Trust administrator if the problem continues."
-);
+    alert(
+      "Registration was not submitted to the Trust server.\n\n" +
+      "Please check your connection and try again.\n\n" +
+      "No beneficiary record was saved locally."
+    );
   }
 }
 
 function renderFinal(){
-  const r=state.application;
+  const r=state.application || {};
   const review = r.beneficiaryStatus==="AUTO_VERIFIED" ? "AUTO_VERIFIED" : "PENDING_VERIFICATION";
-  const hasSystemId = Boolean(r.systemId);
-  const reference = r.applicationReference || r.registrationId || "Pending";
-  const referenceLabel = hasSystemId ? "Your GFT system ID is" : "Your application reference is";
-  const referenceValue = hasSystemId ? r.systemId : reference;
-
-  $("finalStatus").innerHTML=`<h3>Registration received</h3><p>${referenceLabel} <b>${esc(referenceValue)}</b>.</p><span class="badge ${review==="AUTO_VERIFIED"?"ok":"pending"}">${esc(review)}</span><p style="margin-bottom:0">If family details could not be confirmed automatically, the application has been retained for Founder/Admin review. Registration does <b>not</b> authorize payout. Wallet and payout eligibility remain false until the required approval process is completed.</p>`;
+  const systemId = r.systemId || "Pending Founder/Admin family-tree reconciliation";
+  $("finalStatus").innerHTML=`<h3>Registration received</h3><p>Registration reference: <b>${esc(r.registrationId || r.applicationReference || "Recorded by the Trust server")}</b></p><p>GFT System ID: <b>${esc(systemId)}</b></p><span class="badge ${review==="AUTO_VERIFIED"?"ok":"pending"}">${esc(r.registrationStatus || r.status || "PENDING")}</span><p style="margin-bottom:0">Registration does <b>not</b> authorize payout. Wallet and payout eligibility remain false until the required Founder approval process is completed.</p>`;
   const rows=[
-    [hasSystemId ? "GFT ID" : "Application reference",referenceValue],
-    ["Lineage status",r.lineageStatus],["Family structure",r.familyStructureStatus],
-    ["Identity status",r.identityStatus],["Founder verification","PENDING"],
+    ["Applicant full name",r.fullName],
+    ["Date of birth",r.dateOfBirth],
+    ["Gender",r.gender],
+    ["Root surname",r.rootSurname || "Guvaza"],
+    ["Current surname",r.currentSurname],
+    ["Email",r.email],
+    ["Username",r.username],
+    ["Phone",r.phone],
+    ["GFT System ID",r.systemId || "Pending review"],
+    ["Generation",r.generation ? `GEN${r.generation}` : "Pending review"],
+    ["Branch",r.branch],
+    ["Parent",r.parentName],
+    ["Parent System ID",r.parentId],
+    ["Grandparent",r.grandparentName],
+    ["Grandparent System ID",r.grandparentId],
+    ["Grandparent's wife number",r.wifeNo ? `WIFE ${r.wifeNo}` : "Pending review"],
+    ["Registration reference",r.registrationId || r.applicationReference],
+    ["Registration status",r.registrationStatus || r.status || "PENDING"],
+    ["Lineage status",r.lineageStatus],
+    ["Family structure status",r.familyStructureStatus || "PENDING_REVIEW"],
+    ["Identity status",r.identityStatus],
+    ["Founder verification",r.founderVerificationStatus || "PENDING"],
     ["Beneficiary status",r.beneficiaryStatus],
-    ["Wallet eligible",String(r.walletEligible)],["Payout eligible",String(r.payoutEligible)]
+    ["Wallet eligible",String(r.walletEligible === true)],
+    ["Payout eligible",String(r.payoutEligible === true)],
+    ["Submitted at",r.submittedAt || r.createdAt]
   ];
-  $("finalDetails").innerHTML=rows.map(x=>`<div class="review-row"><b>${esc(x[0])}</b><span>${esc(x[1] ?? "Pending review")}</span></div>`).join("");
+  $("finalDetails").innerHTML=rows.map(x=>`<div class="review-row"><b>${esc(x[0])}</b><span>${esc(x[1] ?? "Not recorded / pending review")}</span></div>`).join("");
 }
 
 function resetForm(){
