@@ -1596,6 +1596,13 @@ async function renderBens(){
           if(match.status){const matchBadge=document.createElement('span');matchBadge.className='badge '+(match.status==='EXACT_MATCH'?'ok':'wait');matchBadge.textContent=match.status.replaceAll('_',' ');heading.appendChild(matchBadge);}
           info.appendChild(heading);
 
+          if(String(r.review_notes||'').includes('WIFE_NUMBER_MISMATCH')){
+            const wifeAlert=document.createElement('div');
+            wifeAlert.style.cssText='margin-top:9px;padding:10px 12px;border:1px solid rgba(245,158,11,.55);border-left:4px solid #f59e0b;border-radius:8px;background:rgba(245,158,11,.09);color:#fbbf24;font-size:12px;font-weight:600';
+            wifeAlert.textContent='FOUNDER ACTION REQUIRED — Wife-number selection was frozen after two server-confirmed mismatches. The application remains PENDING and the wife number is not verified. Please review before making an approval decision.';
+            info.appendChild(wifeAlert);
+          }
+
           const details=document.createElement('details'); details.style.cssText='margin-top:8px;border-top:1px solid var(--border);padding-top:8px';
           const summary=document.createElement('summary'); summary.textContent='Full registration information'; summary.style.cssText='cursor:pointer;font-weight:600;color:var(--accent)';
           details.appendChild(summary);

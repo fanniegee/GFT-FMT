@@ -242,7 +242,9 @@ const GFT_CONFIG = {
 const state = {
   step: 1,
   wifeAttempts: 0,
+  wifeAttemptId: null,
   wifeFrozen: false,
+  wifeMismatchFrozen: false,
   wifeVerified: false,
   emailVerified: false,
   otpExpiresAt: null,
@@ -617,8 +619,6 @@ function renderWives(parent){
 async function selectWife(no){
   if (state.wifeFrozen || state.wifeVerified) return;
 
-  state.wifeAttempts++;
-
   document.querySelectorAll(".wife").forEach((b,i)=>
     b.classList.toggle("selected",i===no-1)
   );
@@ -641,13 +641,17 @@ async function selectWife(no){
       body:JSON.stringify({
         fullName:applicantName,
         parentSystemId:parentId,
-        wifeNo:no
+        wifeNo:no,
+        attemptId:state.wifeAttemptId
       })
     });
 
     if(data.status==="FAMILY_STRUCTURE_CONFIRMED"){
       state.wifeVerified=true;
-      state.structure.wifeNo=no;
+      state.wifeFrozen=false;
+      state.wifeMismatchFrozen=false;
+      state.wifeAttempts=Number(data.attemptsUsed||state.wifeAttempts||0);
+      state.structure.wifeNo=data.wifeNo||no;
       state.structure.wifeName=null;
 
       result.className="notice ok";
@@ -656,34 +660,46 @@ async function selectWife(no){
 
       document.querySelectorAll(".wife").forEach(b=>b.classList.add("locked"));
       $("continueFromStructure").disabled=false;
-
-      return;
-    }
-
-    if(data.status==="FAMILY_STRUCTURE_NOT_CONFIRMED"){
-      if(state.wifeAttempts===1){
-        result.className="notice warn";
-        result.textContent="That selection could not be verified. One verification attempt remains. The correct choice is not disclosed.";
-        result.classList.remove("hidden");
-      }else{
-        state.wifeFrozen=true;
-        state.structure.wifeNo=no;
-        state.structure.wifeName=null;
-
-        result.className="notice danger";
-        result.textContent="Family-structure verification is now frozen. No third attempt or backtracking is allowed. Founder/Admin review is required.";
-        result.classList.remove("hidden");
-
-        document.querySelectorAll(".wife").forEach(b=>b.classList.add("locked"));
-        $("continueFromStructure").disabled=false;
-      }
-
       $("wifeAttemptNotice").textContent=`Attempts used: ${state.wifeAttempts}/2.`;
       return;
     }
 
+    if(data.status==="FAMILY_STRUCTURE_NOT_CONFIRMED" &&
+       data.reason==="WIFE_NUMBER_MISMATCH"){
+      state.wifeAttempts=Number(data.attemptsUsed||1);
+      state.wifeAttemptId=data.attemptId||state.wifeAttemptId;
+
+      result.className="notice warn";
+      result.textContent="That selection could not be verified. One verification attempt remains. The correct choice is not disclosed.";
+      result.classList.remove("hidden");
+      $("wifeAttemptNotice").textContent=`Attempts used: ${state.wifeAttempts}/2.`;
+      return;
+    }
+
+    if(data.status==="FAMILY_STRUCTURE_FROZEN" &&
+       data.reason==="SECOND_WIFE_NUMBER_MISMATCH"){
+      state.wifeAttempts=2;
+      state.wifeFrozen=true;
+      state.wifeMismatchFrozen=true;
+      state.wifeAttemptId=data.attemptId||state.wifeAttemptId;
+      state.structure.wifeNo=null;
+      state.structure.wifeName=null;
+
+      result.className="notice danger";
+      result.textContent="Family-structure verification is now frozen after two confirmed incorrect selections. No third attempt or backtracking is allowed. You may continue submitting your application for Founder review.";
+      result.classList.remove("hidden");
+
+      document.querySelectorAll(".wife").forEach(b=>b.classList.add("locked"));
+      $("continueFromStructure").disabled=false;
+      $("wifeAttemptNotice").textContent="Attempts used: 2/2. Wife selection frozen — Founder review required.";
+      return;
+    }
+
+    // Preserve the existing review route for all other family-register issues.
+    // These are not counted as wife-number mismatches.
     state.wifeFrozen=true;
-    state.structure.wifeNo=no;
+    state.wifeMismatchFrozen=false;
+    state.structure.wifeNo=null;
     state.structure.wifeName=null;
 
     result.className="notice warn";
@@ -696,10 +712,9 @@ async function selectWife(no){
   }catch(error){
     console.error("Server-side wife verification error:",error);
 
-    state.wifeAttempts=Math.max(0,state.wifeAttempts-1);
-
+    // A network/server error is not a wife-number attempt.
     result.className="notice danger";
-    result.textContent="The family structure could not be verified by the server. Please try again.";
+    result.textContent="The family structure could not be verified by the server. Please try again. No wife-number attempt has been counted.";
     result.classList.remove("hidden");
   }
 }
@@ -829,8 +844,10 @@ function createCanonicalRecord(){
     grandparentName:gp?getFullName(gp):fieldValue("grandparentName"),
     generation:gen,
     branch:state.structure?.branch||null,
-    wifeNo:state.structure?.wifeNo||null,
-    wifeName:state.structure?.wifeName||null,
+    wifeNo:state.wifeMismatchFrozen ? null : (state.structure?.wifeNo||null),
+    wifeName:state.wifeMismatchFrozen ? null : (state.structure?.wifeName||null),
+    wifeAttemptId:state.wifeAttemptId,
+    wifeMismatchFrozen:Boolean(state.wifeMismatchFrozen),
     email:fieldValue("email"),
     emailVerified:state.emailVerified,
     username:fieldValue("username")||null,
@@ -842,7 +859,11 @@ function createCanonicalRecord(){
     walletEligible:false,
     payoutEligible:false,
     femaleGraceEligible:Boolean(femaleGrace.eligible),
-    familyStructureStatus:state.wifeFrozen?"FAMILY_STRUCTURE_FROZEN":state.wifeVerified?"VERIFIED":"PENDING",
+    familyStructureStatus:state.wifeMismatchFrozen
+      ? "FAMILY_STRUCTURE_FROZEN"
+      : state.wifeVerified
+        ? "VERIFIED"
+        : "PENDING_REVIEW",
     parentDocumentProvided:Boolean($("parentDocument").files[0]),
     createdAt:new Date().toISOString()
   };
@@ -952,6 +973,7 @@ function renderFinal(){
     ["Registration status",r.registrationStatus || r.status || "PENDING"],
     ["Lineage status",r.lineageStatus],
     ["Family structure status",r.familyStructureStatus || "PENDING_REVIEW"],
+    ["Founder review note",r.reviewNotes || (r.familyStructureStatus==="FAMILY_STRUCTURE_FROZEN" ? "Wife selection frozen; Founder review required." : null)],
     ["Identity status",r.identityStatus],
     ["Founder verification",r.founderVerificationStatus || "PENDING"],
     ["Beneficiary status",r.beneficiaryStatus],

@@ -12,6 +12,7 @@ import { Resend } from 'resend';
 import {
   randomBytes,
   createHash,
+  createHmac,
   scrypt as scryptCallback,
   timingSafeEqual
 } from 'node:crypto';
@@ -451,18 +452,19 @@ app.put('/api/admin/config/public', requireAdmin, async (req, res) => {
 // SERVER-SIDE REGISTRATION LINEAGE VERIFICATION
 // ------------------------------------------------------------
 
+
+// ------------------------------------------------------------
+// SERVER-SIDE REGISTRATION LINEAGE VERIFICATION
+// Both parent and grandparent must be verified.
+// ------------------------------------------------------------
+
 app.post('/api/registration/verify-lineage', async (req, res) => {
   try {
     const parentName = String(req.body?.parentName || '').trim();
     const grandparentName = String(req.body?.grandparentName || '').trim();
-
-    if (!parentName || !grandparentName) {
-      return res.status(400).json({
-        ok: false,
-        status: 'LINEAGE_REVIEW_REQUIRED',
-        error: 'Parent name and grandparent name are required'
-      });
-    }
+    const relationship = String(
+      req.body?.parentRelationship || ''
+    ).trim().toUpperCase();
 
     const normalize = value =>
       String(value || '')
@@ -470,6 +472,19 @@ app.post('/api/registration/verify-lineage', async (req, res) => {
         .replace(/\s+/g, ' ')
         .toUpperCase();
 
+    if (
+      !parentName ||
+      !grandparentName ||
+      !['FATHER', 'MOTHER'].includes(relationship)
+    ) {
+      return res.status(400).json({
+        ok: false,
+        status: 'LINEAGE_REVIEW_REQUIRED',
+        error: 'Parent relationship, parent name and grandparent name are required.'
+      });
+    }
+
+    // 1. Find exactly one parent.
     const parentResult = await query(
       `SELECT
          person_id,
@@ -480,7 +495,9 @@ app.post('/api/registration/verify-lineage', async (req, res) => {
          generation,
          branch_code
        FROM family_people
-       WHERE UPPER(TRIM(full_name)) = $1
+       WHERE REGEXP_REPLACE(
+         UPPER(TRIM(full_name)), '\\s+', ' ', 'g'
+       ) = $1
        LIMIT 2`,
       [normalize(parentName)]
     );
@@ -491,26 +508,46 @@ app.post('/api/registration/verify-lineage', async (req, res) => {
         status: 'LINEAGE_REVIEW_REQUIRED',
         reason: parentResult.rows.length === 0
           ? 'PARENT_NOT_FOUND'
-          : 'PARENT_NOT_UNIQUE'
+          : 'PARENT_NOT_UNIQUE',
+        error: parentResult.rows.length === 0
+          ? 'The selected parent was not found in the family register.'
+          : 'The parent name matches more than one person. Please check the name.'
       });
     }
 
     const parent = parentResult.rows[0];
 
+    // 2. Check Father/Mother against recorded gender.
+    const gender = String(parent.gender || '').trim().toUpperCase();
+
+    const genderMatches = relationship === 'FATHER'
+      ? ['M', 'MALE'].includes(gender)
+      : ['F', 'FEMALE'].includes(gender);
+
+    if (!genderMatches) {
+      return res.json({
+        ok: true,
+        status: 'LINEAGE_REVIEW_REQUIRED',
+        reason: gender
+          ? 'PARENT_RELATIONSHIP_MISMATCH'
+          : 'PARENT_GENDER_NOT_VERIFIABLE',
+        error: gender
+          ? 'The selected Father/Mother relationship does not match the family register.'
+          : 'The parent gender is not recorded clearly enough to verify this relationship.'
+      });
+    }
+
+    // 3. The parent must have a linked grandparent.
     if (!parent.parent_system_id) {
       return res.json({
         ok: true,
         status: 'LINEAGE_REVIEW_REQUIRED',
         reason: 'GRANDPARENT_NOT_LINKED',
-        parent: {
-          systemId: parent.system_id,
-          fullName: parent.full_name,
-          generation: parent.generation,
-          branch: parent.branch_code
-        }
+        error: 'The selected parent has no linked grandparent in the family register.'
       });
     }
 
+    // 4. Retrieve the actual grandparent using the parent's link.
     const grandparentResult = await query(
       `SELECT
          person_id,
@@ -522,31 +559,32 @@ app.post('/api/registration/verify-lineage', async (req, res) => {
          branch_code
        FROM family_people
        WHERE system_id = $1
-       LIMIT 1`,
+       LIMIT 2`,
       [parent.parent_system_id]
     );
 
-    if (!grandparentResult.rows.length) {
+    if (grandparentResult.rows.length !== 1) {
       return res.json({
         ok: true,
         status: 'LINEAGE_REVIEW_REQUIRED',
-        reason: 'GRANDPARENT_NOT_FOUND'
+        reason: 'GRANDPARENT_NOT_FOUND_OR_NOT_UNIQUE',
+        error: 'The linked grandparent could not be uniquely verified.'
       });
     }
 
     const grandparent = grandparentResult.rows[0];
 
-    if (normalize(grandparent.full_name) !== normalize(grandparentName)) {
+    // 5. Compare the applicant's selected grandparent with
+    // the actual grandparent linked to the parent.
+    if (
+      normalize(grandparent.full_name) !==
+      normalize(grandparentName)
+    ) {
       return res.json({
         ok: true,
         status: 'LINEAGE_REVIEW_REQUIRED',
         reason: 'GRANDPARENT_MISMATCH',
-        parent: {
-          systemId: parent.system_id,
-          fullName: parent.full_name,
-          generation: parent.generation,
-          branch: parent.branch_code
-        }
+        error: 'The selected grandparent does not match the family register.'
       });
     }
 
@@ -574,20 +612,54 @@ app.post('/api/registration/verify-lineage', async (req, res) => {
 
     return res.status(500).json({
       ok: false,
-      error: 'Unable to verify lineage'
+      status: 'LINEAGE_VERIFICATION_ERROR',
+      error: 'Unable to verify lineage. Please try again.'
     });
   }
 });
+
 
 // ------------------------------------------------------------
 // SERVER-SIDE FAMILY STRUCTURE / WIFE VERIFICATION
 // ------------------------------------------------------------
 
+// ------------------------------------------------------------
+// SERVER-SIDE FAMILY STRUCTURE / WIFE VERIFICATION
+// Server-enforced two-attempt limit.
+// Only confirmed wife-number mismatches count as attempts.
+// ------------------------------------------------------------
+
+let registrationWifeAttemptsSchemaReady;
+
+async function ensureRegistrationWifeAttemptsSchema() {
+  if (!registrationWifeAttemptsSchemaReady) {
+    registrationWifeAttemptsSchemaReady = query(`
+      CREATE TABLE IF NOT EXISTS registration_wife_attempts (
+        attempt_id TEXT PRIMARY KEY,
+        full_name TEXT NOT NULL,
+        parent_system_id TEXT NOT NULL,
+        attempts_used INTEGER NOT NULL DEFAULT 0
+          CHECK (attempts_used BETWEEN 0 AND 2),
+        status TEXT NOT NULL DEFAULT 'IN_PROGRESS'
+          CHECK (status IN ('IN_PROGRESS', 'VERIFIED', 'FROZEN')),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        expires_at TIMESTAMPTZ NOT NULL
+      )
+    `).then(() => true);
+  }
+
+  return registrationWifeAttemptsSchemaReady;
+}
+
 app.post('/api/registration/verify-structure', async (req, res) => {
   try {
+    await ensureRegistrationWifeAttemptsSchema();
+
     const fullName = String(req.body?.fullName || '').trim();
     const parentSystemId = String(req.body?.parentSystemId || '').trim();
     const selectedWifeNo = Number(req.body?.wifeNo);
+    const attemptId = String(req.body?.attemptId || '').trim();
 
     if (!fullName || !parentSystemId || !Number.isInteger(selectedWifeNo)) {
       return res.status(400).json({
@@ -611,31 +683,23 @@ app.post('/api/registration/verify-structure', async (req, res) => {
         .replace(/\s+/g, ' ')
         .toUpperCase();
 
-    // The registration form asks for the wife number of the applicant's
-    // grandparent. That value belongs to the verified PARENT record, not
-    // the applicant's own record (which describes the next generation).
+    // Confirm that the applicant is uniquely listed under this parent.
     const childResult = await query(
       `SELECT
-         child.system_id,
-         child.full_name,
-         child.parent_system_id,
-         child.generation,
-         child.branch_code,
-         parent.profile->>'wifeNo' AS wife_no,
-         parent.full_name AS verified_parent_name,
-         parent.parent_system_id AS grandparent_system_id,
-         grandparent.full_name AS verified_grandparent_name
-       FROM family_people child
-       LEFT JOIN family_people parent
-         ON parent.system_id = child.parent_system_id
-       LEFT JOIN family_people grandparent
-         ON grandparent.system_id = parent.parent_system_id
-       WHERE child.parent_system_id = $1
-         AND UPPER(TRIM(child.full_name)) = $2
+         system_id,
+         full_name,
+         parent_system_id,
+         generation,
+         branch_code,
+         profile->>'wifeNo' AS wife_no
+       FROM family_people
+       WHERE parent_system_id = $1
+         AND UPPER(TRIM(full_name)) = $2
        LIMIT 10`,
       [parentSystemId, normalize(fullName)]
     );
 
+    // Preserve existing handling for unresolved family-register issues.
     if (childResult.rows.length === 0) {
       return res.json({
         ok: true,
@@ -674,26 +738,148 @@ app.post('/api/registration/verify-structure', async (req, res) => {
 
     const expectedWifeNo = Number(wifeMatch[1]);
 
-    if (selectedWifeNo !== expectedWifeNo) {
+    // First selection: create a server-side attempt record.
+    if (!attemptId) {
+      if (selectedWifeNo === expectedWifeNo) {
+        return res.json({
+          ok: true,
+          status: 'FAMILY_STRUCTURE_CONFIRMED',
+          applicant: {
+            systemId: child.system_id,
+            fullName: child.full_name,
+            parentSystemId: child.parent_system_id,
+            generation: child.generation,
+            branch: child.branch_code
+          },
+          wifeNo: expectedWifeNo,
+          attemptsUsed: 0
+        });
+      }
+
+      const newAttemptId =
+        `WIFE-${randomBytes(24).toString('hex')}`;
+
+      await query(
+        `INSERT INTO registration_wife_attempts (
+           attempt_id,
+           full_name,
+           parent_system_id,
+           attempts_used,
+           status,
+           expires_at
+         )
+         VALUES ($1, $2, $3, 1, 'IN_PROGRESS', NOW() + INTERVAL '2 hours')`,
+        [newAttemptId, normalize(fullName), parentSystemId]
+      );
+
       return res.json({
         ok: true,
         status: 'FAMILY_STRUCTURE_NOT_CONFIRMED',
-        reason: 'WIFE_NUMBER_MISMATCH'
+        reason: 'WIFE_NUMBER_MISMATCH',
+        attemptsUsed: 1,
+        attemptsRemaining: 1,
+        attemptId: newAttemptId
       });
     }
 
+    // Second selection: lock and validate the existing attempt record.
+    const attemptResult = await query(
+      `SELECT
+         attempt_id,
+         full_name,
+         parent_system_id,
+         attempts_used,
+         status,
+         expires_at
+       FROM registration_wife_attempts
+       WHERE attempt_id = $1
+       LIMIT 1`,
+      [attemptId]
+    );
+
+    if (!attemptResult.rows.length) {
+      return res.status(400).json({
+        ok: false,
+        status: 'FAMILY_STRUCTURE_REVIEW_REQUIRED',
+        error: 'Wife verification session is invalid. Please restart verification.'
+      });
+    }
+
+    const attempt = attemptResult.rows[0];
+
+    if (
+      attempt.expires_at <= new Date() ||
+      normalize(attempt.full_name) !== normalize(fullName) ||
+      attempt.parent_system_id !== parentSystemId
+    ) {
+      return res.status(400).json({
+        ok: false,
+        status: 'FAMILY_STRUCTURE_REVIEW_REQUIRED',
+        error: 'Wife verification session has expired or does not match this applicant.'
+      });
+    }
+
+    if (attempt.status === 'FROZEN' || Number(attempt.attempts_used) >= 2) {
+      return res.json({
+        ok: true,
+        status: 'FAMILY_STRUCTURE_FROZEN',
+        attemptsUsed: 2,
+        reason: 'SECOND_WIFE_NUMBER_MISMATCH'
+      });
+    }
+
+    if (attempt.status === 'VERIFIED') {
+      return res.status(409).json({
+        ok: false,
+        status: 'FAMILY_STRUCTURE_REVIEW_REQUIRED',
+        error: 'Wife selection has already been verified.'
+      });
+    }
+
+    if (selectedWifeNo === expectedWifeNo) {
+      await query(
+        `UPDATE registration_wife_attempts
+         SET status = 'VERIFIED',
+             updated_at = NOW()
+         WHERE attempt_id = $1
+           AND status = 'IN_PROGRESS'`,
+        [attemptId]
+      );
+
+      return res.json({
+        ok: true,
+        status: 'FAMILY_STRUCTURE_CONFIRMED',
+        applicant: {
+          systemId: child.system_id,
+          fullName: child.full_name,
+          parentSystemId: child.parent_system_id,
+          generation: child.generation,
+          branch: child.branch_code
+        },
+        wifeNo: expectedWifeNo,
+        attemptsUsed: 1
+      });
+    }
+
+    // The second confirmed mismatch freezes wife selection.
+    await query(
+      `UPDATE registration_wife_attempts
+       SET attempts_used = 2,
+           status = 'FROZEN',
+           updated_at = NOW()
+       WHERE attempt_id = $1
+         AND status = 'IN_PROGRESS'`,
+      [attemptId]
+    );
+
     return res.json({
       ok: true,
-      status: 'FAMILY_STRUCTURE_CONFIRMED',
-      applicant: {
-        systemId: child.system_id,
-        fullName: child.full_name,
-        parentSystemId: child.parent_system_id,
-        grandparentSystemId: child.grandparent_system_id || null,
-        generation: child.generation,
-        branch: child.branch_code
-      },
-      wifeNo: expectedWifeNo
+      status: 'FAMILY_STRUCTURE_FROZEN',
+      reason: 'SECOND_WIFE_NUMBER_MISMATCH',
+      attemptsUsed: 2,
+      attemptsRemaining: 0,
+      founderReviewRequired: true,
+      attemptId
     });
 
   } catch (error) {
@@ -1060,6 +1246,42 @@ if (verifiedEmailResult.rows.length === 0) {
 // If the record cannot be confirmed automatically, retain the application
 // for Founder/Admin review instead of rejecting the entire submission.
 const submittedParentId = String(record.parentId || '').trim();
+const submittedWifeAttemptId = String(record.wifeAttemptId || '').trim();
+let wifeMismatchFrozen = false;
+
+if (record.wifeMismatchFrozen === true) {
+  if (!submittedWifeAttemptId || !submittedParentId) {
+    return res.status(400).json({
+      ok: false,
+      error: 'Founder review can only be requested after the server has frozen a verified wife-number attempt.'
+    });
+  }
+
+  await ensureRegistrationWifeAttemptsSchema();
+
+  const frozenAttemptResult = await query(
+    `SELECT attempt_id
+     FROM registration_wife_attempts
+     WHERE attempt_id = $1
+       AND full_name = UPPER(REGEXP_REPLACE(TRIM($2), '\\s+', ' ', 'g'))
+       AND parent_system_id = $3
+       AND attempts_used = 2
+       AND status = 'FROZEN'
+       AND expires_at > NOW()
+     LIMIT 1`,
+    [submittedWifeAttemptId, fullName, submittedParentId]
+  );
+
+  if (!frozenAttemptResult.rows.length) {
+    return res.status(400).json({
+      ok: false,
+      error: 'The wife-number review session is invalid or expired. Please restart registration verification.'
+    });
+  }
+
+  wifeMismatchFrozen = true;
+}
+
 let verifiedStructure = null;
 let verifiedWifeNo = null;
 let verifiedGeneration = null;
@@ -1102,13 +1324,16 @@ if (submittedParentId) {
 
     if (
       storedWifeNo !== null &&
-      Number.isInteger(selectedWifeNo) &&
-      selectedWifeNo === storedWifeNo &&
       Number.isInteger(candidateGeneration) &&
-      candidateGeneration >= 1
+      candidateGeneration >= 1 &&
+      (
+        wifeMismatchFrozen ||
+        (Number.isInteger(selectedWifeNo) && selectedWifeNo === storedWifeNo)
+      )
     ) {
       verifiedStructure = candidate;
-      verifiedWifeNo = storedWifeNo;
+      // A frozen mismatch must never be recorded as a verified wife number.
+      verifiedWifeNo = wifeMismatchFrozen ? null : storedWifeNo;
       verifiedGeneration = candidateGeneration;
       verifiedBranch = candidate.branch_code || null;
       verifiedParentId = candidate.parent_system_id || null;
@@ -1128,13 +1353,21 @@ const serverSystemId = structureConfirmed
     const serverVerification = {
       emailStatus: 'VERIFIED',
       lineageStatus: structureConfirmed ? 'LINEAGE_CONFIRMED' : 'PENDING_REVIEW',
-      familyStructureStatus: structureConfirmed ? 'VERIFIED' : 'PENDING_REVIEW',
+      familyStructureStatus: wifeMismatchFrozen
+        ? 'FAMILY_STRUCTURE_FROZEN'
+        : structureConfirmed
+          ? 'VERIFIED'
+          : 'PENDING_REVIEW',
       identityStatus: 'PENDING_DOCUMENT_VERIFICATION',
       beneficiaryStatus: 'PENDING_VERIFICATION',
       founderVerificationStatus: 'PENDING',
       walletEligible: false,
       payoutEligible: false
     };
+
+    const registrationReviewNote = wifeMismatchFrozen
+      ? 'WIFE_NUMBER_MISMATCH: Two server-confirmed incorrect wife-number selections were made. Wife selection is frozen; Founder review is required. No wife number has been verified.'
+      : null;
 
     const uploadedDocuments = [
       { field: 'applicantDocument', type: 'APPLICANT_DOCUMENT' },
@@ -1201,11 +1434,12 @@ const serverSystemId = structureConfirmed
           wife_no,
           parent_system_id,
           grandparent_system_id,
-          status
+          status,
+          review_notes
         )
         VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9,
-          $10, $11, $12, $13, $14, $15, $16, 'PENDING'
+          $10, $11, $12, $13, $14, $15, $16, 'PENDING', $17
         )
         RETURNING
           registration_id,
@@ -1228,7 +1462,8 @@ const serverSystemId = structureConfirmed
           verifiedBranch,
           verifiedWifeNo,
           verifiedParentId,
-          verifiedGrandparentId
+          verifiedGrandparentId,
+          registrationReviewNote
         ]
       );
 
@@ -1290,8 +1525,10 @@ const serverSystemId = structureConfirmed
         generation: verifiedGeneration,
         branch: verifiedBranch,
         wifeNo: verifiedWifeNo,
+        familyStructureStatus: serverVerification.familyStructureStatus,
         status: saved.status,
-        submittedAt: saved.submitted_at
+        submittedAt: saved.submitted_at,
+        reviewNotes: registrationReviewNote
       },
       verification: serverVerification,
       serverAuthoritative: true,
@@ -1352,6 +1589,7 @@ app.get('/api/registrations', requireRegistrationReviewer, async (req, res) => {
          parent_system_id,
          grandparent_system_id,
          status,
+         review_notes,
          submitted_at
        FROM registrations
        ORDER BY submitted_at DESC`
