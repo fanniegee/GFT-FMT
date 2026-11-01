@@ -534,6 +534,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <div id="editModal" class="modal"><div class="modal-box"><h2>Edit</h2><input id="editNameInput"><input id="editIDInput" style="margin-top:8px"><input id="editPhoneInput" placeholder="Phone for WhatsApp" style="margin-top:8px"><div style="display:flex;gap:8px;margin-top:16px"><button class="primary" onclick="confirmEdit()">Save</button><button onclick="closeEditModal()">Cancel</button></div></div></div>
 <div id="certModal" class="modal"><div class="modal-box" style="max-width:700px"><h2>Document Viewer</h2><p id="certInfo" style="font-size:12px"></p><div id="certPreview" style="margin-top:12px;max-height:60vh;overflow:auto;text-align:center"></div><button onclick="closeCertModal()" style="margin-top:12px">Close</button></div></div>
 <div id="registrationReviewModal" class="modal"><div class="modal-box" style="max-width:900px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><h2 style="margin:0">Beneficiary Registration Review</h2><button type="button" onclick="closeRegistrationReview()">Close</button></div><p id="reviewStatus" class="badge wait" style="margin:10px 0">Loading application...</p><div id="reviewApplicant" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0"></div><h3 style="margin:16px 0 8px">Supporting documents</h3><div id="reviewDocuments" class="log">Loading documents...</div><h3 style="margin:16px 0 8px">Founder review note / reason</h3><textarea id="reviewReason" rows="3" style="width:100%;box-sizing:border-box" placeholder="Record the reason for rejection, further information, or referral. Required for non-approval decisions."></textarea><div id="reviewDecisionActions" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px"><button class="primary" onclick="decideRegistration('APPROVE')">Approve application</button><button class="danger" onclick="decideRegistration('REJECTED')">Reject</button><button class="orange" onclick="decideRegistration('NEEDS_INFORMATION')">Request information</button><button class="blue" onclick="decideRegistration('REFERRED')">Refer for further review</button></div><p style="font-size:11px;color:var(--muted);margin-top:12px">Approval creates the server beneficiary record. Requesting information, rejecting, or referring records a decision and note. No payout decision is made here.</p></div></div>
+<div id="wifeCorrectionModal" class="modal"><div class="modal-box" style="max-width:760px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><h2 style="margin:0">Founder — Wife Number Correction</h2><button type="button" onclick="closeWifeCorrection()">Close</button></div><p id="wifeCorrectionStatus" class="badge wait" style="margin:12px 0">Loading authoritative family-register information...</p><div id="wifeCorrectionDetails" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin:12px 0"></div><div style="margin-top:14px"><label for="wifeCorrectionSelect" style="display:block;font-weight:700;margin-bottom:6px">Confirm wife number</label><select id="wifeCorrectionSelect" style="width:100%;padding:11px;border-radius:8px"><option value="">Select wife number</option><option value="1">WIFE 1</option><option value="2">WIFE 2</option><option value="3">WIFE 3</option><option value="4">WIFE 4</option><option value="5">WIFE 5</option><option value="6">WIFE 6</option><option value="7">WIFE 7</option><option value="8">WIFE 8</option></select></div><div style="margin-top:12px"><label for="wifeCorrectionReason" style="display:block;font-weight:700;margin-bottom:6px">Correction reason (required)</label><textarea id="wifeCorrectionReason" rows="3" style="width:100%;box-sizing:border-box" placeholder="Explain how the family register was checked and why this correction is being confirmed."></textarea></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button id="wifeCorrectionSave" class="primary" type="button" onclick="saveWifeCorrection()">Confirm and Save Correction</button><button type="button" onclick="closeWifeCorrection()">Cancel</button></div><p style="font-size:11px;color:var(--muted);margin-top:12px">This action changes only the pending registration's wife number and records an audit event. It does not approve or activate the beneficiary.</p></div></div>
 
 <script>
 function refreshConfigDisplay(){let badge=document.getElementById('configLoadedBadge');let disp=document.getElementById('configDisplay');if(badge)badge.innerHTML=`<span style="color:#10b981">✔ CONFIG.JS LOADED: ${CFG.name} - Funeral $${CFG.caps.funeral} School $${CFG.caps.school} Payout $${CFG.caps.funeralPayout} - Companies ${(CFG.companies||[]).length} - Family ${(CFG.about.familyMembers||[]).length} - Social ${(CFG.social||[]).length} - Cards ${(CFG.homepage.cards||[]).length} - FBP NEW ACTIVE</span>`;if(disp)disp.innerHTML=`Name: ${CFG.name}<br>Email: ${CFG.email}<br>Logo: ${CFG.logo||''}<br>Caps: Funeral $${CFG.caps.funeral} | School $${CFG.caps.school} | Payout $${CFG.caps.funeralPayout}<br>Companies: ${(CFG.companies||[]).length} | Family: ${(CFG.about.familyMembers||[]).length} | Social: ${(CFG.social||[]).length} | Cards: ${(CFG.homepage.cards||[]).length}<br><b>12 companies + banner + gallery + family + cards ACTIVE - FBP ACCOUNT ADDED - 7 CARDS NOW</b>`;let allocLabel=document.getElementById('allocLabel');if(allocLabel)allocLabel.innerText=`${CFG.rules.expansion} / ${CFG.rules.pool}`;let funCap=document.getElementById('funCapLabel');if(funCap)funCap.innerText=`Cap $${CFG.caps.funeral} - AUTO - 10% of Dist`;let schCap=document.getElementById('schCapLabel');if(schCap)schCap.innerText=`Cap $${CFG.caps.school} - AUTO + VERIFIED - 15% of Dist`;}
@@ -1596,13 +1597,6 @@ async function renderBens(){
           if(match.status){const matchBadge=document.createElement('span');matchBadge.className='badge '+(match.status==='EXACT_MATCH'?'ok':'wait');matchBadge.textContent=match.status.replaceAll('_',' ');heading.appendChild(matchBadge);}
           info.appendChild(heading);
 
-          if(String(r.review_notes||'').includes('WIFE_NUMBER_MISMATCH')){
-            const wifeAlert=document.createElement('div');
-            wifeAlert.style.cssText='margin-top:9px;padding:10px 12px;border:1px solid rgba(245,158,11,.55);border-left:4px solid #f59e0b;border-radius:8px;background:rgba(245,158,11,.09);color:#fbbf24;font-size:12px;font-weight:600';
-            wifeAlert.textContent='FOUNDER ACTION REQUIRED — Wife-number selection was frozen after two server-confirmed mismatches. The application remains PENDING and the wife number is not verified. Please review before making an approval decision.';
-            info.appendChild(wifeAlert);
-          }
-
           const details=document.createElement('details'); details.style.cssText='margin-top:8px;border-top:1px solid var(--border);padding-top:8px';
           const summary=document.createElement('summary'); summary.textContent='Full registration information'; summary.style.cssText='cursor:pointer;font-weight:600;color:var(--accent)';
           details.appendChild(summary);
@@ -1632,6 +1626,20 @@ async function renderBens(){
           const actions=document.createElement('div'); actions.className='ben-actions';
           const review=document.createElement('button'); review.className='icon-btn approve'; review.textContent='Review application';
           review.onclick=()=>reviewRegistration(r.registration_id); actions.appendChild(review);
+          const reviewNotes=String(r.review_notes||'');
+          if(reviewNotes.includes('WIFE_NUMBER_MISMATCH') && !reviewNotes.includes('WIFE_NUMBER_CORRECTED')){
+            const wifeButton=document.createElement('button'); wifeButton.className='icon-btn';
+            wifeButton.textContent='Wife Correction';
+            wifeButton.style.cssText='border:1px solid #f59e0b;color:#f59e0b;background:rgba(245,158,11,.10)';
+            wifeButton.onclick=()=>openWifeCorrection(r.registration_id);
+            actions.appendChild(wifeButton);
+            const alert=document.createElement('div'); alert.style.cssText='margin-top:8px;padding:9px 11px;border-left:3px solid #f59e0b;background:rgba(245,158,11,.08);border-radius:7px;color:#fbbf24;font-size:12px;font-weight:600';
+            alert.textContent='FOUNDER ACTION REQUIRED — Wife selection frozen after two confirmed mismatches.';
+            info.appendChild(alert);
+          }else if(reviewNotes.includes('WIFE_NUMBER_CORRECTED')){
+            const corrected=document.createElement('span'); corrected.className='badge ok'; corrected.textContent='WIFE NUMBER CORRECTED'; corrected.style.marginLeft='8px';
+            heading.appendChild(corrected);
+          }
           item.appendChild(info); item.appendChild(actions); listP.appendChild(item);
         });
       }
@@ -1697,6 +1705,47 @@ async function decideRegistration(decision){
     alert(decision==='APPROVE'?'Registration approved and added to the server beneficiary pool.':`Review decision saved: ${decision.replaceAll('_',' ')}.`);
     closeRegistrationReview();await renderBens();
   }catch(error){alert(error.message||'Review decision failed.');buttons.forEach(b=>b.disabled=false);}
+}
+
+let activeWifeCorrectionRegistrationId=null;
+async function openWifeCorrection(registrationId){
+  activeWifeCorrectionRegistrationId=registrationId;
+  const modal=document.getElementById('wifeCorrectionModal');
+  const status=document.getElementById('wifeCorrectionStatus');
+  const details=document.getElementById('wifeCorrectionDetails');
+  const select=document.getElementById('wifeCorrectionSelect');
+  const reason=document.getElementById('wifeCorrectionReason');
+  const save=document.getElementById('wifeCorrectionSave');
+  modal.classList.add('show'); status.textContent='Loading authoritative family-register information...';
+  details.textContent=''; select.value=''; reason.value=''; save.disabled=true;
+  try{
+    const response=await fetch('/api/registrations/'+encodeURIComponent(registrationId)+'/wife-correction',{credentials:'include',cache:'no-store'});
+    const data=await response.json();
+    if(!response.ok||!data.ok)throw new Error(data.error||'Unable to load wife-correction case');
+    const c=data.case;
+    const fields=[['Applicant',c.applicantName],['Applicant System ID',c.familySystemId],['Parent',c.parentName],['Parent System ID',c.parentSystemId],['Grandparent',c.grandparentName],['Grandparent System ID',c.grandparentSystemId],['Generation',c.generation],['Branch',c.branch],['Current registration wife number',c.currentRegistrationWifeNo],['Authoritative family-register value',c.familyRegisterWifeValue],['Verified wife number','WIFE '+c.authoritativeWifeNo],['Registration status',c.status]];
+    fields.forEach(([label,value])=>{const cell=document.createElement('div');cell.style.cssText='background:rgba(148,163,184,.08);padding:9px;border-radius:8px;min-width:0';const b=document.createElement('b');b.style.cssText='display:block;font-size:11px;color:var(--muted);margin-bottom:4px';b.textContent=label;const span=document.createElement('span');span.style.cssText='font-size:13px;overflow-wrap:anywhere';span.textContent=value===null||value===undefined||value===''?'Not recorded':String(value);cell.append(b,span);details.appendChild(cell);});
+    select.value=String(c.authoritativeWifeNo);
+    status.textContent='Family register matched. Confirm the displayed wife number and enter a reason to save.';
+    status.className='badge ok'; save.disabled=false;
+  }catch(error){status.textContent=error.message||'Unable to load correction case';status.className='badge wait';}
+}
+function closeWifeCorrection(){document.getElementById('wifeCorrectionModal').classList.remove('show');activeWifeCorrectionRegistrationId=null;}
+async function saveWifeCorrection(){
+  if(!activeWifeCorrectionRegistrationId)return;
+  const wifeNo=Number(document.getElementById('wifeCorrectionSelect').value);
+  const reason=document.getElementById('wifeCorrectionReason').value.trim();
+  if(!Number.isInteger(wifeNo)||wifeNo<1||wifeNo>8)return alert('Select the wife number confirmed by the family register.');
+  if(reason.length<8)return alert('Enter a correction reason of at least 8 characters.');
+  if(!confirm('Confirm WIFE '+wifeNo+' against the authoritative family register? The registration will remain PENDING.'))return;
+  const save=document.getElementById('wifeCorrectionSave');save.disabled=true;
+  try{
+    const response=await fetch('/api/registrations/'+encodeURIComponent(activeWifeCorrectionRegistrationId)+'/wife-correction',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({wifeNo,reason})});
+    const data=await response.json();
+    if(!response.ok||!data.ok)throw new Error(data.error||'Unable to save wife correction');
+    alert('Wife number corrected and audited. The application remains PENDING for the normal approval process.');
+    closeWifeCorrection();await renderBens();
+  }catch(error){alert(error.message||'Wife correction failed.');save.disabled=false;}
 }
 
 function addBen(){let name=document.getElementById('newBenName').value.trim();let id=document.getElementById('newBenID').value.trim();let phone=document.getElementById('newBenPhone').value.trim();if(!name||!id)return alert('Name+ID');if(bens.some(b=>b.id===id))return alert('ID exists');bens.push({name,id,phone,dateAdded:new Date().toLocaleString()});if(!(id in benWallets)) benWallets[id]=0;saveWallets();document.getElementById('newBenName').value='';document.getElementById('newBenID').value='';document.getElementById('newBenPhone').value='';renderBens();log(`Added ${name}`);}

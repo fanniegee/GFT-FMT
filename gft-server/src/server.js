@@ -686,15 +686,18 @@ app.post('/api/registration/verify-structure', async (req, res) => {
     // Confirm that the applicant is uniquely listed under this parent.
     const childResult = await query(
       `SELECT
-         system_id,
-         full_name,
-         parent_system_id,
-         generation,
-         branch_code,
-         profile->>'wifeNo' AS wife_no
-       FROM family_people
-       WHERE parent_system_id = $1
-         AND UPPER(TRIM(full_name)) = $2
+         child.system_id,
+         child.full_name,
+         child.parent_system_id,
+         child.generation,
+         child.branch_code,
+         parent.profile->>'wifeNo' AS wife_no,
+         parent.full_name AS parent_full_name
+       FROM family_people child
+       LEFT JOIN family_people parent
+         ON parent.system_id = child.parent_system_id
+       WHERE child.parent_system_id = $1
+         AND UPPER(TRIM(child.full_name)) = $2
        LIMIT 10`,
       [parentSystemId, normalize(fullName)]
     );
@@ -1243,23 +1246,24 @@ if (verifiedEmailResult.rows.length === 0) {
 }
 
 // Confirm family structure against the authoritative family register.
-// If the record cannot be confirmed automatically, retain the application
-// for Founder/Admin review instead of rejecting the entire submission.
+// A second confirmed wife mismatch may proceed only with a valid server-frozen attempt.
 const submittedParentId = String(record.parentId || '').trim();
 const submittedWifeAttemptId = String(record.wifeAttemptId || '').trim();
-let wifeMismatchFrozen = false;
+const wifeMismatchFrozen = record.wifeMismatchFrozen === true;
+let verifiedStructure = null;
+let verifiedWifeNo = null;
+let verifiedGeneration = null;
+let verifiedBranch = null;
+let verifiedParentId = null;
+let verifiedGrandparentId = null;
+let structureConfirmed = false;
 
-if (record.wifeMismatchFrozen === true) {
-  if (!submittedWifeAttemptId || !submittedParentId) {
-    return res.status(400).json({
-      ok: false,
-      error: 'Founder review can only be requested after the server has frozen a verified wife-number attempt.'
-    });
+if (wifeMismatchFrozen) {
+  if (!submittedParentId || !submittedWifeAttemptId) {
+    return res.status(400).json({ ok: false, error: 'Founder review requires a valid frozen wife-verification session.' });
   }
-
   await ensureRegistrationWifeAttemptsSchema();
-
-  const frozenAttemptResult = await query(
+  const frozenAttempt = await query(
     `SELECT attempt_id
      FROM registration_wife_attempts
      WHERE attempt_id = $1
@@ -1271,47 +1275,29 @@ if (record.wifeMismatchFrozen === true) {
      LIMIT 1`,
     [submittedWifeAttemptId, fullName, submittedParentId]
   );
-
-  if (!frozenAttemptResult.rows.length) {
-    return res.status(400).json({
-      ok: false,
-      error: 'The wife-number review session is invalid or expired. Please restart registration verification.'
-    });
+  if (!frozenAttempt.rows.length) {
+    return res.status(400).json({ ok: false, error: 'The frozen wife-verification session is invalid or expired. Please restart verification.' });
   }
-
-  wifeMismatchFrozen = true;
 }
-
-let verifiedStructure = null;
-let verifiedWifeNo = null;
-let verifiedGeneration = null;
-let verifiedBranch = null;
-let verifiedParentId = null;
-let verifiedGrandparentId = null;
-let structureConfirmed = false;
 
 if (submittedParentId) {
   const structureResult = await query(
-    `
-    SELECT
-      child.system_id,
-      child.full_name,
-      child.parent_system_id,
-      child.generation,
-      child.branch_code,
-      parent.profile->>'wifeNo' AS wife_no,
-      parent.full_name AS verified_parent_name,
-      parent.parent_system_id AS grandparent_system_id,
-      grandparent.full_name AS verified_grandparent_name
-    FROM family_people child
-    LEFT JOIN family_people parent
-      ON parent.system_id = child.parent_system_id
-    LEFT JOIN family_people grandparent
-      ON grandparent.system_id = parent.parent_system_id
-    WHERE LOWER(TRIM(child.full_name)) = LOWER(TRIM($1))
-      AND child.parent_system_id = $2
-    LIMIT 2
-    `,
+    `SELECT
+       child.system_id,
+       child.full_name,
+       child.parent_system_id,
+       child.generation,
+       child.branch_code,
+       parent.profile->>'wifeNo' AS wife_no,
+       parent.full_name AS verified_parent_name,
+       parent.parent_system_id AS grandparent_system_id,
+       grandparent.full_name AS verified_grandparent_name
+     FROM family_people child
+     LEFT JOIN family_people parent ON parent.system_id = child.parent_system_id
+     LEFT JOIN family_people grandparent ON grandparent.system_id = parent.parent_system_id
+     WHERE LOWER(TRIM(child.full_name)) = LOWER(TRIM($1))
+       AND child.parent_system_id = $2
+     LIMIT 2`,
     [fullName, submittedParentId]
   );
 
@@ -1321,18 +1307,11 @@ if (submittedParentId) {
     const storedWifeNo = wifeMatch ? Number(wifeMatch[1]) : null;
     const selectedWifeNo = Number(record.wifeNo);
     const candidateGeneration = Number(candidate.generation);
+    const validLineage = Number.isInteger(candidateGeneration) && candidateGeneration >= 1;
+    const wifeMatches = storedWifeNo !== null && Number.isInteger(selectedWifeNo) && selectedWifeNo === storedWifeNo;
 
-    if (
-      storedWifeNo !== null &&
-      Number.isInteger(candidateGeneration) &&
-      candidateGeneration >= 1 &&
-      (
-        wifeMismatchFrozen ||
-        (Number.isInteger(selectedWifeNo) && selectedWifeNo === storedWifeNo)
-      )
-    ) {
+    if (validLineage && (wifeMismatchFrozen || wifeMatches)) {
       verifiedStructure = candidate;
-      // A frozen mismatch must never be recorded as a verified wife number.
       verifiedWifeNo = wifeMismatchFrozen ? null : storedWifeNo;
       verifiedGeneration = candidateGeneration;
       verifiedBranch = candidate.branch_code || null;
@@ -1353,20 +1332,15 @@ const serverSystemId = structureConfirmed
     const serverVerification = {
       emailStatus: 'VERIFIED',
       lineageStatus: structureConfirmed ? 'LINEAGE_CONFIRMED' : 'PENDING_REVIEW',
-      familyStructureStatus: wifeMismatchFrozen
-        ? 'FAMILY_STRUCTURE_FROZEN'
-        : structureConfirmed
-          ? 'VERIFIED'
-          : 'PENDING_REVIEW',
+      familyStructureStatus: wifeMismatchFrozen ? 'FAMILY_STRUCTURE_FROZEN' : structureConfirmed ? 'VERIFIED' : 'PENDING_REVIEW',
       identityStatus: 'PENDING_DOCUMENT_VERIFICATION',
       beneficiaryStatus: 'PENDING_VERIFICATION',
       founderVerificationStatus: 'PENDING',
       walletEligible: false,
       payoutEligible: false
     };
-
     const registrationReviewNote = wifeMismatchFrozen
-      ? 'WIFE_NUMBER_MISMATCH: Two server-confirmed incorrect wife-number selections were made. Wife selection is frozen; Founder review is required. No wife number has been verified.'
+      ? 'WIFE_NUMBER_MISMATCH: Two server-confirmed incorrect wife-number selections. Wife selection is frozen. Founder correction is required; no wife number has been verified.'
       : null;
 
     const uploadedDocuments = [
@@ -1525,12 +1499,12 @@ const serverSystemId = structureConfirmed
         generation: verifiedGeneration,
         branch: verifiedBranch,
         wifeNo: verifiedWifeNo,
-        familyStructureStatus: serverVerification.familyStructureStatus,
         status: saved.status,
-        submittedAt: saved.submitted_at,
-        reviewNotes: registrationReviewNote
+        submittedAt: saved.submitted_at
       },
       verification: serverVerification,
+      familyStructureStatus: serverVerification.familyStructureStatus,
+      reviewNotes: registrationReviewNote,
       serverAuthoritative: true,
     });
 
@@ -1742,6 +1716,151 @@ app.get('/api/registrations/reconciliation-preview', requireRegistrationReviewer
   } catch (error) {
     console.error('Registration reconciliation preview error:', error);
     return res.status(500).json({ ok: false, error: 'Unable to prepare reconciliation preview' });
+  }
+});
+
+// ------------------------------------------------------------
+// FOUNDER-ONLY WIFE CORRECTION
+// Correction is validated against the authoritative family register.
+// It never approves or activates the beneficiary.
+// ------------------------------------------------------------
+function requireFounderForWifeCorrection(req, res, next) {
+  if (String(req.admin?.role || '').toUpperCase() !== FOUNDER_ROLE) {
+    return res.status(403).json({ ok: false, error: 'Only the Founder may correct a frozen wife-number selection.' });
+  }
+  return next();
+}
+
+app.get('/api/registrations/:registrationId/wife-correction', requireRegistrationReviewer, requireFounderForWifeCorrection, async (req, res) => {
+  try {
+    const registrationId = String(req.params.registrationId || '').trim();
+    const result = await query(
+      `SELECT r.registration_id, r.applicant_system_id, r.full_name, r.parent_system_id,
+              r.parent_full_name, r.grandparent_system_id, r.grandparent_full_name,
+              r.wife_no, r.status, r.review_notes,
+              child.system_id AS family_system_id, child.full_name AS family_full_name,
+              child.generation, child.branch_code,
+              parent.system_id AS verified_parent_system_id,
+              parent.full_name AS verified_parent_name,
+              parent.profile->>'wifeNo' AS family_register_wife_no,
+              grandparent.system_id AS verified_grandparent_system_id,
+              grandparent.full_name AS verified_grandparent_name
+       FROM registrations r
+       LEFT JOIN family_people child
+         ON child.system_id = r.applicant_system_id
+        AND child.parent_system_id = r.parent_system_id
+       LEFT JOIN family_people parent ON parent.system_id = child.parent_system_id
+       LEFT JOIN family_people grandparent ON grandparent.system_id = parent.parent_system_id
+       WHERE r.registration_id = $1
+       LIMIT 1`,
+      [registrationId]
+    );
+    if (!result.rows.length) return res.status(404).json({ ok: false, error: 'Registration not found.' });
+    const r = result.rows[0];
+    const notes = String(r.review_notes || '');
+    if (String(r.status || '').toUpperCase() !== 'PENDING' || !notes.includes('WIFE_NUMBER_MISMATCH') || notes.includes('WIFE_NUMBER_CORRECTED')) {
+      return res.status(409).json({ ok: false, error: 'This application does not have an open wife-correction case.' });
+    }
+    if (!r.family_system_id || !r.verified_parent_system_id) {
+      return res.status(409).json({ ok: false, error: 'The applicant or parent could not be matched uniquely to the family register. Founder must resolve the family-record discrepancy before correcting the wife number.' });
+    }
+    const wifeMatch = String(r.family_register_wife_no || '').match(/^WIFE(\d+)(?:_|$)/i);
+    const expectedWifeNo = wifeMatch ? Number(wifeMatch[1]) : null;
+    if (!Number.isInteger(expectedWifeNo) || expectedWifeNo < 1 || expectedWifeNo > 8) {
+      return res.status(409).json({ ok: false, error: 'The authoritative parent family-register record has no valid WIFE1–WIFE8 value. No correction can be made automatically.' });
+    }
+    return res.json({
+      ok: true,
+      case: {
+        registrationId: r.registration_id,
+        applicantName: r.full_name,
+        familySystemId: r.family_system_id,
+        parentName: r.verified_parent_name,
+        parentSystemId: r.verified_parent_system_id,
+        grandparentName: r.verified_grandparent_name,
+        grandparentSystemId: r.verified_grandparent_system_id,
+        generation: r.generation,
+        branch: r.branch_code,
+        currentRegistrationWifeNo: r.wife_no,
+        authoritativeWifeNo: expectedWifeNo,
+        familyRegisterWifeValue: r.family_register_wife_no,
+        status: r.status,
+        reviewNotes: r.review_notes
+      },
+      serverAuthoritative: true
+    });
+  } catch (error) {
+    console.error('Founder wife-correction case load error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to load wife-correction case.' });
+  }
+});
+
+app.post('/api/registrations/:registrationId/wife-correction', requireRegistrationReviewer, requireFounderForWifeCorrection, async (req, res) => {
+  try {
+    const registrationId = String(req.params.registrationId || '').trim();
+    const selectedWifeNo = Number(req.body?.wifeNo);
+    const reason = String(req.body?.reason || '').trim();
+    if (!Number.isInteger(selectedWifeNo) || selectedWifeNo < 1 || selectedWifeNo > 8) {
+      return res.status(400).json({ ok: false, error: 'Select a valid wife number from 1 to 8.' });
+    }
+    if (reason.length < 8) return res.status(400).json({ ok: false, error: 'Enter a correction reason of at least 8 characters.' });
+
+    const updated = await withTransaction(async (client) => {
+      const locked = await client.query(
+        `SELECT r.registration_id, r.applicant_system_id, r.full_name, r.parent_system_id,
+                r.wife_no, r.status, r.review_notes,
+                child.system_id AS family_system_id,
+                parent.profile->>'wifeNo' AS family_register_wife_value
+         FROM registrations r
+         LEFT JOIN family_people child
+           ON child.system_id = r.applicant_system_id
+          AND child.parent_system_id = r.parent_system_id
+         LEFT JOIN family_people parent ON parent.system_id = child.parent_system_id
+         WHERE r.registration_id = $1
+         FOR UPDATE OF r`,
+        [registrationId]
+      );
+      if (!locked.rows.length) { const e = new Error('Registration not found.'); e.httpStatus = 404; throw e; }
+      const r = locked.rows[0];
+      const notes = String(r.review_notes || '');
+      if (String(r.status || '').toUpperCase() !== 'PENDING' || !notes.includes('WIFE_NUMBER_MISMATCH') || notes.includes('WIFE_NUMBER_CORRECTED')) {
+        const e = new Error('This application does not have an open wife-correction case.'); e.httpStatus = 409; throw e;
+      }
+      if (!r.family_system_id) { const e = new Error('Applicant family-register record is missing or does not match the recorded parent.'); e.httpStatus = 409; throw e; }
+      const wifeMatch = String(r.family_register_wife_value || '').match(/^WIFE(\d+)(?:_|$)/i);
+      const authoritativeWifeNo = wifeMatch ? Number(wifeMatch[1]) : null;
+      if (!Number.isInteger(authoritativeWifeNo) || authoritativeWifeNo < 1 || authoritativeWifeNo > 8) {
+        const e = new Error('Authoritative family-register wife number is missing or invalid.'); e.httpStatus = 409; throw e;
+      }
+      if (selectedWifeNo !== authoritativeWifeNo) {
+        const e = new Error('Selected wife number does not match the authoritative family register. No changes were saved.'); e.httpStatus = 409; throw e;
+      }
+      const reviewerEmail = req.admin?.email || 'Founder';
+      const reviewerId = req.admin?.admin_id || null;
+      const auditNote = `WIFE_NUMBER_CORRECTED: FAMILY_STRUCTURE_VERIFIED_BY_FOUNDER: Founder confirmed WIFE${selectedWifeNo} against the authoritative family register. Corrected by ${reviewerEmail}. Reason: ${reason}`;
+      const saved = await client.query(
+        `UPDATE registrations
+         SET wife_no = $2,
+             review_notes = COALESCE(review_notes, '') || E'\\n\\n' || $3
+         WHERE registration_id = $1 AND UPPER(status) = 'PENDING'
+         RETURNING registration_id, applicant_system_id, full_name, wife_no, status, review_notes`,
+        [registrationId, selectedWifeNo, auditNote]
+      );
+      if (!saved.rows.length) { const e = new Error('Registration changed while correction was being saved.'); e.httpStatus = 409; throw e; }
+      await client.query(
+        `INSERT INTO gft_admin_audit_events (event_id, admin_id, admin_email, action, details, ip_address, user_agent)
+         VALUES ($1, $2, $3, 'REGISTRATION_WIFE_NUMBER_CORRECTED', $4::jsonb, $5, $6)`,
+        [`AUD-${randomBytes(10).toString('hex')}`, reviewerId, reviewerEmail,
+         JSON.stringify({ registrationId, applicantSystemId: r.applicant_system_id, selectedWifeNo, authoritativeWifeNo, reason, registrationStatusRemains: 'PENDING' }),
+         req.ip || null, req.get('user-agent') || null]
+      );
+      return saved.rows[0];
+    });
+    return res.json({ ok: true, registration: updated, message: 'Wife number corrected against the family register. Registration remains PENDING.', serverAuthoritative: true });
+  } catch (error) {
+    if (error.httpStatus) return res.status(error.httpStatus).json({ ok: false, error: error.message });
+    console.error('Founder wife-correction save error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to save wife-number correction.' });
   }
 });
 
