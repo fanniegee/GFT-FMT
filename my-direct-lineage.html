@@ -71,13 +71,18 @@ This changes only the personal family-card colour. Official GFT branch colours a
 <div id="childModal" class="modalbg"><div class="modal"><h2 id="childTitle">Add Child</h2><div class="group"><label>Full Name</label><input id="childName" placeholder="Enter child's full name"></div><div class="group"><label>Official GFT ID</label><input id="childId" class="locked" readonly><small>🔒 Permanent official ID; cannot be edited.</small></div><div class="group"><label>Personal Lineage ID</label><input id="lineageId" placeholder="e.g. FG-GEN2-01"><small>Editable personal family ID.</small></div><div class="group"><label>Personal Card Colour</label><input id="childColor" type="color" value="#e8f4ec"></div><div class="group"><label>Biological Parent</label><input id="childParent" class="locked" readonly></div><div class="modalactions"><button class="cancel" onclick="closeModals()">Cancel</button><button id="deleteBtn" class="delete" style="display:none" onclick="deleteChild()">Delete</button><button class="save" onclick="saveChild()">Save</button></div></div></div>
 
 <script>
-const params=new URLSearchParams(location.search);
-const ACTIVE_ID=params.get("id")||localStorage.getItem("guvaza_current_user_id")||"";
-const ACTIVE_PERSON=(typeof guvazaTreeById!=="undefined")?guvazaTreeById[ACTIVE_ID]:null;
-if(!ACTIVE_PERSON){document.querySelector(".page").innerHTML='<div class="error"><b>Account not found.</b><br><br>The page requires the unique registered systemId from guvazaTree.js. No GFT account ID is hard-coded.</div>';throw Error("Active account not found")}
+const params = new URLSearchParams(location.search);
 
-const EK="guvaza_personal_descendants_"+ACTIVE_ID;
-const SK="guvaza_spouses_"+ACTIVE_ID;
+let ACTIVE_ID = '';
+let ACTIVE_PERSON = null;
+let SERVER_PEOPLE = [];
+
+function showLineageError(message) {
+  document.querySelector(".page").innerHTML =
+    `<div class="error"><b>Unable to load your lineage.</b><br><br>${esc(message)}</div>`;
+}
+let EK = '';
+let SK = '';
 const PK="guvaza_profile_";
 const CK="guvaza_personal_color_";
 const WK="guvaza_personal_spouse_color_";
@@ -89,15 +94,22 @@ const extras=()=>{try{return JSON.parse(localStorage.getItem(EK)||"[]")}catch{re
 const saveExtras=x=>localStorage.setItem(EK,JSON.stringify(x));
 const spouses=()=>{try{return JSON.parse(localStorage.getItem(SK)||"[]")}catch{return[]}};
 const saveSpouses=x=>localStorage.setItem(SK,JSON.stringify(x));
-const all=()=>[...(Array.isArray(guvazaTree)?guvazaTree:[]),...extras()];
-const get=id=>(typeof guvazaTreeById!=="undefined"&&guvazaTreeById[id])||extras().find(x=>x.systemId===id)||null;
+
+const all = () => [...SERVER_PEOPLE, ...extras()];
+
+const get = id =>
+  SERVER_PEOPLE.find(x => x.systemId === id) ||
+  extras().find(x => x.systemId === id) ||
+  null;
+
 const photo=id=>localStorage.getItem(PK+id)||"";
 const personalColor=id=>localStorage.getItem(CK+id)||"";
 const spouseColor=id=>localStorage.getItem(WK+id)||"";
 function branchDefaultColor(branch){const colors={"BRANCH_ROOT":"#23395d","ROOT":"#23395d","BRANCH_RUTAMBO":"#1b5e20","RUTAMBO":"#1b5e20","BRANCH_VURAYAI":"#e67e22","VURAYAI":"#e67e22","BRANCH_SVUSVU":"#1e40af","SVUSVU":"#1e40af","BRANCH_VAFONJO":"#ad1457","VAFONJO":"#ad1457","BRANCH_DAUGHTER2":"#6b21a8","DAUGHTER2":"#6b21a8","BRANCH_SECOND_DAUGHTER":"#6b21a8"};return colors[branch]||"#23395d";}
-const isMale=String(ACTIVE_PERSON.gender||"").toUpperCase()==="MALE";
-const isFemale=String(ACTIVE_PERSON.gender||"").toUpperCase()==="FEMALE";
-const spouseNoun=isMale?"WIFE":isFemale?"HUSBAND":"SPOUSE";
+
+let isMale = false;
+let isFemale = false;
+let spouseNoun = "SPOUSE";
 
 function avatar(p){let s=photo(p.systemId);return `<button class="av" onclick="pickPhoto('${esc(p.systemId)}','person')">${s?`<img src="${esc(s)}">`:esc(initials(p.fullName))}</button>`}
 function chain(){let a=[],p=get(ACTIVE_ID),seen=new Set();while(p&&!seen.has(p.systemId)){seen.add(p.systemId);a.unshift(p);p=p.parentId?get(p.parentId):null}return a}
@@ -185,7 +197,77 @@ function pickSpousePhoto(id){photoTarget=id;photoKind="spouse";document.getEleme
 function photoSelected(e){let f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith("image/"))return alert("Please select an image.");if(f.size>5*1024*1024)return alert("Please choose an image smaller than 5 MB.");let r=new FileReader();r.onload=()=>{if(photoKind==="spouse"){let s=spouses(),i=s.findIndex(x=>x.id===photoTarget);if(i>=0){s[i].photo=r.result;saveSpouses(s)}}else localStorage.setItem(PK+photoTarget,r.result);render()};r.readAsDataURL(f);e.target.value=""}
 function tab(x){let a=document.getElementById("all"),t=document.getElementById("treeTab"),b=document.getElementById("allTab");if(x==="all"){a.style.display="block";b.classList.add("active");t.classList.remove("active");search()}else{a.style.display="none";t.classList.add("active");b.classList.remove("active")}}
 function search(){let q=document.getElementById("q").value.trim().toLowerCase(),box=document.getElementById("all"),r=desc().filter(x=>!q||[x.fullName,x.systemId,x.lineageId].some(v=>String(v||"").toLowerCase().includes(q)));box.innerHTML=r.map(x=>`<div class="item"><div class="smallav">${photo(x.systemId)?`<img src="${esc(photo(x.systemId))}">`:esc(initials(x.fullName))}</div><div class="info"><div class="name" style="font-size:12px">${esc(x.fullName)}</div><div class="id">${esc(x.systemId)}</div>${x.lineageId?`<div class="role">${esc(x.lineageId)}</div>`:""}</div><button class="colorbtn" onclick="openPersonColor('${esc(x.systemId)}')">🎨</button></div>`).join("")||'<div style="padding:14px;text-align:center;color:#6c776f;font-size:12px">No descendants found.</div>'}
-render();
+
+// ------------------------------------------------------------
+// LOAD THE AUTHENTICATED BENEFICIARY'S SERVER LINEAGE
+// ------------------------------------------------------------
+
+async function initLineage() {
+  try {
+    const response = await fetch('/api/beneficiary/lineage', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (response.status === 401) {
+      window.location.href = 'beneficiary-login.html';
+      return;
+    }
+
+    if (!response.ok || !result.ok) {
+      showLineageError(
+        result.error || 'The registered family lineage could not be loaded.'
+      );
+      return;
+    }
+
+    // The server session, not the URL, determines the active account.
+    ACTIVE_ID = String(result.systemId || '').trim();
+    SERVER_PEOPLE = Array.isArray(result.people)
+      ? result.people
+      : [];
+
+    if (!ACTIVE_ID) {
+      showLineageError('Your authenticated account has no valid System ID.');
+      return;
+    }
+
+    // Initialise personal browser storage using the authenticated ID.
+    EK = 'guvaza_personal_descendants_' + ACTIVE_ID;
+    SK = 'guvaza_spouses_' + ACTIVE_ID;
+
+    ACTIVE_PERSON = get(ACTIVE_ID);
+
+    if (!ACTIVE_PERSON) {
+      showLineageError(
+        'Your beneficiary account was authenticated, but its person record was not found in the registered family lineage. Please contact the Trust Office.'
+      );
+      return;
+    }
+
+    isMale = String(ACTIVE_PERSON.gender || '').toUpperCase() === 'MALE';
+    isFemale = String(ACTIVE_PERSON.gender || '').toUpperCase() === 'FEMALE';
+    spouseNoun = isMale ? 'WIFE' : isFemale ? 'HUSBAND' : 'SPOUSE';
+
+    render();
+    search();
+
+  } catch (error) {
+    console.error('Direct lineage loading error:', error);
+
+    showLineageError(
+      'A connection error prevented your registered lineage from loading. Please refresh the page and try again.'
+    );
+  }
+}
+
+initLineage();
+
 </script>
 </body>
 </html>

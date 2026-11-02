@@ -2613,6 +2613,142 @@ app.get('/api/beneficiary/me', async (req, res) => {
 });
 
 // ------------------------------------------------------------
+// AUTHENTICATED BENEFICIARY — MY DIRECT LINEAGE
+// Uses the signed-in beneficiary's own system ID.
+// Returns only that person's ancestors and descendants.
+// ------------------------------------------------------------
+
+app.get('/api/beneficiary/lineage', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Beneficiary authentication required'
+      });
+    }
+
+    const systemId = String(beneficiary.system_id || '').trim();
+
+    if (!systemId) {
+      return res.status(409).json({
+        ok: false,
+        error: 'Your beneficiary account does not have a valid System ID.'
+      });
+    }
+
+    const result = await query(
+      `WITH RECURSIVE
+       ancestors AS (
+         SELECT
+           fp.system_id,
+           fp.parent_system_id,
+           ARRAY[fp.system_id]::text[] AS path
+         FROM family_people fp
+         WHERE fp.system_id = $1
+
+         UNION ALL
+
+         SELECT
+           parent.system_id,
+           parent.parent_system_id,
+           ancestors.path || parent.system_id
+         FROM family_people parent
+         JOIN ancestors
+           ON parent.system_id = ancestors.parent_system_id
+         WHERE NOT parent.system_id = ANY(ancestors.path)
+       ),
+       descendants AS (
+         SELECT
+           fp.system_id,
+           fp.parent_system_id,
+           ARRAY[fp.system_id]::text[] AS path
+         FROM family_people fp
+         WHERE fp.system_id = $1
+
+         UNION ALL
+
+         SELECT
+           child.system_id,
+           child.parent_system_id,
+           descendants.path || child.system_id
+         FROM family_people child
+         JOIN descendants
+           ON child.parent_system_id = descendants.system_id
+         WHERE NOT child.system_id = ANY(descendants.path)
+       ),
+       relevant_people AS (
+         SELECT system_id FROM ancestors
+         UNION
+         SELECT system_id FROM descendants
+       )
+       SELECT
+         fp.system_id,
+         fp.parent_system_id,
+         fp.full_name,
+         fp.gender,
+         fp.generation,
+         fp.branch_code,
+         fp.date_of_birth,
+         fp.profile
+       FROM family_people fp
+       JOIN relevant_people rp
+         ON rp.system_id = fp.system_id
+       ORDER BY fp.generation, fp.system_id`,
+      [systemId]
+    );
+
+    const people = result.rows.map(row => {
+      const profile =
+        row.profile && typeof row.profile === 'object'
+          ? row.profile
+          : {};
+
+      return {
+        systemId: row.system_id,
+        parentId: row.parent_system_id || null,
+        fullName: row.full_name,
+        gender: row.gender || profile.gender || '',
+        generation: row.generation || profile.generation || null,
+        branch: row.branch_code || profile.branch || profile.branchCode || '',
+        dateOfBirth: row.date_of_birth || null,
+        rootSurname: profile.rootSurname || 'Guvaza',
+        currentSurname:
+          profile.currentSurname ||
+          profile.rootSurname ||
+          'Guvaza',
+        wifeNo: profile.wifeNo || null,
+        isPlaceholder: Boolean(profile.isPlaceholder)
+      };
+    });
+
+    if (!people.some(person => person.systemId === systemId)) {
+      return res.status(404).json({
+        ok: false,
+        error: 'Your account is not yet linked to a person in the family register.'
+      });
+    }
+
+    return res.json({
+      ok: true,
+      systemId,
+      people,
+      count: people.length,
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error('Beneficiary direct lineage API error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to load your registered family lineage.'
+    });
+  }
+});
+
+// ------------------------------------------------------------
  // BENEFICIARY — WALLET BALANCE
  // ------------------------------------------------------------
 

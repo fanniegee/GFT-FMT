@@ -554,13 +554,25 @@ let clanDiv=document.createElement('div');clanDiv.id='view-clan';clanDiv.classNa
 clanDiv.innerHTML=`<button onclick="openView('home')">Back</button><div class="card"><iframe src="beneficiary-gen-drilldown.html" style="width:100%;height:78vh;border:0"></iframe></div>`;
 document.querySelector('.main').appendChild(clanDiv);
 
-function openMyDirectLineage(){
- let currentId = (session?.membership || session?.idNumber || 'GFT-2026-0014').trim();
-let first = (session?.name || session?.firstName || '').trim();
-let last = (session?.surname || session?.lastName || session?.familyName || '').trim();
-let currentName = `${first} ${last}`.trim() || (session?.username || 'Beneficiary').trim();
-  window.location.href = `my-direct-lineage.html?id=${encodeURIComponent(currentId)}&name=${encodeURIComponent(currentName)}`;
+function openMyDirectLineage() {
+  const systemId = String(session?.systemId || '').trim();
+
+  if (!systemId) {
+    alert('Your authenticated beneficiary account does not have a System ID. Please sign out and sign in again.');
+    return;
+  }
+
+  const currentName = String(
+    session?.fullName ||
+    session?.name ||
+    session?.username ||
+    'Beneficiary'
+  ).trim();
+
+  window.location.href =
+    `my-direct-lineage.html?id=${encodeURIComponent(systemId)}&name=${encodeURIComponent(currentName)}`;
 }
+
 (function(){
   function triggerLock(){
     let id=session? (session.membership||session.idNumber) : 'Unknown';
