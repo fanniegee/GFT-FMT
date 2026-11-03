@@ -132,7 +132,7 @@ body{margin:0;font-family:system-ui;background:#f5f1f1}
   <div class="ben-bal-card" style="background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%);color:#fff;padding:16px;border-radius:16px;border:none">
     <div style="display:flex;align-items:center;gap:6px"><span class="mi">account_balance_wallet</span><b>Beneficiary Account Balance</b></div>
     <div style="font-size:30px;font-weight:900;margin:8px 0" id="benAccountBalanceFront">USD$ 0.00</div>
-    <div style="font-size:13px;color:#fff">Account No: •••• 4219 • Active</div>
+    <div id="benAccountNumber" style="font-size:13px;color:#fff">Account No: Loading…</div>
     <div style="font-size:12px;color:#ffffff;opacity:0.9;margin-top:3px">Connected to Ben Pool • Shows after first allocation • Auto 24h equal share</div>
   </div>
 
@@ -365,9 +365,15 @@ async function refreshBenWallet() {
     const balance = wallet ? Number(wallet.balance) : 0;
     const currency = wallet?.currency || 'USD';
     const display = currency + ' ' + balance.toFixed(2);
+    const accountNumberEl = document.getElementById('benAccountNumber');
 
     if (balanceEl) balanceEl.innerText = display;
     if (accountEl) accountEl.innerText = display;
+    if (accountNumberEl) {
+      accountNumberEl.textContent = wallet?.accountNumber
+        ? 'Account No: ' + wallet.accountNumber + ' • Active'
+        : 'Account No: Not yet assigned';
+    }
   } catch (error) {
     console.error('Wallet balance request failed:', error);
     if (balanceEl) balanceEl.innerText = 'Balance unavailable';

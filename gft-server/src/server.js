@@ -2766,6 +2766,7 @@ app.get('/api/beneficiary/wallet', async (req, res) => {
     const result = await query(
       `SELECT
          w.wallet_id,
+         w.account_number,
          w.currency,
          COALESCE(
            SUM(
@@ -2784,7 +2785,7 @@ app.get('/api/beneficiary/wallet', async (req, res) => {
          ON le.wallet_id = w.wallet_id
        WHERE w.owner_system_id = $1
          AND UPPER(w.status) = 'ACTIVE'
-       GROUP BY w.wallet_id, w.currency
+       GROUP BY w.wallet_id, w.account_number, w.currency
        LIMIT 1`,
       [beneficiary.system_id]
     );
@@ -2796,6 +2797,7 @@ app.get('/api/beneficiary/wallet', async (req, res) => {
       wallet: wallet
         ? {
             walletId: wallet.wallet_id,
+            accountNumber: wallet.account_number,
             currency: String(wallet.currency).trim(),
             balance: Number(wallet.balance)
           }
