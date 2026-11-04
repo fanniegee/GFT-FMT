@@ -1113,7 +1113,7 @@ app.post('/api/registration/verify-otp', async (req, res) => {
   }
 });
 
-async function generateGftSystemId(generation) {
+async function generateGftSystemId(generation, client) {
   const gen = Number(generation);
 
   if (!Number.isInteger(gen) || gen < 1) {
@@ -1122,29 +1122,33 @@ async function generateGftSystemId(generation) {
 
   const prefix = `GFT-GEN${gen}-`;
 
-  const result = await query(
+  await client.query(
+    `SELECT pg_advisory_xact_lock(hashtext($1))`,
+    [prefix]
+  );
+
+  const result = await client.query(
     `
     SELECT COALESCE(MAX(number_part), 0) AS max_number
     FROM (
-      SELECT
-        CASE
-          WHEN system_id LIKE $1 || '%'
-          THEN NULLIF(SUBSTRING(system_id FROM LENGTH($1) + 1), '')::INTEGER
-          ELSE NULL
-        END AS number_part
+      SELECT SUBSTRING(system_id FROM LENGTH($1) + 1)::INTEGER AS number_part
       FROM family_people
       WHERE system_id LIKE $1 || '%'
+        AND SUBSTRING(system_id FROM LENGTH($1) + 1) ~ '^[0-9]+$'
 
       UNION ALL
 
-      SELECT
-        CASE
-          WHEN applicant_system_id LIKE $1 || '%'
-          THEN NULLIF(SUBSTRING(applicant_system_id FROM LENGTH($1) + 1), '')::INTEGER
-          ELSE NULL
-        END AS number_part
+      SELECT SUBSTRING(applicant_system_id FROM LENGTH($1) + 1)::INTEGER
       FROM registrations
       WHERE applicant_system_id LIKE $1 || '%'
+        AND SUBSTRING(applicant_system_id FROM LENGTH($1) + 1) ~ '^[0-9]+$'
+
+      UNION ALL
+
+      SELECT SUBSTRING(system_id FROM LENGTH($1) + 1)::INTEGER
+      FROM beneficiary_family_members
+      WHERE system_id LIKE $1 || '%'
+        AND SUBSTRING(system_id FROM LENGTH($1) + 1) ~ '^[0-9]+$'
     ) ids
     `,
     [prefix]
@@ -2938,10 +2942,11 @@ app.post('/api/beneficiary/family-extension', async (req, res) => {
     }
 
     const memberId = randomBytes(16).toString('hex');
-    const systemId =
-      memberType === 'SPOUSE'
-        ? `S-${beneficiary.system_id}-${randomBytes(6).toString('hex').toUpperCase()}`
-        : `GFT-GEN${generation || 1}-${randomBytes(5).toString('hex').toUpperCase()}`;
+
+let systemId =
+  memberType === 'SPOUSE'
+    ? `S-${beneficiary.system_id}-${randomBytes(6).toString('hex').toUpperCase()}`
+    : null;
 
     const saved = await withTransaction(async (client) => {
 
@@ -3024,6 +3029,10 @@ app.post('/api/beneficiary/family-extension', async (req, res) => {
         }
       }
 
+      if (memberType === 'DESCENDANT') {
+  systemId = await generateGftSystemId(generation || 1, client);
+}
+       
       const inserted = await client.query(
         `INSERT INTO beneficiary_family_members (
            member_id,
