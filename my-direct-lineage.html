@@ -82,6 +82,9 @@ const params = new URLSearchParams(location.search);
 let ACTIVE_ID = '';
 let ACTIVE_PERSON = null;
 let SERVER_PEOPLE = [];
+// Server-managed beneficiary family extensions
+let SERVER_EXTENSIONS = [];
+let SERVER_SPOUSES = [];
 
 function showLineageError(message) {
   document.querySelector(".page").innerHTML =
@@ -96,10 +99,24 @@ let editId=null,editSpouse=null,editParentId=ACTIVE_ID,photoTarget=null,photoKin
 
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
 const initials=n=>{let clean=String(n||"?").replace(/\s*\([^)]*\)/g," ").replace(/\s+/g," ").trim();let p=clean.split(" ").filter(Boolean);return p.length?(p[0][0]+(p.length>1?p[p.length-1][0]:"")).toUpperCase():"?"};
-const extras=()=>{try{return JSON.parse(localStorage.getItem(EK)||"[]")}catch{return[]}};
-const saveExtras=x=>localStorage.setItem(EK,JSON.stringify(x));
-const spouses=()=>{try{return JSON.parse(localStorage.getItem(SK)||"[]")}catch{return[]}};
-const saveSpouses=x=>localStorage.setItem(SK,JSON.stringify(x));
+
+
+// ------------------------------------------------------------
+// SERVER-MANAGED FAMILY DATA
+// The authenticated server account owns these records.
+// ------------------------------------------------------------
+
+const extras = () => SERVER_EXTENSIONS;
+
+const saveExtras = x => {
+  SERVER_EXTENSIONS = Array.isArray(x) ? x : [];
+};
+
+const spouses = () => SERVER_SPOUSES;
+
+const saveSpouses = x => {
+  SERVER_SPOUSES = Array.isArray(x) ? x : [];
+};
 
 const all = () => [...SERVER_PEOPLE, ...extras()];
 
@@ -205,6 +222,71 @@ function tab(x){let a=document.getElementById("all"),t=document.getElementById("
 function search(){let q=document.getElementById("q").value.trim().toLowerCase(),box=document.getElementById("all"),r=desc().filter(x=>!q||[x.fullName,x.systemId,x.lineageId].some(v=>String(v||"").toLowerCase().includes(q)));box.innerHTML=r.map(x=>`<div class="item"><div class="smallav">${photo(x.systemId)?`<img src="${esc(photo(x.systemId))}">`:esc(initials(x.fullName))}</div><div class="info"><div class="name" style="font-size:12px">${esc(x.fullName)}</div><div class="id">${esc(x.systemId)}</div>${x.lineageId?`<div class="role">${esc(x.lineageId)}</div>`:""}</div><button class="colorbtn" onclick="openPersonColor('${esc(x.systemId)}')">🎨</button></div>`).join("")||'<div style="padding:14px;text-align:center;color:#6c776f;font-size:12px">No descendants found.</div>'}
 
 // ------------------------------------------------------------
+// LOAD BENEFICIARY-MANAGED FAMILY EXTENSIONS FROM SERVER
+// ------------------------------------------------------------
+
+async function loadFamilyExtensions() {
+  const response = await fetch(
+    '/api/beneficiary/family-extension',
+    {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      },
+      credentials: 'include'
+    }
+  );
+
+  const result = await response.json().catch(() => ({}));
+
+  if (response.status === 401) {
+    window.location.href = 'beneficiary-login.html';
+    return false;
+  }
+
+  if (!response.ok || !result.ok) {
+    throw new Error(
+      result.error || 'Unable to load your saved family information.'
+    );
+  }
+
+  const members = Array.isArray(result.members)
+    ? result.members
+    : [];
+
+  SERVER_SPOUSES = members
+    .filter(x => String(x.memberType || x.member_type).toUpperCase() === 'SPOUSE')
+    .map(x => ({
+      id: x.memberId || x.member_id,
+      name: x.fullName || x.full_name,
+      slot: x.familyPosition || x.family_position,
+      photo: x.photoUrl || x.photo_url || '',
+      photoDocumentId: x.photoDocumentId || x.photo_document_id || ''
+    }));
+
+  SERVER_EXTENSIONS = members
+    .filter(x => String(x.memberType || x.member_type).toUpperCase() === 'DESCENDANT')
+    .map(x => ({
+      systemId: x.systemId || x.system_id,
+      fullName: x.fullName || x.full_name,
+      parentId: x.parentMemberSystemId || x.parent_system_id,
+      generation: Number(x.generation || 1),
+      branch: x.branch || '',
+      lineageId: x.lineageId || x.lineage_id || '',
+      lineageGeneration: Number(x.lineageGeneration || x.generation || 1),
+      spouseId: x.spouseMemberId || x.spouse_member_id || '',
+      wifeNo: x.familyPosition || x.family_position || null,
+      isPlaceholder: false,
+      isEditable: true,
+      memberId: x.memberId || x.member_id,
+      cardColour: x.cardColour || x.card_colour || '#e8f4ec',
+      photoDocumentId: x.photoDocumentId || x.photo_document_id || ''
+    }));
+
+  return true;
+}
+
+// ------------------------------------------------------------
 // LOAD THE AUTHENTICATED BENEFICIARY'S SERVER LINEAGE
 // ------------------------------------------------------------
 
@@ -246,6 +328,11 @@ async function initLineage() {
     // Initialise personal browser storage using the authenticated ID.
     EK = 'guvaza_personal_descendants_' + ACTIVE_ID;
     SK = 'guvaza_spouses_' + ACTIVE_ID;
+
+    // Load the beneficiary's personal family records from PostgreSQL.
+const familyLoaded = await loadFamilyExtensions();
+
+if (!familyLoaded) return;    
 
     ACTIVE_PERSON = get(ACTIVE_ID);
 

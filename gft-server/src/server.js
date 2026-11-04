@@ -2748,6 +2748,598 @@ app.get('/api/beneficiary/lineage', async (req, res) => {
   }
 });
 
+
+// ============================================================
+// BENEFICIARY — PERSONAL FAMILY EXTENSION
+// Stores beneficiary-managed spouses and descendants.
+// Official family_people records are never modified here.
+// ============================================================
+
+
+// ------------------------------------------------------------
+// 1. LOAD PERSONAL FAMILY EXTENSION
+// ------------------------------------------------------------
+
+app.get('/api/beneficiary/family-extension', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Beneficiary authentication required'
+      });
+    }
+
+    const result = await query(
+      `SELECT
+         member_id,
+         member_type,
+         system_id,
+         full_name,
+         parent_system_id,
+         parent_member_id,
+         spouse_member_id,
+         lineage_id,
+         generation,
+         family_position,
+         card_colour,
+         photo_document_id,
+         profile,
+         created_at,
+         updated_at
+       FROM beneficiary_family_members
+       WHERE beneficiary_id = $1
+       ORDER BY created_at ASC`,
+      [beneficiary.beneficiary_id]
+    );
+
+    const members = result.rows.map(row => ({
+      memberId: row.member_id,
+      memberType: row.member_type,
+      systemId: row.system_id,
+      fullName: row.full_name,
+      parentSystemId: row.parent_system_id,
+      parentMemberId: row.parent_member_id,
+      spouseMemberId: row.spouse_member_id,
+      lineageId: row.lineage_id,
+      generation: row.generation,
+      familyPosition: row.family_position,
+      cardColour: row.card_colour,
+      photoDocumentId: row.photo_document_id,
+      profile: row.profile || {},
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+
+    return res.json({
+      ok: true,
+      members,
+      spouses: members.filter(x => x.memberType === 'SPOUSE'),
+      descendants: members.filter(x => x.memberType === 'DESCENDANT'),
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error('Beneficiary family extension load error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to load personal family records'
+    });
+  }
+});
+
+
+// ------------------------------------------------------------
+// 2. ADD A SPOUSE OR DESCENDANT
+// The beneficiary identity always comes from the session.
+// ------------------------------------------------------------
+
+app.post('/api/beneficiary/family-extension', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Beneficiary authentication required'
+      });
+    }
+
+    const memberType = String(req.body?.memberType || '')
+      .trim()
+      .toUpperCase();
+
+    const fullName = String(req.body?.fullName || '').trim();
+
+    const parentSystemId =
+      String(req.body?.parentSystemId || '').trim() || null;
+
+    const parentMemberId =
+      String(req.body?.parentMemberId || '').trim() || null;
+
+    const spouseMemberId =
+      String(req.body?.spouseMemberId || '').trim() || null;
+
+    const lineageId =
+      String(req.body?.lineageId || '').trim() || null;
+
+    const familyPosition =
+      String(req.body?.familyPosition || '').trim() || null;
+
+    const cardColour =
+      String(req.body?.cardColour || '#e8f4ec').trim();
+
+    const generation =
+      req.body?.generation == null
+        ? null
+        : Number(req.body.generation);
+
+    const profile =
+      req.body?.profile &&
+      typeof req.body.profile === 'object' &&
+      !Array.isArray(req.body.profile)
+        ? req.body.profile
+        : {};
+
+    if (!['SPOUSE', 'DESCENDANT'].includes(memberType)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Member type must be SPOUSE or DESCENDANT'
+      });
+    }
+
+    if (!fullName || fullName.length > 180) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Enter a valid full name'
+      });
+    }
+
+    if (!/^#[0-9a-fA-F]{6}$/.test(cardColour)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Invalid card colour'
+      });
+    }
+
+    if (
+      generation !== null &&
+      (!Number.isInteger(generation) || generation < 1 || generation > 100)
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Invalid generation number'
+      });
+    }
+
+    if (memberType === 'DESCENDANT') {
+      if (!parentSystemId && !parentMemberId) {
+        return res.status(400).json({
+          ok: false,
+          error: 'A descendant must have a parent'
+        });
+      }
+
+      if (!lineageId || !/^FG-GEN\d+-\d+$/.test(lineageId)) {
+        return res.status(400).json({
+          ok: false,
+          error: 'Enter a valid personal lineage ID'
+        });
+      }
+    }
+
+    if (memberType === 'SPOUSE' && !familyPosition) {
+      return res.status(400).json({
+        ok: false,
+        error: 'A spouse family position is required'
+      });
+    }
+
+    const memberId = randomBytes(16).toString('hex');
+    const systemId =
+      memberType === 'SPOUSE'
+        ? `S-${beneficiary.system_id}-${randomBytes(6).toString('hex').toUpperCase()}`
+        : `GFT-GEN${generation || 1}-${randomBytes(5).toString('hex').toUpperCase()}`;
+
+    const saved = await withTransaction(async (client) => {
+
+      // A personal parent must belong to this beneficiary.
+      if (parentMemberId) {
+        const parent = await client.query(
+          `SELECT member_id
+           FROM beneficiary_family_members
+           WHERE member_id = $1
+             AND beneficiary_id = $2
+             AND member_type = 'DESCENDANT'
+           LIMIT 1`,
+          [parentMemberId, beneficiary.beneficiary_id]
+        );
+
+        if (!parent.rows.length) {
+          const error = new Error('The selected personal parent was not found');
+          error.statusCode = 400;
+          throw error;
+        }
+      }
+
+      // An official parent must exist in the official family register.
+      if (parentSystemId) {
+        const parent = await client.query(
+          `SELECT system_id
+           FROM family_people
+           WHERE system_id = $1
+           LIMIT 1`,
+          [parentSystemId]
+        );
+
+        if (!parent.rows.length) {
+          const error = new Error('The selected official parent was not found');
+          error.statusCode = 400;
+          throw error;
+        }
+      }
+
+      // A spouse association must point to this beneficiary's spouse.
+      if (spouseMemberId) {
+        const spouse = await client.query(
+          `SELECT member_id
+           FROM beneficiary_family_members
+           WHERE member_id = $1
+             AND beneficiary_id = $2
+             AND member_type = 'SPOUSE'
+           LIMIT 1`,
+          [spouseMemberId, beneficiary.beneficiary_id]
+        );
+
+        if (!spouse.rows.length) {
+          const error = new Error('The selected spouse was not found');
+          error.statusCode = 400;
+          throw error;
+        }
+      }
+
+      // Check lineage ID against official and personal records.
+      if (lineageId) {
+        const duplicate = await client.query(
+          `SELECT 1
+           FROM beneficiary_family_members
+           WHERE beneficiary_id = $1
+             AND UPPER(lineage_id) = UPPER($2)
+
+           UNION ALL
+
+           SELECT 1
+           FROM family_people
+           WHERE UPPER(system_id) = UPPER($2)
+           LIMIT 1`,
+          [beneficiary.beneficiary_id, lineageId]
+        );
+
+        if (duplicate.rows.length) {
+          const error = new Error('This lineage ID is already in use');
+          error.statusCode = 409;
+          throw error;
+        }
+      }
+
+      const inserted = await client.query(
+        `INSERT INTO beneficiary_family_members (
+           member_id,
+           beneficiary_id,
+           member_type,
+           system_id,
+           full_name,
+           parent_system_id,
+           parent_member_id,
+           spouse_member_id,
+           lineage_id,
+           generation,
+           family_position,
+           card_colour,
+           profile
+         )
+         VALUES (
+           gen_random_uuid(),
+           $1, $2, $3, $4, $5, $6, $7,
+           $8, $9, $10, $11, $12::jsonb
+         )
+         RETURNING
+           member_id,
+           member_type,
+           system_id,
+           full_name,
+           parent_system_id,
+           parent_member_id,
+           spouse_member_id,
+           lineage_id,
+           generation,
+           family_position,
+           card_colour,
+           profile`,
+        [
+          beneficiary.beneficiary_id,
+          memberType,
+          systemId,
+          fullName,
+          parentSystemId,
+          parentMemberId,
+          spouseMemberId,
+          lineageId,
+          generation,
+          familyPosition,
+          cardColour,
+          JSON.stringify(profile)
+        ]
+      );
+
+      return inserted.rows[0];
+    });
+
+    return res.status(201).json({
+      ok: true,
+      message: 'Family member saved successfully',
+      member: {
+        memberId: saved.member_id,
+        memberType: saved.member_type,
+        systemId: saved.system_id,
+        fullName: saved.full_name,
+        parentSystemId: saved.parent_system_id,
+        parentMemberId: saved.parent_member_id,
+        spouseMemberId: saved.spouse_member_id,
+        lineageId: saved.lineage_id,
+        generation: saved.generation,
+        familyPosition: saved.family_position,
+        cardColour: saved.card_colour,
+        profile: saved.profile || {}
+      },
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error('Beneficiary family extension save error:', error);
+
+    return res.status(error.statusCode || 500).json({
+      ok: false,
+      error: error.message || 'Unable to save family member'
+    });
+  }
+});
+
+
+// ------------------------------------------------------------
+// 3. UPDATE A PERSONAL FAMILY MEMBER
+// ------------------------------------------------------------
+
+app.put('/api/beneficiary/family-extension/:memberId', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Beneficiary authentication required'
+      });
+    }
+
+    const memberId = String(req.params.memberId || '').trim();
+
+    const fullName =
+      req.body?.fullName === undefined
+        ? null
+        : String(req.body.fullName).trim();
+
+    const cardColour =
+      req.body?.cardColour === undefined
+        ? null
+        : String(req.body.cardColour).trim();
+
+    const lineageId =
+      req.body?.lineageId === undefined
+        ? null
+        : String(req.body.lineageId).trim();
+
+    const familyPosition =
+      req.body?.familyPosition === undefined
+        ? null
+        : String(req.body.familyPosition).trim();
+
+    const spouseMemberId =
+      req.body?.spouseMemberId === undefined
+        ? null
+        : String(req.body.spouseMemberId).trim() || null;
+
+    const profile =
+      req.body?.profile &&
+      typeof req.body.profile === 'object' &&
+      !Array.isArray(req.body.profile)
+        ? req.body.profile
+        : null;
+
+    if (fullName !== null && (!fullName || fullName.length > 180)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Enter a valid full name'
+      });
+    }
+
+    if (cardColour !== null && !/^#[0-9a-fA-F]{6}$/.test(cardColour)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Invalid card colour'
+      });
+    }
+
+    if (lineageId !== null && lineageId && !/^FG-GEN\d+-\d+$/.test(lineageId)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Invalid personal lineage ID'
+      });
+    }
+
+    const updated = await withTransaction(async (client) => {
+
+      const current = await client.query(
+        `SELECT member_id, member_type
+         FROM beneficiary_family_members
+         WHERE member_id = $1
+           AND beneficiary_id = $2
+         FOR UPDATE`,
+        [memberId, beneficiary.beneficiary_id]
+      );
+
+      if (!current.rows.length) {
+        const error = new Error('Family member not found');
+        error.statusCode = 404;
+        throw error;
+      }
+
+      const memberType = current.rows[0].member_type;
+
+      if (spouseMemberId) {
+        const spouse = await client.query(
+          `SELECT member_id
+           FROM beneficiary_family_members
+           WHERE member_id = $1
+             AND beneficiary_id = $2
+             AND member_type = 'SPOUSE'
+           LIMIT 1`,
+          [spouseMemberId, beneficiary.beneficiary_id]
+        );
+
+        if (!spouse.rows.length) {
+          const error = new Error('The selected spouse was not found');
+          error.statusCode = 400;
+          throw error;
+        }
+      }
+
+      const result = await client.query(
+        `UPDATE beneficiary_family_members
+         SET
+           full_name = COALESCE($3, full_name),
+           card_colour = COALESCE($4, card_colour),
+           lineage_id = CASE
+             WHEN $5::boolean THEN $6
+             ELSE lineage_id
+           END,
+           family_position = CASE
+             WHEN $7::boolean THEN $8
+             ELSE family_position
+           END,
+           spouse_member_id = CASE
+             WHEN $9::boolean THEN $10
+             ELSE spouse_member_id
+           END,
+           profile = CASE
+             WHEN $11::boolean THEN $12::jsonb
+             ELSE profile
+           END,
+           updated_at = NOW()
+         WHERE member_id = $1
+           AND beneficiary_id = $2
+         RETURNING
+           member_id,
+           member_type,
+           system_id,
+           full_name,
+           parent_system_id,
+           parent_member_id,
+           spouse_member_id,
+           lineage_id,
+           generation,
+           family_position,
+           card_colour,
+           profile`,
+        [
+          memberId,
+          beneficiary.beneficiary_id,
+          fullName,
+          cardColour,
+          lineageId !== null,
+          lineageId,
+          familyPosition !== null,
+          familyPosition,
+          req.body?.spouseMemberId !== undefined,
+          spouseMemberId,
+          profile !== null,
+          JSON.stringify(profile || {})
+        ]
+      );
+
+      return result.rows[0];
+    });
+
+    return res.json({
+      ok: true,
+      message: 'Family member updated successfully',
+      member: updated,
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error('Beneficiary family extension update error:', error);
+
+    return res.status(error.statusCode || 500).json({
+      ok: false,
+      error: error.message || 'Unable to update family member'
+    });
+  }
+});
+
+
+// ------------------------------------------------------------
+// 4. DELETE A PERSONAL FAMILY MEMBER
+// Deleting a parent also deletes its personal descendants
+// through the migration's ON DELETE CASCADE relationship.
+// ------------------------------------------------------------
+
+app.delete('/api/beneficiary/family-extension/:memberId', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Beneficiary authentication required'
+      });
+    }
+
+    const memberId = String(req.params.memberId || '').trim();
+
+    const result = await query(
+      `DELETE FROM beneficiary_family_members
+       WHERE member_id = $1
+         AND beneficiary_id = $2
+       RETURNING member_id, member_type, system_id`,
+      [memberId, beneficiary.beneficiary_id]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({
+        ok: false,
+        error: 'Family member not found'
+      });
+    }
+
+    return res.json({
+      ok: true,
+      message: 'Family member deleted successfully',
+      deleted: result.rows[0],
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error('Beneficiary family extension delete error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to delete family member'
+    });
+  }
+});
+
 // ------------------------------------------------------------
  // BENEFICIARY — WALLET BALANCE
  // ------------------------------------------------------------
