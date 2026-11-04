@@ -125,9 +125,18 @@ const get = id =>
   extras().find(x => x.systemId === id) ||
   null;
 
-const photo=id=>localStorage.getItem(PK+id)||"";
-const personalColor=id=>localStorage.getItem(CK+id)||"";
-const spouseColor=id=>localStorage.getItem(WK+id)||"";
+const photo = id => localStorage.getItem(PK + id) || "";
+
+const personalColor = id =>
+  personalRecord(id)?.cardColour ||
+  localStorage.getItem(CK + id) ||
+  "";
+
+const spouseColor = id =>
+  spouses().find(x => x.id === id)?.cardColour ||
+  localStorage.getItem(WK + id) ||
+  "";
+
 function branchDefaultColor(branch){const colors={"BRANCH_ROOT":"#23395d","ROOT":"#23395d","BRANCH_RUTAMBO":"#1b5e20","RUTAMBO":"#1b5e20","BRANCH_VURAYAI":"#e67e22","VURAYAI":"#e67e22","BRANCH_SVUSVU":"#1e40af","SVUSVU":"#1e40af","BRANCH_VAFONJO":"#ad1457","VAFONJO":"#ad1457","BRANCH_DAUGHTER2":"#6b21a8","DAUGHTER2":"#6b21a8","BRANCH_SECOND_DAUGHTER":"#6b21a8"};return colors[branch]||"#23395d";}
 
 let isMale = false;
@@ -190,29 +199,356 @@ function openSpouse(id=null){
  else{t.textContent=`Add ${spouseNoun}`;n.value="";renderSpouseSlots();document.getElementById("spouseColor").value="#f7eef8";d.style.display="none"}
  document.getElementById("spouseModal").classList.add("show")
 }
-function saveSpouse(){let n=document.getElementById("spouseName").value.trim(),slot=document.getElementById("spouseSlot").value,col=document.getElementById("spouseColor").value,s=spouses();if(!n)return alert(`Please enter the ${spouseNoun.toLowerCase()} name.`);if(s.some(x=>x.slot===slot&&x.id!==editSpouse))return alert(slot+" is already assigned.");if(editSpouse){let i=s.findIndex(x=>x.id===editSpouse);if(i<0)return; s[i].name=n;s[i].slot=slot;saveSpouses(s);localStorage.setItem(WK+editSpouse,col)}else{let id="S-"+ACTIVE_ID+"-"+Date.now();s.push({id,name:n,slot,ownerId:ACTIVE_ID,photo:""});saveSpouses(s);localStorage.setItem(WK+id,col)}closeModals();render()}
-function deleteSpouse(){if(!editSpouse)return;if(!confirm(`Delete this ${spouseNoun.toLowerCase()} and keep the children?`))return;let s=spouses().filter(x=>x.id!==editSpouse);saveSpouses(s);localStorage.removeItem(WK+editSpouse);closeModals();render()}
-function openSpouseColor(id){let w=spouses().find(x=>x.id===id);if(!w)return;document.getElementById("personColorTarget").value="SPOUSE:"+id;document.getElementById("personColorName").textContent=w.name||spouseNoun;document.getElementById("personColorPicker").value=spouseColor(id)||"#f7eef8";document.getElementById("personColorModal").classList.add("show")}
 
-function openChild(id=null,sid="",parentId=ACTIVE_ID){editId=id;editSpouse=sid;editParentId=parentId||ACTIVE_ID;let t=document.getElementById("childTitle"),di=document.getElementById("childId"),n=document.getElementById("childName"),li=document.getElementById("lineageId"),co=document.getElementById("childColor"),pa=document.getElementById("childParent"),del=document.getElementById("deleteBtn");
- if(id){let c=get(id);if(!c)return;t.textContent=personalRecord(id)?"Edit Descendant":"View GFT Descendant";di.value=c.systemId;n.value=c.fullName;li.value=c.lineageId||"";co.value=personalColor(c.systemId)||"#e8f4ec";pa.value=(get(c.parentId)?.fullName||"")+" • "+(c.parentId||"");del.style.display=personalRecord(id)?"block":"none";n.readOnly=!personalRecord(id);li.disabled=!personalRecord(id);co.disabled=false;document.querySelector('#childModal .save').textContent=personalRecord(id)?"Save":"Close"}
- else{t.textContent="Add Child";di.value=nextIdForParent(editParentId);n.value="";li.value=suggestLineage(editParentId);co.value="#e8f4ec";pa.value=(get(editParentId)?.fullName||ACTIVE_PERSON.fullName)+" • "+editParentId;del.style.display="none";n.readOnly=false;li.disabled=false;co.disabled=false;document.querySelector('#childModal .save').textContent="Save"}
- document.getElementById("childModal").classList.add("show")
+async function saveSpouse() {
+  const name = document.getElementById("spouseName").value.trim();
+  const slot = document.getElementById("spouseSlot").value;
+  const colour = document.getElementById("spouseColor").value;
+  const current = spouses();
+
+  if (!name) return alert(`Please enter the ${spouseNoun.toLowerCase()} name.`);
+  if (current.some(x => x.slot === slot && x.id !== editSpouse)) {
+    return alert(slot + " is already assigned.");
+  }
+
+  const editing = Boolean(editSpouse);
+  const url = editing
+    ? `/api/beneficiary/family-extension/${encodeURIComponent(editSpouse)}`
+    : "/api/beneficiary/family-extension";
+
+  try {
+    const response = await fetch(url, {
+      method: editing ? "PUT" : "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        ...(editing ? {} : { memberType: "SPOUSE" }),
+        fullName: name,
+        familyPosition: slot,
+        cardColour: colour
+      })
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "Unable to save spouse.");
+    }
+
+    await loadFamilyExtensions();
+    closeModals();
+    render();
+  } catch (error) {
+    alert(error.message);
+  }
 }
-function saveChild(){
- if(editId&&!personalRecord(editId)){openPersonColor(editId);return}
- let n=document.getElementById("childName").value.trim(),li=document.getElementById("lineageId").value.trim().toUpperCase(),co=document.getElementById("childColor").value;
- if(!n)return alert("Please enter the child's full name.");if(!/^FG-GEN\d+-\d+$/.test(li))return alert("Personal Lineage ID must use the format FG-GEN2-01.");
- let e=extras();
- if(editId){let i=e.findIndex(x=>x.systemId===editId);if(i<0)return; if(e.some(x=>x.lineageId===li&&x.systemId!==editId))return alert("That Personal Lineage ID is already in use.");e[i].fullName=n;e[i].lineageId=li;saveExtras(e);localStorage.setItem(CK+editId,co);closeModals();render();return}
- let parent=get(editParentId);if(!parent)return alert("The biological parent could not be verified.");if(e.some(x=>x.lineageId===li)||all().some(x=>x.lineageId===li))return alert("That Personal Lineage ID is already in use.");
- let id=nextIdForParent(editParentId),gen=Number(parent.generation||1)+1,parentLineageGen=Number(parent.lineageGeneration||1);
- e.push({systemId:id,fullName:n,rootSurname:"Guvaza",currentSurname:n.split(/\s+/).pop(),parentId:editParentId,generation:gen,branch:parent.branch||ACTIVE_PERSON.branch,gender:"",lineageOwnerId:ACTIVE_ID,lineageId:li,lineageGeneration:parentLineageGen+1,wifeNo:editSpouse?(spouses().find(x=>x.id===editSpouse)||{}).slot:null,spouseId:editSpouse||"",isPlaceholder:false,isEditable:true});
- saveExtras(e);localStorage.setItem(CK+id,co);closeModals();render();alert("Child added.\n\nOfficial GFT ID: "+id+"\nPersonal Lineage ID: "+li)
+
+async function deleteSpouse() {
+  if (!editSpouse) return;
+
+  if (!confirm(`Delete this ${spouseNoun.toLowerCase()} and keep the children?`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/beneficiary/family-extension/${encodeURIComponent(editSpouse)}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Accept": "application/json" }
+      }
+    );
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "Unable to delete spouse.");
+    }
+
+    await loadFamilyExtensions();
+    closeModals();
+    render();
+  } catch (error) {
+    alert(error.message);
+  }
 }
-function deleteChild(){if(!editId)return;let e=extras();if(!e.some(x=>x.systemId===editId))return alert("Official GFT members cannot be deleted here.");if(!confirm("Delete this personal descendant and its descendants?"))return;let gone=new Set([editId]);function walk(id){e.filter(x=>x.parentId===id).forEach(x=>{gone.add(x.systemId);walk(x.systemId)})}walk(editId);saveExtras(e.filter(x=>!gone.has(x.systemId)));gone.forEach(id=>{localStorage.removeItem(CK+id);localStorage.removeItem(PK+id)});closeModals();render()}
-function openPersonColor(id){let p=get(id);if(!p)return;document.getElementById("personColorTarget").value=id;document.getElementById("personColorName").textContent=p.fullName||id;document.getElementById("personColorPicker").value=personalColor(id)||branchDefaultColor(p.branch)||"#e8f4ec";document.getElementById("personColorModal").classList.add("show")}
-function savePersonColor(){let target=document.getElementById("personColorTarget").value;let color=document.getElementById("personColorPicker").value;if(!target)return;if(target.startsWith("SPOUSE:")){let id=target.slice(7);localStorage.setItem(WK+id,color)}else{localStorage.setItem(CK+target,color)}closeModals();render()}
+
+function openSpouseColor(id) {
+  const w = spouses().find(x => x.id === id);
+  if (!w) return;
+
+  document.getElementById("personColorTarget").value = "SPOUSE:" + id;
+  document.getElementById("personColorName").textContent = w.name || spouseNoun;
+  document.getElementById("personColorPicker").value =
+    w.cardColour || "#f7eef8";
+
+  document.getElementById("personColorModal").classList.add("show");
+} 
+
+function openChild(id = null, sid = "", parentId = ACTIVE_ID) {
+  editId = id;
+  editSpouse = sid;
+  editParentId = parentId || ACTIVE_ID;
+
+  const title = document.getElementById("childTitle");
+  const displayId = document.getElementById("childId");
+  const name = document.getElementById("childName");
+  const lineage = document.getElementById("lineageId");
+  const colour = document.getElementById("childColor");
+  const parentField = document.getElementById("childParent");
+  const deleteButton = document.getElementById("deleteBtn");
+  const saveButton = document.querySelector("#childModal .save");
+
+  if (id) {
+    const child = get(id);
+    if (!child) return;
+
+    const editable = Boolean(personalRecord(id));
+
+    title.textContent = editable ? "Edit Descendant" : "View GFT Descendant";
+    displayId.value = child.systemId;
+    name.value = child.fullName;
+    lineage.value = child.lineageId || "";
+    colour.value = personalColor(id) || "#e8f4ec";
+    parentField.value =
+      (get(child.parentId)?.fullName || "") + " • " + (child.parentId || "");
+
+    deleteButton.style.display = editable ? "block" : "none";
+    name.readOnly = !editable;
+    lineage.disabled = !editable;
+    colour.disabled = false;
+    saveButton.textContent = editable ? "Save" : "Close";
+  } else {
+    const parent = get(editParentId);
+    if (!parent) return alert("The biological parent could not be verified.");
+
+    title.textContent = "Add Child";
+    displayId.value = "Assigned after saving";
+    name.value = "";
+    lineage.value = suggestLineage(editParentId);
+    colour.value = "#e8f4ec";
+    parentField.value = parent.fullName + " • " + parent.systemId;
+
+    deleteButton.style.display = "none";
+    name.readOnly = false;
+    lineage.disabled = false;
+    colour.disabled = false;
+    saveButton.textContent = "Save";
+  }
+
+  document.getElementById("childModal").classList.add("show");
+}
+
+async function saveChild() {
+  if (editId && !personalRecord(editId)) {
+    closeModals();
+    return;
+  }
+
+  const name = document.getElementById("childName").value.trim();
+  const lineageId = document.getElementById("lineageId").value.trim().toUpperCase();
+  const cardColour = document.getElementById("childColor").value;
+
+  if (!name) return alert("Please enter the child's full name.");
+
+  if (!/^FG-GEN\d+-\d+$/.test(lineageId)) {
+    return alert("Personal Lineage ID must use the format FG-GEN2-01.");
+  }
+
+  const parent = editId ? get(personalRecord(editId).parentId) : get(editParentId);
+
+  if (!editId && !parent) {
+    return alert("The biological parent could not be verified.");
+  }
+
+  const spouse = editSpouse
+    ? spouses().find(x => x.id === editSpouse)
+    : null;
+
+  const generation = editId
+    ? Number(personalRecord(editId).generation || 1)
+    : Number(parent.generation || 1) + 1;
+
+  const profile = {
+    branch: parent?.branch || ACTIVE_PERSON?.branch || "",
+    lineageGeneration: editId
+      ? Number(personalRecord(editId).lineageGeneration || generation)
+      : Number(parent.lineageGeneration || parent.generation || 1) + 1,
+    rootSurname: "Guvaza",
+    currentSurname: name.split(/\s+/).pop()
+  };
+
+  const body = {
+    fullName: name,
+    lineageId,
+    generation,
+    cardColour,
+    familyPosition: spouse?.slot || null,
+    spouseMemberId: editSpouse || null,
+    profile
+  };
+
+  const editing = Boolean(editId);
+  const member = editing ? personalRecord(editId) : null;
+  const parentIsPersonal = !editing && Boolean(personalRecord(editParentId));
+
+  if (!editing) {
+    body.memberType = "DESCENDANT";
+    body.parentMemberId = parentIsPersonal
+      ? personalRecord(editParentId).memberId
+      : null;
+    body.parentSystemId = parentIsPersonal ? null : parent.systemId;
+  }
+
+  try {
+    const response = await fetch(
+      editing
+        ? `/api/beneficiary/family-extension/${encodeURIComponent(member.memberId)}`
+        : "/api/beneficiary/family-extension",
+      {
+        method: editing ? "PUT" : "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(body)
+      }
+    );
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "Unable to save descendant.");
+    }
+
+    await loadFamilyExtensions();
+
+    const savedId = result.member?.systemId || result.member?.system_id || "";
+    closeModals();
+    render();
+    search();
+
+    if (!editing && savedId) {
+      alert(
+        "Child added successfully.\n\nOfficial GFT ID: " +
+        savedId +
+        "\nPersonal Lineage ID: " +
+        lineageId
+      );
+    }
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function deleteChild() {
+  if (!editId) return;
+
+  const child = personalRecord(editId);
+  if (!child) {
+    return alert("Official GFT members cannot be deleted here.");
+  }
+
+  if (!confirm("Delete this personal descendant and its descendants?")) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/beneficiary/family-extension/${encodeURIComponent(child.memberId)}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Accept": "application/json" }
+      }
+    );
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "Unable to delete descendant.");
+    }
+
+    await loadFamilyExtensions();
+    closeModals();
+    render();
+    search();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function openPersonColor(id) {
+  const person = get(id);
+  if (!person) return;
+
+  document.getElementById("personColorTarget").value = id;
+  document.getElementById("personColorName").textContent = person.fullName || id;
+  document.getElementById("personColorPicker").value =
+    personalColor(id) || branchDefaultColor(person.branch) || "#e8f4ec";
+
+  document.getElementById("personColorModal").classList.add("show");
+}
+
+async function savePersonColor() {
+  const target = document.getElementById("personColorTarget").value;
+  const colour = document.getElementById("personColorPicker").value;
+
+  if (!target) return;
+
+  let memberId = "";
+
+  if (target.startsWith("SPOUSE:")) {
+    const spouseId = target.slice(7);
+    const spouse = spouses().find(x => x.id === spouseId);
+    if (!spouse) return alert("Spouse record not found.");
+    memberId = spouse.id;
+  } else {
+    const person = personalRecord(target);
+
+    if (!person) {
+      localStorage.setItem(CK + target, colour);
+      closeModals();
+      render();
+      return;
+    }
+
+    memberId = person.memberId;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/beneficiary/family-extension/${encodeURIComponent(memberId)}`,
+      {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ cardColour: colour })
+      }
+    );
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "Unable to save card colour.");
+    }
+
+    await loadFamilyExtensions();
+    closeModals();
+    render();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
 function closeModals(){document.querySelectorAll(".modalbg").forEach(x=>x.classList.remove("show"));editId=null;editSpouse=null;editParentId=ACTIVE_ID}
 document.querySelectorAll(".modalbg").forEach(x=>x.onclick=e=>{if(e.target===x)closeModals()});
 function pickPhoto(id,kind="person"){photoTarget=id;photoKind=kind;document.getElementById("photoInput").click()}
@@ -254,34 +590,48 @@ async function loadFamilyExtensions() {
     ? result.members
     : [];
 
+   const memberIds = new Map(
+    members.map(x => [
+      x.memberId || x.member_id,
+      x.systemId || x.system_id
+    ])
+  );
+
   SERVER_SPOUSES = members
-    .filter(x => String(x.memberType || x.member_type).toUpperCase() === 'SPOUSE')
+    .filter(x => String(x.memberType || x.member_type).toUpperCase() === "SPOUSE")
     .map(x => ({
       id: x.memberId || x.member_id,
       name: x.fullName || x.full_name,
       slot: x.familyPosition || x.family_position,
-      photo: x.photoUrl || x.photo_url || '',
-      photoDocumentId: x.photoDocumentId || x.photo_document_id || ''
+      cardColour: x.cardColour || x.card_colour || "#f7eef8",
+      photo: x.photoUrl || x.photo_url || "",
+      photoDocumentId: x.photoDocumentId || x.photo_document_id || ""
     }));
 
   SERVER_EXTENSIONS = members
-    .filter(x => String(x.memberType || x.member_type).toUpperCase() === 'DESCENDANT')
-    .map(x => ({
-      systemId: x.systemId || x.system_id,
-      fullName: x.fullName || x.full_name,
-      parentId: x.parentMemberSystemId || x.parent_system_id,
-      generation: Number(x.generation || 1),
-      branch: x.branch || '',
-      lineageId: x.lineageId || x.lineage_id || '',
-      lineageGeneration: Number(x.lineageGeneration || x.generation || 1),
-      spouseId: x.spouseMemberId || x.spouse_member_id || '',
-      wifeNo: x.familyPosition || x.family_position || null,
-      isPlaceholder: false,
-      isEditable: true,
-      memberId: x.memberId || x.member_id,
-      cardColour: x.cardColour || x.card_colour || '#e8f4ec',
-      photoDocumentId: x.photoDocumentId || x.photo_document_id || ''
-    }));
+    .filter(x => String(x.memberType || x.member_type).toUpperCase() === "DESCENDANT")
+    .map(x => {
+      const profile = x.profile || {};
+
+      return {
+        systemId: x.systemId || x.system_id,
+        memberId: x.memberId || x.member_id,
+        fullName: x.fullName || x.full_name,
+        parentId: x.parentMemberId
+          ? memberIds.get(x.parentMemberId)
+          : (x.parentSystemId || x.parent_system_id || ""),
+        generation: Number(x.generation || 1),
+        branch: profile.branch || "",
+        lineageId: x.lineageId || x.lineage_id || "",
+        lineageGeneration: Number(profile.lineageGeneration || x.generation || 1),
+        spouseId: x.spouseMemberId || x.spouse_member_id || "",
+        wifeNo: x.familyPosition || x.family_position || null,
+        isPlaceholder: false,
+        isEditable: true,
+        cardColour: x.cardColour || x.card_colour || "#e8f4ec",
+        photoDocumentId: x.photoDocumentId || x.photo_document_id || ""
+      };
+    });
 
   return true;
 }
