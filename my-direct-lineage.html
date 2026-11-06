@@ -747,19 +747,16 @@ async function loadFamilyExtensions() {
     ? result.members
     : [];
 
-   const memberIds = new Map(
-    members.map(x => [
-      x.memberId || x.member_id,
-      x.systemId || x.system_id
-    ])
-  );
-
   const memberIds = new Map(
     members.map(x => [
       x.memberId || x.member_id,
       x.systemId || x.system_id
     ])
   );
+
+    // ------------------------------------------------------------
+  // LOAD SERVER-MANAGED SPOUSE RECORDS
+  // ------------------------------------------------------------
 
   SERVER_SPOUSES = members
     .filter(x =>
