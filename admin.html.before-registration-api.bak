@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADMIN - Guvaza Family Trust - Deployed Authority Control</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--exp:#10b981;--ben:#3b82f6;--fun:#f59e0b;--sch:#8b5cf6;--text:#e2e8f0;--muted:#94a3b8}
+*{box-sizing:border-box} body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui;margin:0;min-height:100vh}
+.mi{font-family:'Material Icons Round';font-size:20px;vertical-align:middle;margin-right:6px}
+.sidebar{width:300px;background:#020617;border-right:1px solid var(--border);padding:16px;position:fixed;top:0;left:0;bottom:0;overflow-y:auto}
+.sidebar h2{font-size:12px;color:var(--muted);letter-spacing:1px;display:flex;align-items:center;margin-bottom:16px}
+.menu{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;border-left:4px solid transparent}
+.menu:hover{transform:translateX(3px);border-color:var(--ben)}.menu.active{border-left:4px solid var(--exp)!important;background:#132d52!important}
+.main{margin-left:300px;padding:20px;min-height:100vh}
+.bottom-fix-wrap{margin-left:300px;padding:0 20px 20px 20px}
+.bottom-fix-wrap b{color:#0b1e42!important}
+.bottom-fix-wrap #adminList,.bottom-fix-wrap #adminList b,.bottom-fix-wrap.small{color:#0b1e42!important}
+.bottom-fix-wrap div{color:#0b1e42}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;border-left:5px solid #fff;margin-bottom:16px}
+.card.home{border-left-color:#06b6d4}.card.about{border-left-color:#ec4899}.card.fin{border-left-color:#10b981}.card.mem{border-left-color:var(--ben)}.card.fun{border-left-color:var(--fun)}.card.sch{border-left-color:var(--sch)}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center}
+.badge.ok{background:#10b98122;color:#10b981;border:1px solid #10b98144}.badge.wait{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44}.badge.blue{background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644}
+button{background:#fff;color:#000;border:0;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;margin:4px;display:inline-flex;align-items:center}
+button.primary{background:var(--exp);color:#fff} button.blue{background:var(--ben);color:#fff} button.orange{background:var(--fun);color:#fff} button.purple{background:var(--sch);color:#fff} button.danger{background:#ef4444;color:#fff}
+input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#fff;padding:10px;border-radius:8px;width:100%;margin:4px 0}
+.log{background:#020617;padding:12px;border-radius:10px;font-family:monospace;font-size:11px;max-height:250px;overflow:auto;border:1px solid var(--border)}
+.ben-item{background:#0f172a;border:1px solid var(--border);padding:12px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;margin:8px 0;gap:8px;flex-wrap:wrap}
+.section{display:none}.section.active{display:block}
+#loginScreen{position:fixed;inset:0;background:#020617;display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:420px;width:100%}
+.admin-task-rail{margin:10px 0 8px;padding:10px;border:1px solid #8b5cf655;border-radius:12px;background:#8b5cf50d}
+.admin-task-rail-title{font-size:10px;font-weight:800;color:#c4b5fd;text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.admin-task-rail-item{display:block;padding:8px 7px;margin:4px 0;border-radius:8px;background:#0f172a;border:1px solid #334155;font-size:10px;color:#e2e8f0;cursor:pointer;line-height:1.35}
+.admin-task-rail-item:hover{border-color:#8b5cf6;background:#172033}
+.admin-task-rail-item small{display:block;color:#94a3b8;margin-top:2px}
+.admin-task-rail-empty{font-size:10px;color:#94a3b8;line-height:1.4}
+@media(max-width:900px){.sidebar{position:relative;width:100%;height:auto}.main{margin-left:0}.bottom-fix-wrap{margin-left:0!important}}
+
+/* ===== GFT ADMIN CONTROL LAYER v1 ===== */
+.control-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.control-card{background:#0f172a;border:1px solid var(--border);border-radius:14px;padding:14px}
+.control-card h3{margin:0 0 7px;font-size:14px}.control-card p{font-size:11px;color:var(--muted);line-height:1.55}
+.control-list{margin:8px 0 0;padding-left:18px;font-size:11px;line-height:1.8}
+.permission-chip{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;background:#1e293b;border:1px solid var(--border);font-size:10px;margin:3px}
+.permission-chip.on{border-color:#10b98166;background:#10b98115;color:#86efac}.permission-chip.off{border-color:#ef444466;background:#ef444415;color:#fca5a5}
+.manual-callout{background:linear-gradient(135deg,#111827,#172554);border:1px solid #3b82f655;border-radius:14px;padding:16px;margin-bottom:16px}
+.status-pill{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:800;background:#10b98122;color:#6ee7b7}
+.status-pill.warn{background:#f59e0b22;color:#fbbf24}.status-pill.danger{background:#ef444422;color:#fca5a5}
+@media(max-width:700px){.control-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="loginScreen">
+<div class="login-box" id="loginBox">
+<h2 style="display:flex;align-items:center"><span class="mi">admin_panel_settings</span> ADMIN LOGIN - Guvaza Trust</h2>
+<p style="font-size:11px;color:var(--muted)">Login with Email + Password YOU set yourself</p>
+
+<input id="loginEmail" autocomplete="off" placeholder="Email e.g. john@guvaza.com">
+<input id="loginPassword" type="password" autocomplete="new-password" placeholder="Password you created">
+
+<button class="primary" onclick="doAdminLogin()" style="width:100%;justify-content:center;margin-top:10px"><span class="mi">login</span> Login to Admin Panel</button>
+<div id="loginMsg" style="font-size:11px;color:#ef4444;margin-top:10px"></div>
+<div class="log" style="margin-top:12px;font-size:10px">
+<b>New invite?</b> Founder invites with your email, you get WhatsApp + Email link to set your OWN password. Click that link.<br>
+<b>Demo:</b> If no admin yet, go to founder.html > Admin Invite to create one.<br>
+Founder login is ONLY in founder.html, not here.<br>
+Roles: Trustees, Family Council, Lawyer, Witness, Exec Assistant, Accountant, Secretary, Employee, Super Admin, Finance, etc.
+</div>
+<button onclick="window.location.href='index.html'" style="margin-top:10px;width:100%;justify-content:center">Back to Home</button>
+</div>
+<div class="login-box" id="setPasswordBox" style="display:none;border:2px solid #f59e0b">
+<h2 style="display:flex;align-items:center;color:#f59e0b"><span class="mi">lock_open</span> SET YOUR OWN PASSWORD</h2>
+<p style="font-size:11px;color:var(--muted)">Founder invited you. You create your OWN password now. Founder will NEVER know it.</p>
+<div class="log" style="margin:10px 0;font-size:11px;background:#f59e0b11;border-color:#f59e0b44">
+Invited as: <b id="setRoleDisplay"></b><br>
+Name: <b id="setNameDisplay"></b><br>
+Email: <b id="setEmailDisplay"></b><br>
+Phone: <b id="setPhoneDisplay"></b>
+</div>
+<input id="setPw1" type="password" placeholder="Create your password min 6 chars">
+<input id="setPw2" type="password" placeholder="Confirm your password">
+<button class="primary" onclick="doSetOwnPassword()" style="width:100%;justify-content:center;margin-top:10px;background:#f59e0b;color:#000"><span class="mi">verified_user</span> Create My Password & Activate Account</button>
+<div id="setPwMsg" style="font-size:11px;color:#ef4444;margin-top:10px"></div>
+</div>
+</div>
+
+<div id="adminApp" style="display:none">
+<div class="sidebar">
+<h2><span class="mi">dashboard</span> ADMIN PANEL - <span id="roleBadge" class="badge blue">Role</span></h2>
+<p style="font-size:11px;color:var(--muted)">Logged in: <b id="adminNameDisplay"></b><br><small id="adminEmailDisplay"></small><br><small id="adminRoleDisplay"></small></p>
+<div id="adminMenu"></div>
+<div id="adminTaskRail" class="admin-task-rail" style="display:none"></div>
+<div style="margin-top:16px">
+<button class="danger" onclick="doLogout()" style="width:100%;justify-content:center"><span class="mi">logout</span> Logout</button>
+<button onclick="window.location.href='index.html'" style="width:100%;justify-content:center;margin-top:6px"><span class="mi">home</span> Home</button>
+</div>
+</div>
+<div class="main">
+<header style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+<h1><span class="mi">manage_accounts</span> Welcome <span id="welcomeName">Admin</span> - <span id="welcomeRole" class="badge ok">Role</span></h1>
+<div><span class="badge blue" id="configBadge">Config Loaded</span> <span class="badge ok" id="adminCountInfo"></span></div>
+</header>
+
+<div id="sec-roleManual" class="section">
+<div class="manual-callout"><h2><span class="mi">menu_book</span> My Role & Control Manual</h2><p>This page is your working manual. It explains why your role exists, what you are responsible for, what your deployed authority allows, what you must not do, and where to go when a task requires Founder or another authorised officer.</p></div>
+<div id="roleManualContent"></div>
+</div>
+
+<div id="sec-authority" class="section">
+<div class="card" style="border-left-color:#3b82f6"><h2><span class="mi">admin_panel_settings</span> My Deployed Authority</h2><p style="font-size:11px;color:var(--muted)">This is the authority currently deployed to this Admin account. Founder is the authority that will manage these settings.</p><div id="authorityContent"></div></div>
+</div>
+
+<div id="sec-tasks" class="section">
+<div class="card" style="border-left-color:#8b5cf6"><h2><span class="mi">task_alt</span> My Assigned Tasks</h2><p style="font-size:11px;color:var(--muted)">Tasks describe your responsibilities. A task does not automatically grant permissions beyond your deployed authority.</p><div id="tasksContent"></div></div>
+</div>
+
+<div id="sec-dashboard" class="section active">
+<div class="manual-callout" style="border-color:#10b98155"><b>Start here:</b> Open <b>My Role & Control Manual</b> whenever you need to confirm your role, responsibilities, permissions, tasks or escalation path.</div>
+<div class="card fin"><h2>Your Permissions</h2><div id="permList" style="font-size:12px"></div></div>
+<div class="card mem"><h2><span class="mi">group</span> Pending Approvals - Failed Auto Register</h2><p style="font-size:11px;color:var(--muted)">Registrations that failed auto-approve need manual approve here</p><div id="dashPendingRegs"></div><button class="blue" onclick="showSec('pending')">Go to Pending</button></div>
+<div class="card fun"><h2><span class="mi">church</span> Funeral Claims Pending</h2><div id="dashFun"></div></div>
+<div class="card sch"><h2><span class="mi">school</span> School Invoices Pending</h2><div id="dashSch"></div></div>
+</div>
+
+<div id="sec-homeEdit" class="section">
+<div class="card home"><h2><span class="mi">home</span> Edit Home Site View - Banner, Hero, Cards</h2>
+<label style="font-size:11px">Hero Title</label><input id="editHeroTitle">
+<label style="font-size:11px">Hero Subtitle</label><input id="editHeroSubtitle">
+<label style="font-size:11px">Hero Image Path / URL</label><input id="editHeroImage">
+<label style="font-size:11px">Upload Hero Image</label><input id="editHeroImageFile" type="file" accept="image/*">
+<label style="font-size:11px">Announcement Bar</label><input id="editAnnouncement">
+<label style="font-size:11px">CTA Text</label><input id="editCtaText">
+<label style="font-size:11px">CTA Link</label><input id="editCtaLink">
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+<label style="font-size:11px"><input type="checkbox" id="editShowWallets" style="width:auto"> Show Wallets</label>
+<label style="font-size:11px"><input type="checkbox" id="editShowCompanies" style="width:auto"> Show Companies</label>
+<label style="font-size:11px"><input type="checkbox" id="editShowBen" style="width:auto"> Show Beneficiary Count</label>
+</div>
+<button class="primary" onclick="saveHomeEdits()" style="margin-top:10px"><span class="mi">save</span> Save Home View</button>
+<div id="homeEditPreview" style="margin-top:10px"><img id="homePrevImg" src="" style="max-width:100%;border-radius:10px;display:none"></div>
+<h3 style="margin-top:16px">Homepage Cards - Light Colors</h3>
+<div id="homeCardsEditorAdmin"></div>
+<button class="primary" onclick="saveHomeCardsAdmin()" style="margin-top:8px;background:#4ade80;color:#0f172a">Save Cards</button>
+</div>
+</div>
+
+<div id="sec-aboutEdit" class="section">
+<!-- NEW TIMELINE MANAGER - WITH BOTH SIDES EDGING + EDITABLE GALLERY TITLE -->
+<div class="card" style="border-left:4px solid #7a1a24;border-right:4px solid #7a1a24;background:linear-gradient(135deg,#1e293b 0%,#3a0a12 100%)">
+<h2><span class="mi">auto_awesome</span> NEW - About + Gallery Timeline - About Gallery About Gallery - ADDED</h2>
+<p style="font-size:11px;color:#f1c2c8">About → Gallery → About → Gallery. Maroon edging on BOTH sides with color picker. Gallery title now editable (default Family Members Gallery).</p>
+
+<div style="background:#020617;padding:12px;border-radius:10px;border:1px solid #7a1a2444;margin:10px 0">
+<label style="font-size:11px;font-weight:700;color:#f1c2c8">New Section Title (e.g. Our Root - Guvaza, Rutambo Legacy)</label><input id="newSecTitle" placeholder="e.g. Our Root - Guvaza Ancestor">
+<label style="font-size:11px;font-weight:700;color:#f1c2c8">Gallery Heading - Editable (you can change per block)</label><input id="newSecGalleryTitle" placeholder="Family Members Gallery" value="Family Members Gallery">
+<div style="display:flex;gap:8px;align-items:center;margin:6px 0;background:#1e293b;padding:8px;border-radius:8px">
+<label style="font-size:11px;font-weight:700;color:#f1c2c8;white-space:nowrap">Edging Color BOTH Sides:</label>
+<input id="newSecColor" type="color" value="#7a1a24" style="width:60px;height:40px;padding:2px">
+<small style="font-size:10px;color:var(--muted)">Pick maroon #7a1a24, blue #3b82f6, green #10b981 etc - will appear LEFT + RIGHT of About block</small>
+</div>
+<label style="font-size:11px;font-weight:700;color:#f1c2c8">New Section Story - Supports subtitles like Our Vision, What We Do</label><textarea id="newSecStory" style="height:120px" placeholder="Our Root
+Our family begins with Guvaza, our founder and root...
+
+Our Vision
+To create self-sustaining family economy..."></textarea>
+<button class="primary" onclick="adminAddAboutSection()" style="background:#7a1a24;width:100%;justify-content:center;margin-top:8px"><span class="mi">add_circle</span> Add This About Block to Timeline</button>
+</div>
+
+<div id="adminSectionsList" style="margin-top:16px"></div>
+<button class="blue" onclick="migrateOldToSections()" style="margin-top:8px"><span class="mi">upgrade</span> Convert Old Single About+Gallery to New Timeline</button>
+<div class="log" style="margin-top:8px;font-size:10px">Key: customConfig.about.sections → each {title, story, galleryTitle, edgeColor, gallery:[{name,caption,image}]} → about.html shows both-side edging + hover images</div>
+</div>
+
+<div class="card about" style="border-left:4px solid #ec4899;border-right:4px solid #ec4899"><h2><span class="mi">info</span> Edit About - Old Single Mode (Backward Compat)</h2>
+<label style="font-size:11px">About Title</label><input id="editAboutTitle" placeholder="About Our Family">
+<label style="font-size:11px">About Story - Root: Guvaza, Rutambo is son of Guvaza etc</label><textarea id="editAboutStory" style="height:100px" placeholder="Write family history..."></textarea>
+<button class="primary" onclick="saveAboutEdits()"><span class="mi">save</span> Save About Story</button>
+<div style="margin-top:16px;border-top:1px dashed #ec4899;padding-top:12px">
+<h3><span class="mi">groups</span> Family Members Gallery - Unlimited <span class="badge ok" id="adminFamilyCount">0</span></h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#020617;padding:10px;border-radius:10px">
+<input id="adminFamilyName" placeholder="Name e.g. Guvaza, Rutambo">
+<input id="adminFamilyCaption" placeholder="Caption e.g. Founder - Root">
+<input id="adminFamilyImage" placeholder="Image path e.g. assets/family4.jpg" style="grid-column:span 2">
+<input id="adminFamilyFile" type="file" accept="image/*" style="grid-column:span 2">
+</div>
+<button class="primary" onclick="adminAddFamily()" style="background:#ec4899;width:100%;justify-content:center;margin-top:8px"><span class="mi">person_add</span> Add Family Member</button>
+<div id="adminFamilyList" style="margin-top:12px"></div>
+</div>
+</div>
+</div>
+
+<div id="sec-familyRoot" class="section">
+<div class="card" style="border-left:4px solid #ec4899;border-right:4px solid #ec4899">
+<h2><span class="mi">family_restroom</span> NEW - Edit Guvaza Root + Rutambo - Best Intro - ADDED</h2>
+<p style="font-size:11px;color:var(--muted)">Edits About page root story with Guvaza as founder root - both sides edging now</p>
+<label style="font-size:11px;font-weight:700">About Title - Professional Intro</label><input id="editAboutTitleRoot" value="About The Guvaza Family Trust - Our Root">
+<label style="font-size:11px;font-weight:700">About Story - Guvaza Root + Rutambo Son Story - Best Professional</label><textarea id="editAboutStoryRoot" style="height:280px">Our Root
+Our family begins with Guvaza, our founder and root. His son Rutambo carries the legacy forward. From these roots, generations of the Guvaza family have grown, built on unity, respect, and shared purpose.
+
+Who We Are
+The Guvaza Family Trust was established to preserve our heritage, protect our unity, and build wealth together for the rising generations. We are more than a family — we are one vision, one future, one legacy.
+
+Our Vision
+To create a self-sustaining family economy where every member is empowered through education, business, and shared values.
+
+Our Promise
+Under the leadership of our Founder and Guvaza Council, this Trust ensures that what our ancestors started, we will protect, we will grow, and we will pass on stronger.
+
+Founded on Guvaza. Carried by Rutambo. Built for the rising generations.</textarea>
+<div style="display:flex;gap:8px;margin-top:10px">
+<button class="primary" onclick="saveAboutRootEdits()" style="background:#ec4899"><span class="mi">save</span> Save Guvaza Root Story</button>
+<button class="blue" onclick="previewRoot()"><span class="mi">visibility</span> Preview</button>
+</div>
+<div id="aboutRootPreview" style="margin-top:12px;background:#020617;padding:12px;border-radius:10px;font-size:12px;white-space:pre-wrap;border:1px solid #ec489944"></div>
+</div>
+</div>
+
+<div id="sec-secondEmail" class="section">
+<div class="card" style="border-left:4px solid #38bdf8;border-right:4px solid #38bdf8">
+<h2><span class="mi">alternate_email</span> NEW - Second Email Backup - Fills Empty Space - ADDED</h2>
+<p style="font-size:11px;color:var(--muted)">Second email backup fills empty space you circled</p>
+<label>Primary Founder Email</label><input id="adminFounderEmail" placeholder="Primary email">
+<label style="font-size:11px;font-weight:700;color:#38bdf8">Second Email / Backup - FILLS EMPTY SPACE</label><input id="adminFounderEmail2" placeholder="Second backup email e.g. backup@guvaza.com">
+<label>WhatsApp Number</label><input id="adminWhatsappEmailSec" placeholder="WhatsApp">
+<button class="primary" onclick="saveSecondEmailAdmin()" style="background:#38bdf8;color:#000"><span class="mi">save</span> Save Both Emails</button>
+<button class="blue" onclick="testSecondEmailAdmin()">Test Both Emails</button>
+<div id="secondEmailLog" class="log" style="margin-top:10px"></div>
+</div>
+</div>
+
+<div id="sec-pending" class="section">
+<div class="card mem"><h2><span class="mi">how_to_reg</span> Approve Registrations That Failed Auto Register</h2>
+<div style="display:flex;gap:8px;margin-bottom:8px"><span class="badge wait" id="pendingCountBadge">0 Pending</span><button class="blue" onclick="renderPending()"><span class="mi">refresh</span> Refresh</button></div>
+<div id="pendingList"></div>
+</div>
+</div>
+
+<div id="sec-members" class="section">
+<div class="card mem"><h2><span class="mi">group</span> Members / Beneficiaries - View & Manage</h2>
+<div id="membersList"></div>
+<button class="blue" onclick="exportMembersCSV()"><span class="mi">download</span> Export CSV</button>
+</div>
+</div>
+
+<div id="sec-finances" class="section">
+<div class="card fin"><h2><span class="mi">account_balance_wallet</span> Managing Finances - 12 Wallets</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+<div class="log">Main: <b id="finMain">$0</b></div>
+<div class="log">Beneficiary Pool: <b id="finBen">$0</b></div>
+<div class="log">Funeral: <b id="finFun">$0 / $6000</b></div>
+<div class="log">School: <b id="finSch">$0 / $5000</b></div>
+<div class="log">Distribution: <b id="finExp">$0</b></div>
+</div>
+<h3 style="margin-top:12px">Company Profits</h3>
+<div id="finCompanyGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px"></div>
+</div>
+</div>
+<div id="sec-bookkeeping" class="section">
+<div class="card fin"><h2><span class="mi">receipt_long</span> Book Keeping - Income Allocation + Audit</h2>
+<input id="bookIncome" type="number" placeholder="Enter total monthly income">
+<button class="primary" onclick="doBookAllocate()"><span class="mi">calculate</span> Allocate 70/30 + 8% Funeral +5% School</button>
+<div class="log" id="bookLog" style="margin-top:10px">No allocations yet</div>
+<h3 style="margin-top:12px">Audit Trail</h3>
+<div class="log" id="auditLog" style="max-height:300px"></div>
+</div>
+</div>
+
+<div id="sec-funeral" class="section">
+<div class="card fun"><h2><span class="mi">church</span> Funeral Wallet - Claims</h2>
+<div id="adminFunListPending"></div>
+<div id="adminFunListPaid" style="margin-top:16px"></div>
+</div>
+</div>
+
+<div id="sec-school" class="section">
+<div class="card sch"><h2><span class="mi">school</span> School Fees - Invoices</h2>
+<div id="adminSchListPending"></div>
+<div id="adminSchListPaid" style="margin-top:16px"></div>
+</div>
+</div>
+
+<div id="sec-companies" class="section">
+<div class="card" style="border-left:4px solid #3b82f6;border-right:4px solid #3b82f6">
+<h2><span class="mi">business</span> Companies - Editable for Beneficiary Portal (FROM ADMIN)</h2>
+<p style="font-size:11px;color:var(--muted)">Upload REAL logo + name here. Saves to Beneficiary Portal automatically.</p>
+<div style="background:#020617;padding:12px;border-radius:10px;border:1px solid #334155;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0">
+<input id="adminCompName" placeholder="Company Name e.g. Guvaza Foods">
+<input id="adminCompInfo" placeholder="Short Info e.g. Foods, Holdings">
+<input id="adminCompColor" type="color" value="#7a1a24" style="height:42px;padding:4px">
+<input id="adminCompLogoFile" type="file" accept="image/*" style="font-size:11px;padding:8px">
+<input id="adminCompLogoUrl" placeholder="Or Logo URL e.g. assets/logo-foods.png" style="grid-column:span 2">
+<textarea id="adminCompDesc" placeholder="Description for Beneficiary view" rows="2" style="grid-column:span 2"></textarea>
+</div>
+<button class="primary" onclick="adminAddCompanyFull()" style="width:100%;justify-content:center;background:#3b82f6"><span class="mi">add_business</span> Add / Save Company</button>
+<div id="adminCompaniesList" style="margin-top:14px"></div>
+<div class="log" style="margin-top:10px;font-size:10px">Portal key: <b>guvaza_admin_companies</b></div>
+</div>
+</div>
+
+<div id="sec-approval" class="section">
+<div class="card"><h2><span class="mi">verified_user</span> 5-Man Approval - Trustees + Family Council + Witness</h2>
+<div class="log" id="adminApprovalLog">No logs</div>
+</div>
+</div>
+
+<div id="sec-lawyer" class="section">
+<div class="card" style="border-left-color:#f59e0b;border-right:4px solid #f59e0b"><h2><span class="mi">gavel</span> Lawyer - Legal Verification</h2>
+<p style="font-size:11px;color:var(--muted)">Lawyer verifies IDs, death certs, school invoices, audit reports. Witness confirms.</p>
+<div id="lawyerTasks"></div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+if(typeof TRUST_CONFIG==='undefined'){window.TRUST_CONFIG={name:"The Guvaza Family Trust",caps:{funeral:6000,school:5000,funeralPayout:600},companies:[],homepage:{cards:[]},about:{familyMembers:[]}};}
+const CFG=TRUST_CONFIG;
+
+let customConfig = JSON.parse(localStorage.getItem('guvaza_custom_config')||'null') || JSON.parse(JSON.stringify(CFG));
+let customConfigLoadedFromServer = false;
+
+async function loadCustomConfigFromServer(){
+  try{
+    const response = await fetch('/api/config/public', {
+      credentials: 'include'
+    });
+
+    const result = await response.json();
+
+    if(!response.ok || !result.ok || !result.config){
+      throw new Error(result.error || 'Unable to load public configuration');
+    }
+
+    customConfig = result.config;
+    customConfigLoadedFromServer = true;
+
+  }catch(error){
+    console.warn('Using local configuration fallback:', error);
+  }
+
+  if(!customConfig.about) customConfig.about={familyMembers:[], sections:[]};
+  if(!customConfig.about.familyMembers) customConfig.about.familyMembers=[];
+  if(!customConfig.about.sections) customConfig.about.sections=[];
+  if(!customConfig.homepage) customConfig.homepage={cards:[]};
+
+  customConfigBaseline = JSON.parse(JSON.stringify(customConfig));
+}
+let customConfigBaseline = null;
+
+if(!customConfig.about) customConfig.about={familyMembers:[], sections:[]};
+if(!customConfig.about.familyMembers) customConfig.about.familyMembers=[];
+if(!customConfig.about.sections) customConfig.about.sections=[];
+if(!customConfig.homepage) customConfig.homepage={cards:[]};
+customConfigBaseline = JSON.parse(JSON.stringify(customConfig));
+let admins=JSON.parse(localStorage.getItem('guvaza_admins')||'[]');
+let currentAdmin=null;
+let pendingInvite=null;
+
+const ROLE_DEFS = {
+ "Super Admin": {label:"Super Admin - All except Founder", color:"#f59e0b", perms:["dashboard","homeEdit","aboutEdit","familyRoot","secondEmail","pending","members","finances","bookkeeping","funeral","school","companies","approval","lawyer"]},
+ "Trustees": {label:"Trustees - Board Members", color:"#10b981", perms:["dashboard","finances","approval","members","funeral","school","bookkeeping","companies","familyRoot"]},
+ "Family Council": {label:"Family Council - Elders", color:"#8b5cf6", perms:["dashboard","aboutEdit","familyRoot","members","approval","pending","homeEdit"]},
+ "Lawyer": {label:"Lawyer - Legal", color:"#f59e0b", perms:["lawyer","members","approval","bookkeeping","pending"]},
+ "Witness": {label:"Witness - Independent Observer", color:"#94a3b8", perms:["dashboard","approval","bookkeeping","members"]},
+ "Founder's Executive Assistant": {label:"Founder's Executive Assistant", color:"#06b6d4", perms:["dashboard","homeEdit","aboutEdit","familyRoot","secondEmail","pending","members","companies","funeral","school","bookkeeping"]},
+ "Accountant": {label:"Accountant - Finance", color:"#10b981", perms:["dashboard","finances","bookkeeping","funeral","school","companies"]},
+ "Secretary": {label:"Secretary", color:"#38bdf8", perms:["dashboard","pending","members","companies","bookkeeping","homeEdit","familyRoot"]},
+ "Employee": {label:"Employee - Staff", color:"#64748b", perms:["dashboard","members","companies"]},
+ "Finance Admin": {label:"Finance Admin", color:"#10b981", perms:["dashboard","finances","bookkeeping","funeral","school"]},
+ "Companies Admin": {label:"Companies Admin", color:"#3b82f6", perms:["dashboard","companies","finances"]},
+ "Support": {label:"Support", color:"#ec4899", perms:["dashboard","pending","members"]}
+};
+
+// ===== GFT ADMIN CONTROL / DEPLOYMENT LAYER =====
+// Backward compatible: existing role permissions remain the fallback template.
+// Founder will later write deployment.modules, deployment.permissions, tasks and overrides.
+const ADMIN_ACTIONS=['view','create','edit','delete','approve','export','manage','configure','review','verify','recommend'];
+const ROLE_MANUALS={
+  'Super Admin':{purpose:'Coordinate the full Admin operating environment except Founder-only authority.',duties:['Oversee assigned Admin modules','Coordinate operational administration','Escalate Founder-only matters','Protect records and audit integrity'],mustNot:['Change Founder authority','Grant yourself permissions','Alter immutable family identity without authorised workflow'],escalate:'Founder / authorised Founder delegate'},
+  'Trustees':{purpose:'Support Trust governance and oversight through the modules deployed to the Trustee role.',duties:['Review governance matters','Review assigned financial and beneficiary information','Participate in authorised approvals','Protect Trust decisions and records'],mustNot:['Act outside delegated authority','Bypass required approval stages'],escalate:'Founder / authorised governance workflow'},
+  'Family Council':{purpose:'Support family governance, membership and family-facing decisions within deployed authority.',duties:['Review assigned family matters','Support beneficiary and family records','Participate in authorised approvals'],mustNot:['Rewrite canonical lineage without the approved correction process'],escalate:'Founder / Family governance workflow'},
+  'Lawyer':{purpose:'Perform legal review and verification tasks assigned by the Trust.',duties:['Review legal matters','Verify assigned records','Provide documented legal observations'],mustNot:['Approve financial execution unless separately deployed'],escalate:'Founder / authorised legal workflow'},
+  'Witness':{purpose:'Provide independent observation and participation where the Trust requires a witness.',duties:['Observe assigned approvals','Review assigned records','Maintain independence'],mustNot:['Self-approve or bypass separation of duties'],escalate:'Founder / approval workflow'},
+  "Founder's Executive Assistant":{purpose:'Support Founder operations across the modules specifically deployed to the role.',duties:['Coordinate assigned Founder support work','Maintain assigned records','Prepare information for Founder decisions'],mustNot:['Exercise Founder-only authority unless explicitly deployed'],escalate:'Founder'},
+  'Accountant':{purpose:'Maintain and review financial records within the authority deployed to the account.',duties:['Maintain assigned financial records','Perform bookkeeping and reconciliation','Prepare authorised reports','Escalate discrepancies'],mustNot:['Approve a transaction where separation of duties prevents it'],escalate:'Founder / Finance approval workflow'},
+  'Secretary':{purpose:'Maintain administrative, membership and communication records assigned to the role.',duties:['Process assigned registrations','Maintain authorised records','Prepare administrative reports'],mustNot:['Change protected family identity without the approved workflow'],escalate:'Founder / authorised Admin'},
+  'Employee':{purpose:'Perform operational staff duties within assigned modules and tasks.',duties:['Complete assigned tasks','Maintain accurate records','Escalate issues promptly'],mustNot:['Expand own access'],escalate:'Assigned supervisor / Founder'},
+  'Finance Admin':{purpose:'Operate assigned Trust finance services under the deployed financial controls.',duties:['Maintain assigned financial operations','Prepare financial information','Follow approval and audit requirements'],mustNot:['Bypass financial controls'],escalate:'Founder / Finance approval workflow'},
+  'Companies Admin':{purpose:'Maintain Trust company information and related portal-facing records.',duties:['Maintain company records','Update authorised company information','Keep portal-facing information accurate'],mustNot:['Alter financial authority without deployment'],escalate:'Founder / Finance or Companies workflow'},
+  'Support':{purpose:'Assist beneficiaries and administrative operations using limited deployed access.',duties:['Handle assigned support requests','Review permitted beneficiary information','Escalate unresolved cases'],mustNot:['Approve restricted actions'],escalate:'Founder / assigned supervisor'}
+};
+function safeParseJSON(v,fallback){try{return JSON.parse(v);}catch(e){return fallback;}}
+
+function getCurrentAdminFresh(){
+  return currentAdmin || null;
+}
+
+function getEffectiveAccess(){
+  const a=currentAdmin||{};
+  const roleDef=ROLE_DEFS[a.role]||{perms:['dashboard'],label:a.role||'Admin',color:'#3b82f6'};
+  const dep=a.deployment||{};
+  let moduleIds=[];
+  if(Array.isArray(dep.modules)) moduleIds=dep.modules.slice();
+  else if(dep.modules && typeof dep.modules==='object') moduleIds=Object.keys(dep.modules).filter(k=>dep.modules[k]!==false);
+  else if(Array.isArray(a.modules)) moduleIds=a.modules.slice();
+  else if(Array.isArray(a.permissions)) moduleIds=a.permissions.filter(p=>typeof p==='string' && !p.includes(':'));
+  else moduleIds=roleDef.perms.slice();
+  moduleIds.push('dashboard','roleManual','authority','tasks');
+  const modules=new Set(moduleIds);
+  let permissionList=[];
+  if(Array.isArray(dep.permissions)) permissionList=dep.permissions.slice();
+  else if(a.permissions) permissionList=Array.isArray(a.permissions)?a.permissions.slice():Object.keys(a.permissions).filter(k=>a.permissions[k]);
+  if(permissionList.length===0) permissionList=roleDef.perms.map(m=>m+':view');
+  return {modules,permissions:new Set(permissionList),roleDef,roleManual:ROLE_MANUALS[a.role]||null,tasks:Array.isArray(dep.tasks)?dep.tasks:(Array.isArray(a.tasks)?a.tasks:[]),overrides:Array.isArray(dep.overrides)?dep.overrides:[],deployment:dep};
+}
+function refreshAuthorityGuards(){
+  const a=getCurrentAdminFresh();
+  if(a) currentAdmin=a;
+  const access=getEffectiveAccess();
+  const rail=document.getElementById('adminTaskRail');
+  if(!rail) return;
+  const tasks=Array.isArray(access.tasks)?access.tasks:[];
+  if(!tasks.length){
+    rail.style.display='block';
+    rail.innerHTML='<div class="admin-task-rail-title"><span class="mi" style="font-size:16px;margin:0">task_alt</span> My Deployed Tasks</div><div class="admin-task-rail-empty">No deployed tasks are currently assigned to this Admin.</div>';
+    return;
+  }
+  rail.style.display='block';
+  rail.innerHTML='<div class="admin-task-rail-title"><span class="mi" style="font-size:16px;margin:0">task_alt</span> My Deployed Tasks <span class="badge purple" style="margin-left:auto;padding:2px 6px">'+tasks.length+'</span></div>'+tasks.map((t,i)=>{
+    const title=t.title||t.name||'Assigned task '+(i+1);
+    const status=String(t.status||'ASSIGNED').toUpperCase();
+    const due=t.dueDate||t.deadline||'No due date';
+    return '<div class="admin-task-rail-item" onclick="showSec(\'tasks\')" title="Open My Assigned Tasks"><b>'+title+'</b><small>'+status+' • '+due+'</small></div>';
+  }).join('');
+}
+
+function renderPermissionSummary(){
+  const el=document.getElementById('permList'); if(!el) return;
+  const x=getEffectiveAccess();
+  el.innerHTML=`<b>Role template:</b> ${x.roleDef.label||currentAdmin.role}<br><b>Deployed modules:</b> ${Array.from(x.modules).filter(x=>!['roleManual','authority','tasks'].includes(x)).join(', ')||'None'}<br><b>Action permissions:</b> ${Array.from(x.permissions).join(', ')||'None'}<br><b>Tasks:</b> ${x.tasks.length}<br><b>Deployment:</b> ${x.deployment.version||'Legacy role deployment'} `;
+}
+function renderRoleManual(){
+  const el=document.getElementById('roleManualContent'); if(!el) return;
+  const x=getEffectiveAccess(), m=x.roleManual||{purpose:'No role manual has been configured yet.',duties:[],mustNot:['Do not exceed your deployed authority.'],escalate:'Founder'};
+  el.innerHTML=`<div class="control-grid"><div class="control-card"><h3>Why this role exists</h3><p>${m.purpose}</p></div><div class="control-card"><h3>Escalation path</h3><p>${m.escalate}</p></div></div><div class="control-grid"><div class="control-card"><h3>Your working duties</h3><ul class="control-list">${(m.duties||[]).map(x=>`<li>${x}</li>`).join('')}</ul></div><div class="control-card"><h3>Important boundaries</h3><ul class="control-list">${(m.mustNot||[]).map(x=>`<li>${x}</li>`).join('')}</ul></div></div><div class="card" style="margin-top:12px;border-left-color:#10b981"><h3>How authority works</h3><p style="font-size:11px;line-height:1.7">Your role is a template. Your actual authority is the deployment attached to your Admin account. Founder can later adjust modules, individual permissions, tasks, temporary overrides, expiry dates, approval levels and other policies without changing the underlying Admin engine.</p><p style="font-size:11px;line-height:1.7"><b>Rule:</b> A task does not grant authority by itself. If a task requires access you do not have, use the escalation path instead of attempting to bypass the control.</p></div>`;
+}
+function renderAuthority(){
+  const el=document.getElementById('authorityContent'); if(!el) return;
+  const x=getEffectiveAccess(), a=x.deployment;
+  const modules=Array.from(x.modules).filter(m=>!['roleManual','authority','tasks'].includes(m));
+  const chips=modules.map(m=>`<span class="permission-chip on">${m}</span>`).join('')||'<span class="permission-chip off">No deployed business modules</span>';
+  const perms=Array.from(x.permissions).map(p=>`<span class="permission-chip on">${p}</span>`).join('')||'<span class="permission-chip off">No granular permissions</span>';
+  const overrides=x.overrides.length?x.overrides.map(o=>`<div class="ben-item"><div><b>${o.permission||o.module||'Override'}</b><br><small>${o.reason||'No reason recorded'} ${o.expiresAt?'• Expires '+o.expiresAt:''}</small></div><span class="status-pill ${o.active===false?'danger':''}">${o.active===false?'INACTIVE':'ACTIVE'}</span></div>`).join(''):'<p style="font-size:11px;color:var(--muted)">No temporary overrides are currently recorded.</p>';
+  el.innerHTML=`<div class="control-grid"><div class="control-card"><h3>Deployment status</h3><p><span class="status-pill ${a.status==='SUSPENDED'?'danger':a.status==='PENDING'?'warn':''}">${a.status||'ACTIVE'}</span></p><p>Version: <b>${a.version||'Legacy'}</b><br>Deployed by: <b>${a.deployedBy||'Founder role template / legacy system'}</b><br>Deployed: <b>${a.deployedAt||'Not recorded'}</b></p></div><div class="control-card"><h3>Role</h3><p><b>${currentAdmin.role||'Admin'}</b><br>${x.roleDef.label||''}</p></div></div><div class="control-card"><h3>Modules</h3><div>${chips}</div></div><div class="control-card"><h3>Action permissions</h3><div>${perms}</div></div><div class="control-card"><h3>Temporary overrides</h3>${overrides}</div>`;
+}
+function renderTasks(){
+  const el=document.getElementById('tasksContent'); if(!el) return;
+  const tasks=getEffectiveAccess().tasks;
+  if(!tasks.length){el.innerHTML='<p style="font-size:11px;color:var(--muted)">No assigned tasks are currently recorded. Your role manual still explains your standing responsibilities.</p>';return;}
+  el.innerHTML=tasks.map((t,i)=>`<div class="ben-item"><div><b>${t.title||t.name||'Assigned task '+(i+1)}</b><br><small>${t.description||t.instructions||''}</small><br><small>Due: ${t.dueDate||t.deadline||'Not specified'} • Priority: ${t.priority||'Normal'}</small></div><span class="status-pill ${String(t.status||'ASSIGNED').toUpperCase()==='OVERDUE'?'danger':''}">${t.status||'ASSIGNED'}</span></div>`).join('');
+}
+function logAdminControlEvent(action,details){
+  const logs=safeParseJSON(localStorage.getItem('gft_admin_audit_events')||'[]',[]);
+  logs.push({id:'AUD-'+Date.now(),adminId:currentAdmin?.id||null,adminEmail:currentAdmin?.email||null,action,details,timestamp:new Date().toISOString()});
+  localStorage.setItem('gft_admin_audit_events',JSON.stringify(logs));
+}
+
+function hashPw(s){return btoa(s).split('').reverse().join('');}
+function getUrlParams(){let p=new URLSearchParams(window.location.search);return {invite:p.get('invite'), code:p.get('code')};}
+function checkInviteLink(){
+ let {invite, code}=getUrlParams();
+ if(!invite||!code) return false;
+ admins=JSON.parse(localStorage.getItem('guvaza_admins')||'[]');
+ let found=admins.find(a=>a.email.toLowerCase()===invite.toLowerCase() && a.inviteCode===code);
+ if(!found){document.getElementById('loginMsg').innerText='Invalid invite link. Ask founder to re-invite.';return false;}
+ if(found.active){document.getElementById('loginMsg').innerText='Account already active. Login with your password you set.';document.getElementById('loginEmail').value=found.email;return false;}
+ pendingInvite=found;
+ document.getElementById('loginBox').style.display='none';
+ document.getElementById('setPasswordBox').style.display='block';
+ document.getElementById('setRoleDisplay').innerText=found.role;
+ document.getElementById('setNameDisplay').innerText=found.name;
+ document.getElementById('setEmailDisplay').innerText=found.email;
+ document.getElementById('setPhoneDisplay').innerText=found.phone;
+ return true;
+}
+function doSetOwnPassword(){
+ let p1=document.getElementById('setPw1').value.trim();
+ let p2=document.getElementById('setPw2').value.trim();
+ let msg=document.getElementById('setPwMsg');
+ if(p1.length<6){msg.innerText='Password min 6 chars';return;}
+ if(p1!==p2){msg.innerText='Passwords do not match';return;}
+ if(!pendingInvite){msg.innerText='No invite found';return;}
+ admins=JSON.parse(localStorage.getItem('guvaza_admins')||'[]');
+ let idx=admins.findIndex(a=>a.email===pendingInvite.email && a.inviteCode===pendingInvite.inviteCode);
+ if(idx<0){msg.innerText='Invite expired';return;}
+ admins[idx].passwordPlain=p1;
+ admins[idx].passwordHash=hashPw(p1);
+ admins[idx].active=true;
+ localStorage.setItem('guvaza_admins',JSON.stringify(admins));
+ currentAdmin=admins[idx];
+ localStorage.setItem('guvaza_current_admin', JSON.stringify(currentAdmin));
+ alert('Password created! Account activated. Welcome '+currentAdmin.name);
+ window.history.replaceState({},document.title, window.location.pathname);
+ showAdminApp();
+}
+
+async function doAdminLogin(){
+  const email =
+    document.getElementById('loginEmail').value.trim().toLowerCase();
+
+  const pw =
+    document.getElementById('loginPassword').value;
+
+  const msg =
+    document.getElementById('loginMsg');
+
+  if(!email || !pw){
+    msg.innerText = 'Enter email + password';
+    return;
+  }
+
+  msg.innerText = 'Signing in...';
+
+  try{
+    const response = await fetch('/api/admin/login',{
+      method:'POST',
+      credentials:'include',
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        email,
+        password:pw
+      })
+    });
+
+    const result = await response.json();
+
+    if(!response.ok || !result.ok){
+      msg.innerText =
+        result.error ||
+        'Invalid email or password';
+      return;
+    }
+
+    currentAdmin = result.admin;
+
+    /*
+      Keep only the non-sensitive current Admin profile
+      temporarily for the existing dashboard UI.
+      Authentication itself is now handled by the server.
+    */
+    localStorage.setItem(
+      'guvaza_current_admin',
+      JSON.stringify(currentAdmin)
+    );
+
+    msg.innerText = '';
+
+    showAdminApp();
+
+  }catch(error){
+    console.error('Admin login error:',error);
+    msg.innerText =
+      'Unable to connect to the Admin server. Please try again.';
+  }
+}
+
+async function showAdminApp(){
+
+if(!currentAdmin) return;
+loadCustomConfigFromServer();
+ 
+ if(currentAdmin.active===false || ['PENDING','SUSPENDED','REVOKED','TEMPORARILY_LOCKED','EXPIRED'].includes(String(currentAdmin.status||'').toUpperCase())){ alert('This Admin account is not currently active. Contact Founder.'); return; }
+ localStorage.setItem('guvaza_current_admin',JSON.stringify(currentAdmin));
+ document.getElementById('loginScreen').style.display='none';
+ document.getElementById('adminApp').style.display='block';
+ document.getElementById('adminNameDisplay').innerText=currentAdmin.name||'Admin';
+ document.getElementById('adminEmailDisplay').innerText=currentAdmin.email||'';
+ document.getElementById('adminRoleDisplay').innerText=currentAdmin.role||'Admin';
+ document.getElementById('welcomeName').innerText=currentAdmin.name||'Admin';
+ document.getElementById('welcomeRole').innerText=currentAdmin.role||'Admin';
+ document.getElementById('roleBadge').innerText=currentAdmin.role||'Admin';
+ const def=ROLE_DEFS[currentAdmin.role]||{};
+ document.getElementById('roleBadge').style.background=(def.color||'#3b82f6')+'22';
+ document.getElementById('roleBadge').style.color=def.color||'#3b82f6';
+ refreshAuthorityGuards(); buildMenu(); renderDashboard(); renderHomeEdit(); renderAboutEdit(); renderPending(); renderMembers(); renderFinances(); renderBookkeeping(); renderRoleManual(); renderAuthority(); renderTasks();
+}
+function buildMenu(){
+  const menu=document.getElementById('adminMenu');
+  if(!menu) return;
+  menu.innerHTML='';
+  const access=getEffectiveAccess();
+  const items=[
+    {id:'dashboard',icon:'dashboard',title:'Dashboard',desc:'Overview'},
+    {id:'roleManual',icon:'menu_book',title:'My Role & Control Manual',desc:'How your role works'},
+    {id:'authority',icon:'admin_panel_settings',title:'My Deployed Authority',desc:'Modules & permissions'},
+    {id:'tasks',icon:'task_alt',title:'My Assigned Tasks',desc:'Responsibilities & deadlines'},
+    {id:'homeEdit',icon:'home',title:'Edit Home Site View',desc:'Banner, hero, cards'},
+    {id:'aboutEdit',icon:'info',title:'Edit About + Family',desc:'Timeline - Both sides edging'},
+    {id:'familyRoot',icon:'family_restroom',title:'Guvaza Root + Rutambo',desc:'Root story'},
+    {id:'secondEmail',icon:'alternate_email',title:'Second Email Backup',desc:'Founder communications'},
+    {id:'pending',icon:'how_to_reg',title:'Approve Registrations',desc:'Registration review'},
+    {id:'members',icon:'group',title:'Members / Beneficiaries',desc:'View & manage'},
+    {id:'finances',icon:'account_balance_wallet',title:'Managing Finances',desc:'12 wallets'},
+    {id:'bookkeeping',icon:'receipt_long',title:'Book Keeping',desc:'Allocation + audit'},
+    {id:'funeral',icon:'church',title:'Funeral Wallet',desc:'Claims'},
+    {id:'school',icon:'school',title:'School Fees',desc:'Invoices'},
+    {id:'companies',icon:'business',title:'Companies',desc:'Companies for Portal'},
+    {id:'approval',icon:'verified_user',title:'5-Man Approval',desc:'Approval workflow'},
+    {id:'lawyer',icon:'gavel',title:'Lawyer Tasks',desc:'Legal verification'},
+    {id:'library',icon:'menu_book',title:'Trust Library',desc:'Deployed module'},
+    {id:'communications',icon:'campaign',title:'Communications',desc:'Deployed module'},
+    {id:'audit',icon:'receipt_long',title:'Audit / Reports',desc:'Deployed module'}
+  ];
+  items.forEach(it=>{
+    if(!access.modules.has(it.id)) return;
+    if(!document.getElementById('sec-'+it.id)) return;
+    const active=it.id==='dashboard'?' active':'';
+    menu.innerHTML+=`<div class="menu${active}" onclick="showSec('${it.id}')" id="menu-${it.id}"><span class="mi">${it.icon}</span> ${it.title}<br><small style="font-size:9px;color:var(--muted)">${it.desc}</small></div>`;
+  });
+  renderPermissionSummary();
+  refreshAuthorityGuards();
+}
+function showSec(id){
+  const fresh=getCurrentAdminFresh(); if(fresh) currentAdmin=fresh;
+  const access=getEffectiveAccess();
+  const alwaysAllowed=new Set(['dashboard','roleManual','authority','tasks']);
+  if(!alwaysAllowed.has(id) && !access.modules.has(id)){
+    alert('This module is not part of your deployed Admin authority. Contact Founder or the authorised deployment administrator.');
+    return;
+  }
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  const sec=document.getElementById('sec-'+id);
+  if(sec) sec.classList.add('active');
+  const m=document.getElementById('menu-'+id);
+  if(m){document.querySelectorAll('.menu').forEach(x=>x.classList.remove('active'));m.classList.add('active');}
+  if(id==='pending') renderPending();
+  if(id==='members') renderMembers();
+  if(id==='finances') renderFinances();
+  if(id==='bookkeeping') renderBookkeeping();
+  if(id==='homeEdit') renderHomeEdit();
+  if(id==='aboutEdit'){renderAboutEdit();renderAboutSectionsAdmin();}
+  if(id==='familyRoot') renderAboutRoot();
+  if(id==='secondEmail') renderSecondEmailAdmin();
+  if(id==='funeral') renderFuneralAdmin();
+  if(id==='school') renderSchoolAdmin();
+  if(id==='companies') renderCompaniesAdmin();
+  if(id==='roleManual') renderRoleManual();
+  if(id==='authority') renderAuthority();
+  if(id==='tasks'){ renderTasks(); refreshAuthorityGuards(); }
+}
+
+async function doLogout(){
+  try{
+    await fetch('/api/admin/logout',{
+      method:'POST',
+      credentials:'include'
+    });
+  }catch(error){
+    console.warn('Admin logout request failed:',error);
+  }
+
+  localStorage.removeItem('guvaza_current_admin');
+  currentAdmin=null;
+
+  document.getElementById('adminApp').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginBox').style.display='block';
+  document.getElementById('setPasswordBox').style.display='none';
+}
+
+(async function init(){
+  if(checkInviteLink()) return;
+
+  try{
+    const response = await fetch('/api/admin/me',{
+      method:'GET',
+      credentials:'include'
+    });
+
+    const result = await response.json();
+
+    if(response.ok && result.ok && result.admin){
+      currentAdmin=result.admin;
+
+      localStorage.setItem(
+        'guvaza_current_admin',
+        JSON.stringify(currentAdmin)
+      );
+
+      showAdminApp();
+    }
+  }catch(error){
+    console.warn('Admin session check failed:',error);
+  }
+})();
+
+function gftDeepEqual(a,b){try{return JSON.stringify(a)===JSON.stringify(b);}catch(e){return a===b;}}
+function gftMergeConcurrent(base, local, latest){
+  if(gftDeepEqual(local,base)) return latest;
+  if(gftDeepEqual(latest,base)) return local;
+  if(local && latest && typeof local==='object' && typeof latest==='object' && !Array.isArray(local) && !Array.isArray(latest)){
+    const out={};
+    const keys=new Set([...Object.keys(base&&typeof base==='object'&&!Array.isArray(base)?base:{}),...Object.keys(local),...Object.keys(latest)]);
+    keys.forEach(k=>{
+      const b=base&&typeof base==='object'?base[k]:undefined;
+      const l=local[k]; const r=latest[k];
+      if(gftDeepEqual(l,b)) out[k]=r;
+      else if(gftDeepEqual(r,b)) out[k]=l;
+      else if(l&&r&&typeof l==='object'&&typeof r==='object'&&!Array.isArray(l)&&!Array.isArray(r)) out[k]=gftMergeConcurrent(b,l,r);
+      else out[k]=l;
+    });
+    return out;
+  }
+  return local;
+}
+function mergeLatestCustomConfigBeforeSave(){
+  try{
+    const raw=localStorage.getItem('guvaza_custom_config');
+    const latest=raw?JSON.parse(raw):null;
+    if(latest){
+      customConfig=gftMergeConcurrent(customConfigBaseline, customConfig, latest);
+    }
+  }catch(e){ console.warn('GFT concurrent config merge failed',e); }
+}
+
+async function saveCustomConfig(){
+  try {
+    const response = await fetch('/api/admin/config/public', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        config: customConfig
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || 'Unable to save configuration');
+    }
+
+    customConfig = result.config;
+    customConfigBaseline = JSON.parse(JSON.stringify(customConfig));
+
+    return true;
+
+  } catch (error) {
+    console.error('Admin configuration save failed:', error);
+    alert('Unable to save homepage changes to the server.');
+    return false;
+  }
+}
+
+function renderAboutRoot(){
+ let ab=customConfig.about||{};
+ document.getElementById('editAboutTitleRoot').value=ab.title||'About The Guvaza Family Trust - Our Root';
+ document.getElementById('editAboutStoryRoot').value=ab.story||document.getElementById('editAboutStoryRoot').value;
+ document.getElementById('aboutRootPreview').innerText=(ab.title||'')+"\n\n"+(ab.story||'');
+}
+async function saveAboutRootEdits(){
+ customConfig.about=customConfig.about||{};
+ let titleVal=document.getElementById('editAboutTitleRoot').value.trim();
+ let storyVal=document.getElementById('editAboutStoryRoot').value.trim();
+ customConfig.about.title=titleVal;
+ customConfig.about.story=storyVal;
+ customConfig.about.aboutText=storyVal;
+ customConfig.about.text=storyVal;
+ customConfig.about.description=storyVal;
+ customConfig.about.aboutRoots=storyVal;
+ try{
+   localStorage.setItem('guvaza_about_text', storyVal);
+   localStorage.setItem('guvaza_about_title', titleVal);
+   localStorage.setItem('aboutRoots', storyVal);
+   localStorage.setItem('aboutText', storyVal);
+   localStorage.setItem('aboutTitle', titleVal);
+ }catch(e){}
+ if(customConfig.about.sections && customConfig.about.sections.length>0){
+   customConfig.about.sections[0].title=titleVal;
+   customConfig.about.sections[0].story=storyVal;
+ }
+const saved = await saveCustomConfig();
+if(!saved) return;
+document.getElementById('aboutRootPreview').innerText=titleVal+"\n\n"+storyVal;
+alert('Guvaza Root story + Title saved!');  
+
+}
+function previewRoot(){
+ let t=document.getElementById('editAboutTitleRoot').value;
+ let s=document.getElementById('editAboutStoryRoot').value;
+ document.getElementById('aboutRootPreview').innerText=t+"\n\n"+s;
+}
+function renderSecondEmailAdmin(){
+ document.getElementById('adminFounderEmail').value=localStorage.getItem('guvaza_founder_email')||CFG.email||'';
+ document.getElementById('adminFounderEmail2').value=localStorage.getItem('guvaza_founder_email2')||'';
+ document.getElementById('adminWhatsappEmailSec').value=localStorage.getItem('guvaza_whatsapp_number')||'';
+ let logs=JSON.parse(localStorage.getItem('guvaza_email_log')||'[]');
+ document.getElementById('secondEmailLog').innerHTML=logs.slice(0,10).map(e=>`[${e.time}] To:${e.to} Subj:${e.subject}`).join('<br>')||'No logs yet';
+}
+function saveSecondEmailAdmin(){
+ let e1=document.getElementById('adminFounderEmail').value.trim();
+ let e2=document.getElementById('adminFounderEmail2').value.trim();
+ let wa=document.getElementById('adminWhatsappEmailSec').value.trim();
+ if(e1) localStorage.setItem('guvaza_founder_email',e1);
+ if(e2) localStorage.setItem('guvaza_founder_email2',e2);
+ if(wa) localStorage.setItem('guvaza_whatsapp_number',wa);
+ alert('Both emails saved!');
+ renderSecondEmailAdmin();
+}
+function testSecondEmailAdmin(){
+ let e1=document.getElementById('adminFounderEmail').value.trim()||localStorage.getItem('guvaza_founder_email');
+ let e2=document.getElementById('adminFounderEmail2').value.trim()||localStorage.getItem('guvaza_founder_email2');
+ let logs=JSON.parse(localStorage.getItem('guvaza_email_log')||'[]');
+ logs.unshift({to:e1,subject:'Test Primary Email from Admin',body:'Test',time:new Date().toLocaleString()});
+ if(e2) logs.unshift({to:e2,subject:'Test Backup Email from Admin',body:'Backup test',time:new Date().toLocaleString()});
+ localStorage.setItem('guvaza_email_log',JSON.stringify(logs));
+ alert('Test emails logged');
+ renderSecondEmailAdmin();
+}
+function renderDashboard(){
+ let pending=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');
+ document.getElementById('dashPendingRegs').innerHTML=pending.length?pending.slice(0,3).map(p=>`${p.name} ID:${p.id}`).join('<br>'):'No pending';
+ let fun=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');
+ document.getElementById('dashFun').innerText=fun.length+' pending claims';
+ let sch=JSON.parse(localStorage.getItem('guvaza_school_requests')||'[]');
+ document.getElementById('dashSch').innerText=sch.length+' pending invoices';
+ document.getElementById('configBadge').innerText=`${CFG.name} | ${(customConfig.companies||[]).length} companies`;
+ fetch('/api/admin/count', {
+  method: 'GET',
+  credentials: 'include',
+  headers: { 'Accept': 'application/json' }
+})
+.then(r => r.json())
+.then(data => {
+  if (data.ok) {
+    document.getElementById('adminCountInfo').innerText =
+      `${data.count} admins`;
+  }
+})
+.catch(error => {
+  console.error('Admin count load failed:', error);
+});
+}
+function renderHomeEdit(){
+ let hp=customConfig.homepage||{};
+ document.getElementById('editHeroTitle').value=hp.heroTitle||'';
+ document.getElementById('editHeroSubtitle').value=hp.heroSubtitle||'';
+ document.getElementById('editHeroImage').value=hp.heroImage||'';
+ document.getElementById('editAnnouncement').value=hp.announcement||'';
+ document.getElementById('editCtaText').value=hp.ctaButtonText||'';
+ document.getElementById('editCtaLink').value=hp.ctaButtonLink||'';
+ document.getElementById('editShowWallets').checked=hp.showWallets!==false;
+ document.getElementById('editShowCompanies').checked=hp.showCompanies!==false;
+ document.getElementById('editShowBen').checked=hp.showBeneficiariesCount!==false;
+ let img=document.getElementById('homePrevImg'); if(hp.heroImage){img.src=hp.heroImage; img.style.display='block';}
+ renderHomeCardsAdmin();
+}
+async function saveHomeEdits(){
+ customConfig.homepage=customConfig.homepage||{};
+ let file=document.getElementById('editHeroImageFile').files[0];
+ let save=(imgVal)=>{
+  customConfig.homepage.heroTitle=document.getElementById('editHeroTitle').value.trim();
+  customConfig.homepage.heroSubtitle=document.getElementById('editHeroSubtitle').value.trim();
+  if(imgVal) customConfig.homepage.heroImage=imgVal;
+  customConfig.homepage.announcement=document.getElementById('editAnnouncement').value.trim();
+  customConfig.homepage.ctaButtonText=document.getElementById('editCtaText').value.trim();
+  customConfig.homepage.ctaButtonLink=document.getElementById('editCtaLink').value.trim();
+  customConfig.homepage.showWallets=document.getElementById('editShowWallets').checked;
+  customConfig.homepage.showCompanies=document.getElementById('editShowCompanies').checked;
+  customConfig.homepage.showBeneficiariesCount=document.getElementById('editShowBen').checked;
+  
+saveCustomConfig().then(saved=>{
+  if(!saved) return;
+  renderHomeEdit();
+  alert('Home view saved!');
+});
+ 
+};
+ if(file){let r=new FileReader(); r.onload=e=>save(e.target.result); r.readAsDataURL(file);} else {save(document.getElementById('editHeroImage').value.trim());}
+}
+function renderHomeCardsAdmin(){
+ let wrap=document.getElementById('homeCardsEditorAdmin'); if(!wrap) return;
+ let cards=customConfig.homepage.cards||[]; wrap.innerHTML='';
+ cards.forEach((c,i)=>{
+  wrap.innerHTML+=`<div class="ben-item" style="display:block;border-left:4px solid ${c.color};border-right:4px solid ${c.color}"><input id="admCardTitle_${i}" value="${c.title}" placeholder="Title"><input id="admCardSub_${i}" value="${c.subtitle}" placeholder="Subtitle"><input id="admCardImg_${i}" value="${c.image||''}" placeholder="Banner image"></div>`;
+ });
+}
+async function saveHomeCardsAdmin(){
+ let cards=customConfig.homepage.cards||[];
+ cards=cards.map((c,i)=>{return{...c, title:document.getElementById(`admCardTitle_${i}`)?.value||c.title, subtitle:document.getElementById(`admCardSub_${i}`)?.value||c.subtitle, image:document.getElementById(`admCardImg_${i}`)?.value||c.image}});
+ customConfig.homepage.cards=cards;
+const saved = await saveCustomConfig();
+if(!saved) return;
+renderHomeCardsAdmin();
+alert('Cards saved!');
+
+}
+function renderAboutEdit(){
+ let ab=customConfig.about||{};
+ document.getElementById('editAboutTitle').value=ab.title||'About Our Family';
+ document.getElementById('editAboutStory').value=ab.story||'Root: Guvaza. Rutambo is son of Guvaza.';
+ renderAdminFamily();
+ renderAboutSectionsAdmin();
+}
+async function saveAboutEdits(){
+ customConfig.about=customConfig.about||{};
+ let titleVal=document.getElementById('editAboutTitle').value.trim();
+ let storyVal=document.getElementById('editAboutStory').value.trim();
+ customConfig.about.title=titleVal;
+ customConfig.about.story=storyVal;
+ customConfig.about.aboutText=storyVal;
+ customConfig.about.text=storyVal;
+ customConfig.about.description=storyVal;
+ customConfig.about.aboutRoots=storyVal;
+ try{
+   localStorage.setItem('guvaza_about_text', storyVal);
+   localStorage.setItem('guvaza_about_title', titleVal);
+   localStorage.setItem('aboutRoots', storyVal);
+   localStorage.setItem('aboutText', storyVal);
+   localStorage.setItem('aboutTitle', titleVal);
+ }catch(e){}
+ if(customConfig.about.sections && customConfig.about.sections.length>0){
+   customConfig.about.sections[0].title=titleVal;
+   customConfig.about.sections[0].story=storyVal;
+ }
+ const saved = await saveCustomConfig();
+if(!saved) return;
+alert('About saved!');
+}
+function renderAdminFamily(){
+  let list=document.getElementById('adminFamilyList');
+  let badge=document.getElementById('adminFamilyCount');
+  let members=customConfig.about.familyMembers||[];
+
+  if(badge) badge.innerText=members.length;
+  if(!list) return;
+
+  if(members.length===0){
+    list.innerHTML='<p style="color:var(--muted)">No family - add Guvaza etc</p>';
+    return;
+  }
+
+  list.innerHTML='';
+
+  members.forEach((m,i)=>{
+    list.innerHTML+=`
+      <div class="ben-item">
+        <img src="${m.image||'assets/family.jpg'}"
+             style="width:50px;height:50px;border-radius:10px;object-fit:cover">
+
+        <div class="ben-info">
+          <b>${m.name||''}</b><br>
+          <small>${m.caption||''}</small>
+        </div>
+
+        <div style="display:flex;gap:6px">
+          <button
+            class="primary"
+            style="padding:6px 10px"
+            onclick="adminEditFamily(${i})">
+            Edit
+          </button>
+
+          <button
+            class="danger"
+            style="padding:6px 10px"
+            onclick="adminDelFamily(${i})">
+            Delete
+          </button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+async function adminEditFamily(i){
+  let members=customConfig.about.familyMembers||[];
+  let member=members[i];
+
+  if(!member) return;
+
+  let name=prompt(
+    'Edit family member name:',
+    member.name||''
+  );
+
+  if(name===null) return;
+
+  name=name.trim();
+
+  if(!name){
+    alert('Name is required.');
+    return;
+  }
+
+  let caption=prompt(
+    'Edit family member caption:',
+    member.caption||''
+  );
+
+  if(caption===null) return;
+
+  caption=caption.trim();
+
+  let image=prompt(
+    'Edit image path (leave unchanged by pressing Cancel):',
+    member.image||''
+  );
+
+  if(image!==null){
+    image=image.trim();
+    if(image) member.image=image;
+  }
+
+  member.name=name;
+  member.caption=caption;
+
+  const saved=await saveCustomConfig();
+
+  if(!saved) return;
+
+  renderAdminFamily();
+
+  alert('Family member updated successfully.');
+}
+
+async function adminAddFamily(){
+ let name=document.getElementById('adminFamilyName').value.trim(); let cap=document.getElementById('adminFamilyCaption').value.trim(); let imgPath=document.getElementById('adminFamilyImage').value.trim(); let file=document.getElementById('adminFamilyFile').files[0];
+ if(!name) return alert('Name required');
+ 
+let save=async (img)=>{
+  customConfig.about.familyMembers.push({name:name,caption:cap,image:img});
+  const saved = await saveCustomConfig();
+  if(!saved) return;
+  renderAdminFamily();
+};
+ 
+if(file){let r=new FileReader(); r.onload=e=>save(e.target.result); r.readAsDataURL(file);} else save(imgPath||'assets/family.jpg');
+}
+
+async function adminDelFamily(i){
+  if(!confirm('Delete?')) return;
+
+  customConfig.about.familyMembers.splice(i,1);
+
+  const saved = await saveCustomConfig();
+  if(!saved) return;
+
+  renderAdminFamily();
+}
+
+// ===== NEW TIMELINE WITH BOTH SIDE EDGING + EDITABLE GALLERY TITLE =====
+async function adminAddAboutSection(){
+  let title=document.getElementById('newSecTitle').value.trim();
+  let story=document.getElementById('newSecStory').value.trim();
+  let galleryTitle=document.getElementById('newSecGalleryTitle').value.trim()||'Family Members Gallery';
+  let color=document.getElementById('newSecColor').value||'#7a1a24';
+  if(!title) return alert('Enter section title e.g. Our Root - Guvaza');
+  if(!story) return alert('Enter story for this section');
+  if(!customConfig.about.sections) customConfig.about.sections=[];
+  customConfig.about.sections.push({title:title, story:story, gallery:[], galleryTitle: galleryTitle, edgeColor: color});
+ const saved = await saveCustomConfig();
+ if(!saved) return;
+ document.getElementById('newSecTitle').value='';
+
+  document.getElementById('newSecStory').value='';
+  document.getElementById('newSecGalleryTitle').value='Family Members Gallery';
+  renderAboutSectionsAdmin();
+  alert('Added: '+title+' with '+color+' edging BOTH sides + gallery title: '+galleryTitle);
+}
+function renderAboutSectionsAdmin(){
+  let list=document.getElementById('adminSectionsList');
+  if(!list) return;
+  let secs=customConfig.about.sections||[];
+  if(secs.length===0){
+    list.innerHTML='<p style="color:var(--muted);font-size:11px">No timeline sections yet. Add your first About block above. It will show as About → Gallery → About → Gallery in about.html with both-side edging.</p>';
+    return;
+  }
+  list.innerHTML='';
+  secs.forEach((sec, idx)=>{
+    
+    let galleryHtml = (sec.gallery||[]).map((m,i)=>`
+      <div class="ben-item" style="padding:6px">
+        <img src="${m.image}" style="width:40px;height:40px;border-radius:8px;object-fit:cover">
+
+        <div style="flex:1">
+          <small>
+            <b>${m.name}</b> - ${m.caption||''}
+          </small>
+        </div>
+
+        <button
+          class="orange"
+          style="padding:4px 8px"
+          onclick="adminEditSecGallery(${idx},${i})">
+          Edit
+        </button>
+
+        <button
+          class="danger"
+          style="padding:4px 8px"
+          onclick="adminDelSecGallery(${idx},${i})">
+          Delete
+        </button>
+      </div>
+    `).join('') || '<small style="color:var(--muted)">No photos yet for this section</small>';
+
+    list.innerHTML+=`
+      <div class="card" style="border-left:5px solid ${sec.edgeColor||'#7a1a24'};border-right:5px solid ${sec.edgeColor||'#7a1a24'};background:#020617;margin:10px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+          <b style="color:${sec.edgeColor||'#f1c2c8'};border-left:4px solid ${sec.edgeColor||'#7a1a24'};border-right:4px solid ${sec.edgeColor||'#7a1a24'};padding:2px 8px;border-radius:6px;background:#fff1">#${idx+1} - ${sec.title} | ${sec.galleryTitle||'Family Members Gallery'}</b>
+          <div>
+            <button class="blue" style="padding:6px 8px" onclick="moveSecUp(${idx})">↑</button>
+            <button class="blue" style="padding:6px 8px" onclick="moveSecDown(${idx})">↓</button>
+            <button class="orange" style="padding:6px 8px" onclick="editSecTitle(${idx})">Edit</button>
+            <button class="danger" style="padding:6px 8px" onclick="delSec(${idx})">Delete</button>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--muted);white-space:pre-wrap;margin:6px 0">${(sec.story||'').substring(0,180)}...</p>
+        <div style="background:#0f172a;padding:8px;border-radius:8px;margin:8px 0">
+          <label style="font-size:10px;font-weight:700">Add Photo to THIS Section Only (belongs to this About)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
+            <input id="secGalName_${idx}" placeholder="Name e.g. Guvaza">
+            <input id="secGalCaption_${idx}" placeholder="Caption e.g. Root">
+            <input id="secGalImage_${idx}" placeholder="Image path e.g. assets/family1.jpg" style="grid-column:span 2">
+            <input id="secGalFile_${idx}" type="file" accept="image/*" style="grid-column:span 2">
+          </div>
+          <button class="primary" style="background:${sec.edgeColor||'#7a1a24'};width:100%;margin-top:6px" onclick="adminAddSecGallery(${idx})"><span class="mi">add_a_photo</span> Add Photo to ${sec.title}</button>
+          <div style="margin-top:8px">${galleryHtml}</div>
+        </div>
+      </div>
+    `;
+  });
+}
+async function delSec(idx){
+  if(!confirm('Delete section '+(customConfig.about.sections[idx].title)+'? Its gallery will also be deleted!')) return;
+  customConfig.about.sections.splice(idx,1);
+  const saved = await saveCustomConfig();
+ if(!saved) return;
+ renderAboutSectionsAdmin();
+}
+async function moveSecUp(idx){
+  if(idx===0) return;
+  let arr=customConfig.about.sections;
+  [arr[idx-1], arr[idx]]=[arr[idx], arr[idx-1]];
+ const saved = await saveCustomConfig();
+if(!saved) return;
+renderAboutSectionsAdmin();
+}
+async function moveSecDown(idx){
+  let arr=customConfig.about.sections;
+  if(idx>=arr.length-1) return;
+  [arr[idx], arr[idx+1]]=[arr[idx+1], arr[idx]];
+  const saved = await saveCustomConfig();
+if(!saved) return;
+renderAboutSectionsAdmin();
+}
+async function editSecTitle(idx){
+  let sec=customConfig.about.sections[idx];
+  let newTitle=prompt('Edit Section Title:', sec.title); if(newTitle===null) return;
+  let newGalleryTitle=prompt('Edit Gallery Heading (editable):', sec.galleryTitle||'Family Members Gallery'); if(newGalleryTitle===null) return;
+  let newColor=prompt('Edit Edging Color hex e.g. #7a1a24 maroon, #3b82f6 blue, #10b981 green:', sec.edgeColor||'#7a1a24'); if(newColor===null) return;
+  let newStory=prompt('Edit Story (subtitles supported):', sec.story); if(newStory===null) return;
+  if(newTitle) sec.title=newTitle;
+  if(newGalleryTitle) sec.galleryTitle=newGalleryTitle;
+  if(newColor) sec.edgeColor=newColor;
+  if(newStory) sec.story=newStory;
+ const saved = await saveCustomConfig();
+ if(!saved) return;
+ renderAboutSectionsAdmin();
+}
+async function adminAddSecGallery(secIdx){
+  let name=document.getElementById(`secGalName_${secIdx}`).value.trim();
+  let cap=document.getElementById(`secGalCaption_${secIdx}`).value.trim();
+  let imgPath=document.getElementById(`secGalImage_${secIdx}`).value.trim();
+  let file=document.getElementById(`secGalFile_${secIdx}`).files[0];
+  if(!name) return alert('Enter name for photo');
+  let save=async (img)=>{
+    if(!customConfig.about.sections[secIdx].gallery) customConfig.about.sections[secIdx].gallery=[];
+    customConfig.about.sections[secIdx].gallery.push({name:name, caption:cap, image:img});
+    const saved = await saveCustomConfig();
+if(!saved) return;
+renderAboutSectionsAdmin();
+  };
+  if(file){let r=new FileReader(); r.onload=e=>save(e.target.result); r.readAsDataURL(file);} else {save(imgPath||'assets/family.jpg');}
+}
+
+async function adminEditSecGallery(secIdx, galIdx){
+  const sec = customConfig.about.sections?.[secIdx];
+  const item = sec?.gallery?.[galIdx];
+
+  if(!item) return;
+
+  const name = prompt(
+    'Edit photo name:',
+    item.name || ''
+  );
+
+  if(name === null) return;
+
+  const caption = prompt(
+    'Edit photo caption:',
+    item.caption || ''
+  );
+
+  if(caption === null) return;
+
+  const newImage = prompt(
+    'Edit image path (leave blank to keep the current image):',
+    item.image || ''
+  );
+
+  if(newImage === null) return;
+
+  item.name = name.trim();
+  item.caption = caption.trim();
+
+  if(newImage.trim()){
+    item.image = newImage.trim();
+  }
+
+  const saved = await saveCustomConfig();
+
+  if(!saved) return;
+
+  renderAboutSectionsAdmin();
+  alert('Gallery photo updated!');
+}
+
+async function adminDelSecGallery(secIdx, galIdx){
+  if(!confirm('Delete this photo?')) return;
+  customConfig.about.sections[secIdx].gallery.splice(galIdx,1);
+  const saved = await saveCustomConfig();
+if(!saved) return;
+renderAboutSectionsAdmin();
+}
+async function migrateOldToSections(){
+  if(!confirm('Convert your current single About + old Gallery into timeline?')) return;
+  if(!customConfig.about.sections) customConfig.about.sections=[];
+  if(customConfig.about.sections.length>0 &&!confirm('You already have sections. Add old as new sections anyway?')) return;
+  let oldTitle=customConfig.about.title||localStorage.getItem('guvaza_about_title')||'About The Guvaza Family Trust - Our Root';
+  let oldStory=customConfig.about.story||customConfig.about.aboutText||localStorage.getItem('guvaza_about_text')||'Our Root...';
+  let oldGallery=customConfig.about.familyMembers||[];
+  if(oldTitle && oldStory){
+    customConfig.about.sections.unshift({title: oldTitle, story: oldStory, gallery: oldGallery.slice(0, Math.ceil(oldGallery.length/2)) || [], galleryTitle: 'Family Members Gallery', edgeColor:'#7a1a24'});
+    if(oldGallery.length>1){
+      customConfig.about.sections.splice(1,0,{title: 'Our Family Legacy', story: 'Extended family members and rising generations.', gallery: oldGallery.slice(Math.ceil(oldGallery.length/2)), galleryTitle: 'Family Members Gallery', edgeColor:'#3b82f6'});
+    }
+  }
+const saved = await saveCustomConfig();
+if(!saved) return;
+renderAboutSectionsAdmin();
+alert('Converted! Now about.html will show About → Gallery with both-side edging + hover');
+}
+
+function renderPending(){
+ let pending=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');
+ document.getElementById('pendingCountBadge').innerText=pending.length+' Pending';
+ let list=document.getElementById('pendingList');
+ if(pending.length===0){list.innerHTML='<p style="color:var(--muted)">No pending</p>';return;}
+ list.innerHTML=''; pending.forEach((p,i)=>{
+  list.innerHTML+=`<div class="ben-item" style="border-left:4px solid #f59e0b;border-right:4px solid #f59e0b"><div class="ben-info"><b>${p.name}</b> ID:${p.id}<br><small>${p.phone||''}</small></div><div style="display:flex;gap:6px"><button class="primary" onclick="approvePendingAdmin(${i})">Approve</button><button class="danger" onclick="rejectPendingAdmin(${i})">Reject</button></div></div>`;
+ });
+}
+function approvePendingAdmin(i){
+ let pending=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');
+ let p=pending[i];
+ let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');
+ if(bens.some(b=>b.id===p.id)) return alert('ID exists');
+ bens.push({name:p.name,id:p.id,phone:p.phone||'',dateAdded:new Date().toLocaleString()+' (Approved by '+currentAdmin.name+')'});
+ pending.splice(i,1);
+ localStorage.setItem('guvaza_bens',JSON.stringify(bens));
+ localStorage.setItem('guvaza_pending_regs',JSON.stringify(pending));
+ renderPending(); renderMembers();
+}
+function rejectPendingAdmin(i){let pending=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]'); pending.splice(i,1); localStorage.setItem('guvaza_pending_regs',JSON.stringify(pending)); renderPending();}
+function renderMembers(){
+ let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');
+ let list=document.getElementById('membersList');
+ if(bens.length===0){list.innerHTML='<p style="color:var(--muted)">No members</p>';return;}
+ list.innerHTML=bens.map((b,i)=>`<div class="ben-item"><div class="ben-info"><b>${b.name}</b> ID:${b.id}<br><small>${b.phone||''}</small></div><div><button class="danger" onclick="delMember(${i})" style="padding:6px">Delete</button></div></div>`).join('');
+}
+function delMember(i){if(currentAdmin.role==='Witness' || currentAdmin.role==='Employee') return alert('View only'); if(!confirm('Delete member?')) return; let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]'); bens.splice(i,1); localStorage.setItem('guvaza_bens',JSON.stringify(bens)); renderMembers();}
+function exportMembersCSV(){let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]'); let csv='Name,ID,Phone\n'+bens.map(b=>`"${b.name}","${b.id}","${b.phone||''}"`).join('\n'); let blob=new Blob([csv],{type:'text/csv'}); let url=URL.createObjectURL(blob); let a=document.createElement('a'); a.href=url; a.download='Members.csv'; a.click();}
+function renderFinances(){
+ let comps=customConfig.companies||[];
+ let grid=document.getElementById('finCompanyGrid');
+ if(grid){grid.innerHTML=''; comps.forEach(c=>{grid.innerHTML+=`<div class="log" style="border-left:4px solid ${c.color};border-right:4px solid ${c.color}"><b>${c.name}</b><br>Profit: $${c.profit||0}</div>`});}
+}
+function renderBookkeeping(){
+ let audit=JSON.parse(localStorage.getItem('guvaza_all_alerts')||'[]');
+ let log=document.getElementById('auditLog'); if(log){log.innerHTML=audit.slice(0,30).map(a=>`[${a.time}] ${a.type}: ${a.message}`).join('<br>')||'No audit yet';}
+}
+function doBookAllocate(){
+ let income=parseFloat(document.getElementById('bookIncome').value)||0;
+ if(!income) return alert('Enter income');
+ let msg=`[${new Date().toLocaleString()}] Income $${income} allocated by ${currentAdmin.name}`;
+ let logs=JSON.parse(localStorage.getItem('guvaza_all_alerts')||'[]');
+ logs.unshift({type:'BOOKKEEPING', message:msg, time:new Date().toLocaleString()});
+ localStorage.setItem('guvaza_all_alerts', JSON.stringify(logs));
+ document.getElementById('bookLog').innerHTML=msg+'<br>'+document.getElementById('bookLog').innerHTML;
+ renderBookkeeping();
+}
+function renderFuneralAdmin(){
+ let reqs=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');
+ let paid=JSON.parse(localStorage.getItem('guvaza_funeral_paid')||'[]');
+ document.getElementById('adminFunListPending').innerHTML=reqs.length?reqs.map((r,i)=>`<div class="ben-item" style="border-left:4px solid #f59e0b;border-right:4px solid #f59e0b"><div><b>${r.deceasedName}</b> ID:${r.deceasedID}</div><div><button class="primary" onclick="approveFunAdmin(${i})">Approve $600</button></div></div>`).join(''):'No pending';
+ document.getElementById('adminFunListPaid').innerHTML=paid.length?paid.map(p=>`<div class="log">${p.deceasedName} $${p.amount} on ${p.datePaid}</div>`).join(''):'No paid';
+}
+function approveFunAdmin(i){
+ if(currentAdmin.role==='Witness' || currentAdmin.role==='Employee') return alert('Not allowed');
+ let reqs=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');
+ let paid=JSON.parse(localStorage.getItem('guvaza_funeral_paid')||'[]');
+ let r=reqs[i];
+ paid.unshift({deceasedName:r.deceasedName,deceasedID:r.deceasedID,payTo:r.payTo,amount:600,datePaid:new Date().toLocaleString()+' by '+currentAdmin.name});
+ reqs.splice(i,1);
+ localStorage.setItem('guvaza_funeral_requests',JSON.stringify(reqs));
+ localStorage.setItem('guvaza_funeral_paid',JSON.stringify(paid));
+ renderFuneralAdmin();
+}
+function renderSchoolAdmin(){
+ let reqs=JSON.parse(localStorage.getItem('guvaza_school_requests')||'[]');
+ let paid=JSON.parse(localStorage.getItem('guvaza_school_paid')||'[]');
+ document.getElementById('adminSchListPending').innerHTML=reqs.length?reqs.map((r,i)=>`<div class="ben-item" style="border-left:4px solid #8b5cf6;border-right:4px solid #8b5cf6"><div><b>${r.studentName}</b> | ${r.schoolName} | $${r.amount}</div><div><button class="purple" onclick="approveSchAdmin(${i})">Approve</button></div></div>`).join(''):'No pending';
+ document.getElementById('adminSchListPaid').innerHTML=paid.length?paid.map(p=>`<div class="log">${p.studentName} $${p.amount} on ${p.datePaid}</div>`).join(''):'No paid';
+}
+function approveSchAdmin(i){
+ if(currentAdmin.role==='Witness' || currentAdmin.role==='Employee') return alert('Not allowed');
+ let reqs=JSON.parse(localStorage.getItem('guvaza_school_requests')||'[]');
+ let paid=JSON.parse(localStorage.getItem('guvaza_school_paid')||'[]');
+ let r=reqs[i];
+ paid.unshift({...r,datePaid:new Date().toLocaleString()+' by '+currentAdmin.name});
+ reqs.splice(i,1);
+ localStorage.setItem('guvaza_school_requests',JSON.stringify(reqs));
+ localStorage.setItem('guvaza_school_paid',JSON.stringify(paid));
+ renderSchoolAdmin();
+}
+let adminCompaniesCache = JSON.parse(localStorage.getItem('guvaza_admin_companies')||'null') || customConfig.companies || [
+ {id:'GH',name:'Guvaza Holdings',color:'#7a1a24',info:'Holdings',logo:'',description:'Trust Holdings - Main'},
+ {id:'GA',name:'Guvaza Agri',color:'#10b981',info:'Agri',logo:'',description:'Agriculture division'},
+ {id:'GL',name:'Guvaza Logistics',color:'#3b82f6',info:'Logistics',logo:'',description:'Logistics'},
+ {id:'GF2',name:'Guvaza Foods',color:'#84cc16',info:'Foods',logo:'',description:'Foods division'}
+];
+function saveAllCompanies(){
+  localStorage.setItem('guvaza_admin_companies', JSON.stringify(adminCompaniesCache));
+  customConfig.companies = adminCompaniesCache;
+  saveCustomConfig();
+  renderCompaniesAdmin();
+}
+function renderCompaniesAdmin(){
+ let list=document.getElementById('adminCompaniesList'); if(!list) return;
+ if(adminCompaniesCache.length===0){list.innerHTML='<p style="color:var(--muted)">No companies - add above</p>';return;}
+ list.innerHTML='';
+ adminCompaniesCache.forEach((c,i)=>{
+  let img=c.logo?`<img src="${c.logo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid ${c.color}">`:`<div style="width:44px;height:44px;border-radius:50%;background:${c.color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">${c.name.substring(0,2).toUpperCase()}</div>`;
+  list.innerHTML+=`<div class="ben-item" style="border-left:4px solid ${c.color};border-right:4px solid ${c.color}">
+    <div style="display:flex;gap:10px;align-items:center"><div>${img}</div><div><b>${c.name}</b><br><small style="color:var(--muted)">${c.info||''} • ${(c.description||'').substring(0,40)}</small></div></div>
+    <div style="display:flex;gap:6px"><button class="blue" style="padding:6px 10px" onclick="adminEditCompanyFull(${i})">Edit</button><button class="danger" style="padding:6px 10px" onclick="adminDeleteCompanyFull(${i})">Del</button></div>
+  </div>`;
+ });
+}
+async function adminAddCompanyFull(){
+ let name=document.getElementById('adminCompName').value.trim();
+ let info=document.getElementById('adminCompInfo').value.trim();
+ let color=document.getElementById('adminCompColor').value;
+ let url=document.getElementById('adminCompLogoUrl').value.trim();
+ let desc=document.getElementById('adminCompDesc').value.trim();
+ let file=document.getElementById('adminCompLogoFile').files[0];
+ if(!name) return alert('Enter company name');
+ let logoData=url;
+ if(file){
+  logoData=await new Promise(res=>{let r=new FileReader(); r.onload=e=>res(e.target.result); r.readAsDataURL(file);});
+ }
+ let newComp={
+  id: name.substring(0,2).toUpperCase()+Date.now().toString().slice(-3),
+  name:name,
+  info:info||'GFT',
+  color:color,
+  logo:logoData||'',
+  description:desc||info||'Part of The Guvaza Family Trust'
+ };
+ adminCompaniesCache.push(newComp);
+ saveAllCompanies();
+ document.getElementById('adminCompName').value='';
+ document.getElementById('adminCompInfo').value='';
+ document.getElementById('adminCompLogoUrl').value='';
+ document.getElementById('adminCompDesc').value='';
+ document.getElementById('adminCompLogoFile').value='';
+ alert('Company saved!');
+}
+function adminDeleteCompanyFull(i){
+ if(!confirm('Delete '+adminCompaniesCache[i].name+'?')) return;
+ adminCompaniesCache.splice(i,1);
+ saveAllCompanies();
+}
+function adminEditCompanyFull(i){
+ let c=adminCompaniesCache[i];
+ let newName=prompt('Edit Name:', c.name); if(newName===null) return;
+ let newInfo=prompt('Edit Info (short):', c.info); if(newInfo===null) return;
+ let newDesc=prompt('Edit Description (for beneficiary view):', c.description||''); if(newDesc===null) return;
+ let newColor=prompt('Edit Color hex e.g. #7a1a24 :', c.color); if(newColor===null) return;
+ let newLogoUrl=prompt('Edit Logo URL (leave empty to keep current, or paste new URL):', c.logo && c.logo.startsWith('data:')? '' : c.logo);
+ if(newName) c.name=newName;
+ if(newInfo) c.info=newInfo;
+ if(newDesc) c.description=newDesc;
+ if(newColor) c.color=newColor;
+ if(newLogoUrl!==null && newLogoUrl.trim()!=='') c.logo=newLogoUrl.trim();
+ saveAllCompanies();
+}
+</script>
+<div class="bottom-fix-wrap">
+<!-- ADMIN EDITOR - Edit / Delete any clan member - FIXED FOR YOUR REQUEST -->
+<div style="padding:15px;border:2px solid #7a1a24;border-radius:12px;background:#fff">
+<h3 style="color:#7a1a24">🛠️ Admin Clan Editor - Manual Fix (FullName + CurrentSurname + ParentID) - Second Surname Fixed = Guvaza</h3>
+<input id="adminSearch" placeholder="Search name to edit... e.g Fannuel" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc">
+<div id="adminList" style="max-height:400px;overflow:auto;margin-top:10px"></div>
+<div style="margin-top:10px;background:#f9fafb;padding:10px;border-radius:8px;border:1px dashed #7a1a24">
+<small><b>FIXED RULE:</b> When you change Parent ID, Generation auto = Parent GEN +1, Branch = Parent Branch. Second Surname stays Guvaza. No new ID created, only moves under correct parent.</small>
+</div>
+</div>
+<script>
+// === FIXED EDITOR - ONLY THIS PART CHANGED AS PER YOUR REQUEST ===
+function loadAdmin(){
+ let regs=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]');
+ // Also include guvazaTree if available from localStorage backup
+ let treeBackup=JSON.parse(localStorage.getItem('guvazaTree_backup')||'[]');
+ if(treeBackup.length>0 && regs.length===0) regs=treeBackup;
+ let q=(document.getElementById('adminSearch').value||'').toLowerCase();
+ let html='';
+ regs.filter(r=> (r.fullName||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q) || (r.systemId||'').toLowerCase().includes(q)).forEach((r,i)=>{
+   const parentLabel = r.parentId? `${r.parentId}` : 'NO PARENT';
+   html+=`<div style="padding:8px;border-bottom:1px solid #eee;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+   <b style="flex:1">${r.fullName||r.name} - ${r.systemId} | CurrentSurname:${r.currentSurname||''} | Parent:${parentLabel} GEN${r.generation||'?'} Branch:${r.branch||''}</b>
+   <button onclick="editName(${i})" style="padding:4px 8px;background:#0ea5e9;color:#fff;border:none;border-radius:6px">Edit Name/Surname + Parent</button>
+   <button onclick="deleteName(${i})" style="padding:4px 8px;background:#ef4444;color:#fff;border:none;border-radius:6px">Delete</button>
+   </div>`;
+ });
+ document.getElementById('adminList').innerHTML=html||'No members - type at least 3 letters';
+}
+function getParentFromRegs(parentId){
+ let regs=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]');
+ return regs.find(m=>m.systemId===parentId) || null;
+}
+function editName(idx){
+ let regs=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]');
+ let r=regs[idx];
+ if(!r){alert('Not found');return;}
+
+ // 1. Edit FullName
+ let newFullName=prompt('Edit Full Name (e.g Fannuel Guvaza (Zekia)):', r.fullName||r.name);
+ if(newFullName===null) return;
+ if(!newFullName.trim()){alert('FullName required');return;}
+
+ // 2. Edit Current Surname (Second Surname fixed = Guvaza)
+ let newCurrentSurname=prompt('Edit Current Surname (Second Surname is FIXED = Guvaza):', r.currentSurname||'Guvaza');
+ if(newCurrentSurname===null) return;
+
+ // 3. Edit Parent ID - THIS FIXES YOUR ISSUE - Move from Vurayai to Zekia
+ let currentParent = r.parentId || '';
+ let newParentId=prompt(`Edit Parent ID:\nCurrent: ${currentParent}\nTo fix YOU: enter GFT-GEN3-010 for Zekia\nTo fix Uncle: GFT-GEN2-02 for Vurayai\nEnter correct Parent SystemID:`, currentParent);
+ if(newParentId===null) return;
+ newParentId=newParentId.trim();
+ if(!newParentId){alert('Parent ID required');return;}
+
+ let parentObj = getParentFromRegs(newParentId);
+ if(!parentObj){
+   // If parent not in registrations, try to guess gen from ID pattern
+   let genMatch = newParentId.match(/GEN(\d+)/);
+   let parentGen = genMatch? parseInt(genMatch[1]) : 2;
+   if(!confirm(`Parent ${newParentId} not found in local list, but will set you to GEN${parentGen+1} under that ID. Continue?`)) return;
+   // Create minimal parent info
+   parentObj = {systemId:newParentId, generation:parentGen, branch: r.branch || 'BRANCH_VURAYAI', fullName:newParentId};
+ }
+
+ // Apply FIXED RULES
+ r.fullName=newFullName.trim();
+ r.displayName=newFullName.trim();
+ r.name=newFullName.trim();
+ r.currentSurname=newCurrentSurname.trim() || 'Guvaza';
+ r.secondSurname='Guvaza'; // FIXED - never editable
+ r.parentId=newParentId;
+ r.generation=parentObj.generation + 1; // FIXED RULE: Parent GEN +1
+ r.branch=parentObj.branch; // FIXED RULE: Branch = Parent Branch
+
+ regs[idx]=r;
+ localStorage.setItem('guvaza_registrations', JSON.stringify(regs));
+
+ // Also update descendants recursively - FIX GEN for children
+ function updateChildren(parentSystemId){
+   regs=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]');
+   let p = regs.find(x=>x.systemId===parentSystemId);
+   if(!p) return;
+   regs.forEach(child=>{
+     if(child.parentId===parentSystemId){
+       child.generation = p.generation + 1;
+       child.branch = p.branch;
+     }
+   });
+   localStorage.setItem('guvaza_registrations', JSON.stringify(regs));
+   regs.filter(c=>c.parentId===parentSystemId).forEach(c=>updateChildren(c.systemId));
+ }
+ updateChildren(r.systemId);
+
+ loadAdmin();
+ alert(`✅ FIXED & SAVED:\n${r.fullName}\nCurrentSurname: ${r.currentSurname}\nSecondSurname: Guvaza (FIXED)\nParent: ${newParentId} (${parentObj.fullName})\nGEN: ${r.generation} = Parent GEN${parentObj.generation}+1\nBranch: ${r.branch}\nSame ID ${r.systemId} - No new ID created`);
+}
+function deleteName(idx){
+ if(!confirm('Delete this person? This will not create new ID.')) return;
+ let regs=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]');
+ regs.splice(idx,1);
+ localStorage.setItem('guvaza_registrations', JSON.stringify(regs));
+ loadAdmin();
+}
+document.getElementById('adminSearch').addEventListener('input', loadAdmin);
+setTimeout(loadAdmin,500);
+</script>
+
+<!-- === My Direct Lineage - Admin Edit Port === -->
+<div style="background:#fff;border-radius:12px;padding:12px;margin-top:14px;border:1px solid #e5e7eb">
+  <b>Edit My Direct Lineage - Fannuel Guvaza</b>
+  <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+    <button onclick="window.open('my-direct-lineage.html?admin=1&id=GFT-GEN4-043&name=Fannuel Guvaza','_blank')" style="background:#7a1a24;color:#fff;border:none;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer">
+      Open Editable Lineage
+    </button>
+    <button onclick="if(confirm('Reset wives?')){localStorage.removeItem('guvaza_wives_clean');location.reload()}" style="background:#f3f4f6;border:none;padding:8px 12px;border-radius:8px;cursor:pointer">
+      Reset Wives
+    </button>
+  </div>
+  <div class="small" style="margin-top:6px;color:#6b7280">Admin edit saves to same storage • Beneficiary portal sees it instantly</div>
+</div>
+<!-- === End Admin Edit Port === -->
+</div>
+<script src="guvazaTree.js"></script>
+<script>
+var oldRender=renderMembers;
+renderMembers=function(){
+  oldRender();
+  try{
+    var bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');
+    var list=document.getElementById('membersList'); if(!list) return;
+    if(getTreeMaster().length===0) return;
+    var items=list.querySelectorAll('.ben-item');
+    for(var i=0;i<items.length && i<bens.length;i++){
+      var a=auditOneMember(bens[i]);
+      if(!a.match){
+        var d=document.createElement('div');
+        d.innerHTML='<span style="background:#fee2e2;color:#991b1b;padding:4px 8px;border-radius:6px;font-size:11px">⚠️ '+a.errs.join(' | ')+'</span> <button onclick="fixMemberByIndex('+i+')" style="background:#ff9800;color:#fff;padding:4px 8px;border:none;border-radius:6px;margin-left:6px">Fix to '+(a.tree?a.tree.id:'')+'</button>';
+        items[i].appendChild(d);
+      }
+    }
+  }catch(e){}
+}
+</script>
+</body>
+</html>

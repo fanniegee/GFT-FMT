@@ -44,6 +44,27 @@ const registrationUpload = multer({
   }
 });
 
+const beneficiaryPhotoUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 1
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowed = [
+      'image/jpeg',
+      'image/png',
+      'image/webp'
+    ];
+
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error('Only JPG, PNG, and WebP images are allowed'));
+    }
+
+    cb(null, true);
+  }
+});
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.set("trust proxy", 1);
@@ -2811,6 +2832,9 @@ app.get('/api/beneficiary/family-extension', async (req, res) => {
       familyPosition: row.family_position,
       cardColour: row.card_colour,
       photoDocumentId: row.photo_document_id,
+photoUrl: row.photo_document_id
+  ? `/api/beneficiary/family-extension/${row.member_id}/photo`
+  : '',
       profile: row.profile || {},
       createdAt: row.created_at,
       updatedAt: row.updated_at
@@ -2834,6 +2858,234 @@ app.get('/api/beneficiary/family-extension', async (req, res) => {
   }
 });
 
+// ------------------------------------------------------------
+// BENEFICIARY FAMILY PHOTOS — SERVER-SIDE STORAGE
+// ------------------------------------------------------------
+
+function validFamilyPhoto(file) {
+  const b = file?.buffer;
+
+  if (!b || b.length < 12) return false;
+
+  if (
+    file.mimetype === 'image/jpeg' &&
+    b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff
+  ) return true;
+
+  if (
+    file.mimetype === 'image/png' &&
+    b.subarray(0, 8).equals(
+      Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
+    )
+  ) return true;
+
+  if (
+    file.mimetype === 'image/webp' &&
+    b.toString('ascii', 0, 4) === 'RIFF' &&
+    b.toString('ascii', 8, 12) === 'WEBP'
+  ) return true;
+
+  return false;
+}
+
+
+// Upload or replace a personal family member's photograph.
+app.post(
+  '/api/beneficiary/family-extension/:memberId/photo',
+  beneficiaryPhotoUpload.single('photo'),
+  async (req, res) => {
+    try {
+      const beneficiary = await getAuthenticatedBeneficiary(req);
+
+      if (!beneficiary) {
+        return res.status(401).json({
+          ok: false,
+          error: 'Beneficiary authentication required'
+        });
+      }
+
+      const file = req.file;
+
+      if (!file || !validFamilyPhoto(file)) {
+        return res.status(400).json({
+          ok: false,
+          error: 'Please select a valid JPG, PNG, or WebP image'
+        });
+      }
+
+      const memberId = String(req.params.memberId || '').trim();
+
+      const saved = await withTransaction(async (client) => {
+        const memberResult = await client.query(
+          `SELECT member_id, photo_document_id
+           FROM beneficiary_family_members
+           WHERE member_id = $1
+             AND beneficiary_id = $2
+           FOR UPDATE`,
+          [memberId, beneficiary.beneficiary_id]
+        );
+
+        if (!memberResult.rows.length) {
+          const error = new Error('Personal family member not found');
+          error.statusCode = 404;
+          throw error;
+        }
+
+        const currentDocumentId =
+          memberResult.rows[0].photo_document_id;
+
+        let documentId = currentDocumentId;
+
+        if (documentId) {
+          const existing = await client.query(
+            `SELECT document_id
+             FROM documents
+             WHERE document_id = $1
+               AND owner_system_id = $2
+               AND document_type = 'BENEFICIARY_FAMILY_PHOTO'
+             LIMIT 1`,
+            [documentId, beneficiary.system_id]
+          );
+
+          if (!existing.rows.length) {
+            documentId = null;
+          }
+        }
+
+        if (documentId) {
+          await client.query(
+            `UPDATE documents
+             SET storage_key = $1,
+                 original_name = $2,
+                 mime_type = $3,
+                 size_bytes = $4,
+                 file_data = $5
+             WHERE document_id = $6
+               AND owner_system_id = $7
+               AND document_type = 'BENEFICIARY_FAMILY_PHOTO'`,
+            [
+              `beneficiary-family-photo/${randomBytes(16).toString('hex')}`,
+              file.originalname,
+              file.mimetype,
+              file.size,
+              file.buffer,
+              documentId,
+              beneficiary.system_id
+            ]
+          );
+        } else {
+          const inserted = await client.query(
+            `INSERT INTO documents (
+               owner_system_id,
+               document_type,
+               storage_key,
+               original_name,
+               mime_type,
+               size_bytes,
+               file_data
+             )
+             VALUES ($1, 'BENEFICIARY_FAMILY_PHOTO', $2, $3, $4, $5, $6)
+             RETURNING document_id`,
+            [
+              beneficiary.system_id,
+              `beneficiary-family-photo/${randomBytes(16).toString('hex')}`,
+              file.originalname,
+              file.mimetype,
+              file.size,
+              file.buffer
+            ]
+          );
+
+          documentId = inserted.rows[0].document_id;
+
+          await client.query(
+            `UPDATE beneficiary_family_members
+             SET photo_document_id = $1,
+                 updated_at = NOW()
+             WHERE member_id = $2
+               AND beneficiary_id = $3`,
+            [
+              documentId,
+              memberId,
+              beneficiary.beneficiary_id
+            ]
+          );
+        }
+
+        return documentId;
+      });
+
+      res.set('Cache-Control', 'no-store');
+
+      return res.json({
+        ok: true,
+        message: 'Family photograph saved successfully',
+        photoDocumentId: saved
+      });
+
+    } catch (error) {
+      console.error('Beneficiary family photo upload error:', error);
+
+      return res.status(error.statusCode || 500).json({
+        ok: false,
+        error: error.message || 'Unable to save family photograph'
+      });
+    }
+  }
+);
+
+
+// Deliver a photograph only to its authenticated beneficiary.
+app.get(
+  '/api/beneficiary/family-extension/:memberId/photo',
+  async (req, res) => {
+    try {
+      const beneficiary = await getAuthenticatedBeneficiary(req);
+
+      if (!beneficiary) {
+        return res.status(401).end();
+      }
+
+      const result = await query(
+        `SELECT
+           d.mime_type,
+           d.file_data
+         FROM beneficiary_family_members m
+         JOIN documents d
+           ON d.document_id = m.photo_document_id
+         WHERE m.member_id = $1
+           AND m.beneficiary_id = $2
+           AND d.owner_system_id = $3
+           AND d.document_type = 'BENEFICIARY_FAMILY_PHOTO'
+         LIMIT 1`,
+        [
+          String(req.params.memberId || '').trim(),
+          beneficiary.beneficiary_id,
+          beneficiary.system_id
+        ]
+      );
+
+      if (!result.rows.length || !result.rows[0].file_data) {
+        return res.status(404).end();
+      }
+
+      const photo = result.rows[0];
+
+      res.set({
+        'Content-Type': photo.mime_type,
+        'Content-Length': String(photo.file_data.length),
+        'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff'
+      });
+
+      return res.send(photo.file_data);
+
+    } catch (error) {
+      console.error('Beneficiary family photo delivery error:', error);
+      return res.status(500).end();
+    }
+  }
+);
 
 // ------------------------------------------------------------
 // 2. ADD A SPOUSE OR DESCENDANT

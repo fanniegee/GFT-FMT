@@ -125,19 +125,72 @@ const get = id =>
   extras().find(x => x.systemId === id) ||
   null;
 
-const photo = id => localStorage.getItem(PK + id) || "";
+// ------------------------------------------------------------
+// SERVER-MANAGED FAMILY PHOTOS AND CARD COLOURS
+// Personal records are server-authoritative.
+// Official family lineage remains unchanged.
+// ------------------------------------------------------------
 
-const personalColor = id =>
-  personalRecord(id)?.cardColour ||
-  localStorage.getItem(CK + id) ||
-  "";
+// Retrieve a person's photograph from the server-managed record.
+const photo = id => {
+  const record = personalRecord(id);
 
-const spouseColor = id =>
-  spouses().find(x => x.id === id)?.cardColour ||
-  localStorage.getItem(WK + id) ||
-  "";
+  if (!record) return "";
 
-function branchDefaultColor(branch){const colors={"BRANCH_ROOT":"#23395d","ROOT":"#23395d","BRANCH_RUTAMBO":"#1b5e20","RUTAMBO":"#1b5e20","BRANCH_VURAYAI":"#e67e22","VURAYAI":"#e67e22","BRANCH_SVUSVU":"#1e40af","SVUSVU":"#1e40af","BRANCH_VAFONJO":"#ad1457","VAFONJO":"#ad1457","BRANCH_DAUGHTER2":"#6b21a8","DAUGHTER2":"#6b21a8","BRANCH_SECOND_DAUGHTER":"#6b21a8"};return colors[branch]||"#23395d";}
+  return record.photoUrl ||
+         record.photo_url ||
+         record.photoDocumentUrl ||
+         "";
+};
+
+// Retrieve a person's saved card colour.
+const personalColor = id => {
+  const record = personalRecord(id);
+
+  return record?.cardColour ||
+         record?.card_colour ||
+         "#e8f4ec";
+};
+
+// Retrieve a spouse's saved card colour.
+const spouseColor = id => {
+  const spouse = spouses().find(x => x.id === id);
+
+  return spouse?.cardColour ||
+         spouse?.card_colour ||
+         "#e8f4ec";
+};
+
+// Default colours for official family branches.
+function branchDefaultColor(branch) {
+  const colors = {
+    "BRANCH_ROOT": "#23395d",
+    "ROOT": "#23395d",
+
+    "BRANCH_RUTAMBO": "#1b5e20",
+    "RUTAMBO": "#1b5e20",
+
+    "BRANCH_VURAYAI": "#e67e22",
+    "VURAYAI": "#e67e22",
+
+    "BRANCH_SVUSVU": "#1e40af",
+    "SVUSVU": "#1e40af",
+
+    "BRANCH_VAFONJO": "#ad1457",
+    "VAFONJO": "#ad1457",
+
+    "BRANCH_DAUGHTER2": "#6b21a8",
+    "DAUGHTER2": "#6b21a8",
+
+    "BRANCH_SECOND_DAUGHTER": "#6b21a8"
+  };
+
+  return colors[branch] || "#23395d";
+}
+
+// ------------------------------------------------------------
+// GENDER AND SPOUSE DISPLAY SETTINGS
+// ------------------------------------------------------------
 
 let isMale = false;
 let isFemale = false;
@@ -551,9 +604,113 @@ async function savePersonColor() {
 
 function closeModals(){document.querySelectorAll(".modalbg").forEach(x=>x.classList.remove("show"));editId=null;editSpouse=null;editParentId=ACTIVE_ID}
 document.querySelectorAll(".modalbg").forEach(x=>x.onclick=e=>{if(e.target===x)closeModals()});
-function pickPhoto(id,kind="person"){photoTarget=id;photoKind=kind;document.getElementById("photoInput").click()}
-function pickSpousePhoto(id){photoTarget=id;photoKind="spouse";document.getElementById("photoInput").click()}
-function photoSelected(e){let f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith("image/"))return alert("Please select an image.");if(f.size>5*1024*1024)return alert("Please choose an image smaller than 5 MB.");let r=new FileReader();r.onload=()=>{if(photoKind==="spouse"){let s=spouses(),i=s.findIndex(x=>x.id===photoTarget);if(i>=0){s[i].photo=r.result;saveSpouses(s)}}else localStorage.setItem(PK+photoTarget,r.result);render()};r.readAsDataURL(f);e.target.value=""}
+
+function pickPhoto(id, kind = "person") {
+  if (!personalRecord(id)) {
+    return alert(
+      "Photos can currently be uploaded for your personal descendants and spouses. Official GFT ancestry records remain unchanged."
+    );
+  }
+
+  photoTarget = id;
+  photoKind = "person";
+
+  document.getElementById("photoInput").click();
+}
+
+function pickSpousePhoto(id) {
+  if (!spouses().some(x => x.id === id)) {
+    return alert("This spouse record could not be found.");
+  }
+
+  photoTarget = id;
+  photoKind = "spouse";
+
+  document.getElementById("photoInput").click();
+}
+
+async function photoSelected(e) {
+  const file = e.target.files?.[0];
+
+  if (!file) return;
+
+  try {
+    const allowed = [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ];
+
+    if (!allowed.includes(file.type)) {
+      alert("Please select a JPG, PNG, or WebP image.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Please choose an image smaller than 5 MB.");
+      return;
+    }
+
+    let memberId = "";
+
+    if (photoKind === "spouse") {
+      const spouse = spouses().find(
+        x => x.id === photoTarget
+      );
+
+      memberId = spouse?.id || "";
+    } else {
+      const member = personalRecord(photoTarget);
+
+      memberId = member?.memberId || "";
+    }
+
+    if (!memberId) {
+      alert("The personal family record could not be verified.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    const response = await fetch(
+      `/api/beneficiary/family-extension/${encodeURIComponent(memberId)}/photo`,
+      {
+        method: "POST",
+        credentials: "include",
+        body: formData
+      }
+    );
+
+    const result = await response.json().catch(() => ({}));
+
+    if (response.status === 401) {
+      window.location.href = "beneficiary-login.html";
+      return;
+    }
+
+    if (!response.ok || !result.ok) {
+      throw new Error(
+        result.error || "The photograph could not be saved."
+      );
+    }
+
+    await loadFamilyExtensions();
+
+    render();
+    search();
+
+    alert("Photograph saved successfully.");
+
+  } catch (error) {
+    console.error("Family photo upload error:", error);
+    alert(error.message || "Unable to save the photograph.");
+
+  } finally {
+    e.target.value = "";
+  }
+}
+
 function tab(x){let a=document.getElementById("all"),t=document.getElementById("treeTab"),b=document.getElementById("allTab");if(x==="all"){a.style.display="block";b.classList.add("active");t.classList.remove("active");search()}else{a.style.display="none";t.classList.add("active");b.classList.remove("active")}}
 function search(){let q=document.getElementById("q").value.trim().toLowerCase(),box=document.getElementById("all"),r=desc().filter(x=>!q||[x.fullName,x.systemId,x.lineageId].some(v=>String(v||"").toLowerCase().includes(q)));box.innerHTML=r.map(x=>`<div class="item"><div class="smallav">${photo(x.systemId)?`<img src="${esc(photo(x.systemId))}">`:esc(initials(x.fullName))}</div><div class="info"><div class="name" style="font-size:12px">${esc(x.fullName)}</div><div class="id">${esc(x.systemId)}</div>${x.lineageId?`<div class="role">${esc(x.lineageId)}</div>`:""}</div><button class="colorbtn" onclick="openPersonColor('${esc(x.systemId)}')">🎨</button></div>`).join("")||'<div style="padding:14px;text-align:center;color:#6c776f;font-size:12px">No descendants found.</div>'}
 
@@ -597,8 +754,17 @@ async function loadFamilyExtensions() {
     ])
   );
 
+  const memberIds = new Map(
+    members.map(x => [
+      x.memberId || x.member_id,
+      x.systemId || x.system_id
+    ])
+  );
+
   SERVER_SPOUSES = members
-    .filter(x => String(x.memberType || x.member_type).toUpperCase() === "SPOUSE")
+    .filter(x =>
+      String(x.memberType || x.member_type).toUpperCase() === "SPOUSE"
+    )
     .map(x => ({
       id: x.memberId || x.member_id,
       name: x.fullName || x.full_name,
@@ -609,7 +775,9 @@ async function loadFamilyExtensions() {
     }));
 
   SERVER_EXTENSIONS = members
-    .filter(x => String(x.memberType || x.member_type).toUpperCase() === "DESCENDANT")
+    .filter(x =>
+      String(x.memberType || x.member_type).toUpperCase() === "DESCENDANT"
+    )
     .map(x => {
       const profile = x.profile || {};
 
@@ -623,13 +791,16 @@ async function loadFamilyExtensions() {
         generation: Number(x.generation || 1),
         branch: profile.branch || "",
         lineageId: x.lineageId || x.lineage_id || "",
-        lineageGeneration: Number(profile.lineageGeneration || x.generation || 1),
+        lineageGeneration: Number(
+          profile.lineageGeneration || x.generation || 1
+        ),
         spouseId: x.spouseMemberId || x.spouse_member_id || "",
         wifeNo: x.familyPosition || x.family_position || null,
         isPlaceholder: false,
         isEditable: true,
         cardColour: x.cardColour || x.card_colour || "#e8f4ec",
-        photoDocumentId: x.photoDocumentId || x.photo_document_id || ""
+        photoDocumentId: x.photoDocumentId || x.photo_document_id || "",
+        photoUrl: x.photoUrl || x.photo_url || ""
       };
     });
 

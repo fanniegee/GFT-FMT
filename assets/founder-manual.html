@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Founder Operating Manual | Guvaza Family Trust</title>
+<style>
+:root{--bg:#101b31;--panel:#172640;--panel2:#203754;--line:#304563;--ink:#edf3fb;--muted:#b6c5d7;--gold:#e8b85c;--blue:#62a7ff;--green:#53c99a;--red:#f07d83}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 Inter,Segoe UI,Arial,sans-serif}
+header{padding:48px max(22px,calc((100% - 1160px)/2));background:linear-gradient(130deg,#12223d,#1b3c60);border-bottom:1px solid var(--line)}
+.kicker{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}h1{font-size:clamp(32px,5vw,54px);line-height:1.1;margin:12px 0}header p{max-width:800px;color:#d4dfed;font-size:17px}.pills{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}.pill{border:1px solid #54708f;border-radius:25px;padding:4px 12px;font-size:12px}
+.layout{max-width:1160px;margin:auto;padding:28px 22px;display:grid;grid-template-columns:245px 1fr;gap:24px}nav{position:sticky;top:15px;align-self:start;max-height:calc(100vh - 30px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:17px}nav b{color:var(--gold)}nav a{display:block;padding:6px 8px;color:var(--muted);text-decoration:none;font-size:13px;border-radius:6px}nav a:hover{background:var(--panel2);color:white}
+main{min-width:0}.section,.intro{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:23px;margin-bottom:17px}h2{font-size:23px;margin:0 0 13px}h3{font-size:17px;margin:20px 0 7px;color:#dceaff}p,li{color:#d2deec}li{margin:5px 0}ul,ol{padding-left:22px}
+.note{border-left:4px solid var(--blue);background:#1d3150;padding:12px 15px;border-radius:7px;margin:14px 0}.warn{border-color:var(--gold)}.danger{border-color:var(--red)}.good{border-color:var(--green)}
+table{width:100%;border-collapse:collapse;margin:13px 0;font-size:13px}th,td{text-align:left;vertical-align:top;padding:10px;border-bottom:1px solid var(--line)}th{color:var(--gold);background:#1c304c}td{color:#d5e0ee}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tile{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:14px}.tile b{display:block;color:white;margin-bottom:5px}.tag{font-size:11px;font-weight:bold;border-radius:5px;padding:2px 7px;background:#573039;color:#ffc0c4}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:13px 0}.step{flex:1;min-width:130px;text-align:center;padding:12px;background:var(--panel2);border:1px solid #45617f;border-radius:8px;font-size:13px}.arrow{color:var(--gold);font-weight:bold}
+footer{max-width:1160px;margin:auto;padding:0 22px 35px;color:var(--muted);font-size:12px}
+@media(max-width:820px){.layout{grid-template-columns:1fr}nav{position:static;max-height:none}.grid{grid-template-columns:1fr}}
+@media print{body{background:white;color:#172235}header{background:#eaf0f7;color:#172235;padding:25px}header p,p,li,td{color:#26364b}.layout{display:block;padding:12px}nav{display:none}.section,.intro{background:white;border:1px solid #cbd5e1;break-inside:avoid}h2,h3{color:#172235}.tile,.note,.step{background:#f1f5f9;color:#172235}footer{color:#475569}}
+</style>
+</head>
+<body>
+<header>
+<div class="kicker">Guvaza Family Trust · Founder Administration</div>
+<h1>Founder Operating Manual</h1>
+<p>A practical guide to the current <strong>founder.html</strong> Founder Control Centre: what is present, how its sections behave, what needs repair, and how the environment is intended to operate when fully structured.</p>
+<div class="pills"><span class="pill">Working reference · 31 October 2026</span><span class="pill">Founder-only control environment</span><span class="pill">Review before modification</span></div>
+</header>
+<div class="layout">
+<nav><b>Manual contents</b>
+<a href="#purpose">1. Purpose and status</a><a href="#access">2. Access and security</a><a href="#map">3. Dashboard map</a><a href="#beneficiaries">4. Beneficiary Pool today</a><a href="#review">5. Pending registration review</a><a href="#data">6. Data arrangement</a><a href="#other">7. Other sections</a><a href="#fixes">8. What must be fixed</a><a href="#target">9. Intended finished environment</a><a href="#workflow">10. Target workflow</a><a href="#rules">11. Operating safeguards</a><a href="#plan">12. Work plan</a><a href="#terms">13. Key terms</a></nav>
+<main>
+<section class="intro" id="purpose"><h2>1. Purpose and current status</h2>
+<p>The Founder Control Centre is intended to be the central administrative environment for the Guvaza Family Trust. It brings together Trust configuration, beneficiary administration, company and service wallets, school and funeral requests, Admin authority, approvals, notifications, reports and activity review.</p>
+<div class="note warn"><b>Important distinction:</b> this manual describes the uploaded Founder HTML as it currently exists and separates observed behaviour from the target design. A control appearing on screen does not prove it is securely implemented or connected to the database.</div>
+<p>The page is a mixed-stage application. Some functions communicate with server endpoints, while several lists, balances, timers and actions still use browser localStorage or front-end-only logic. Treat it as a working prototype and inspection console, not yet the final authoritative Trust system.</p></section>
+
+<section class="section" id="access"><h2>2. Access and security</h2>
+<p>On page load, <code>checkFounderSession()</code> requests <code>GET /api/admin/me</code> with browser credentials. It accepts the session only when the returned Admin role is <code>FOUNDER</code>. If no valid Founder session exists, a server login screen appears. Login is sent to <code>POST /api/admin/login</code>; a non-Founder Admin is redirected to <code>admin.html</code>.</p>
+<ul><li>Founder authentication is intended to be server-controlled.</li><li>Legacy browser password and two-factor controls are disabled and are not authentication authorities.</li><li>Cookie credentials are used for the session requests.</li><li>Every sensitive API read/write still needs server-side authorisation. Hiding a button is not security.</li></ul>
+<div class="note good"><b>Operating rule:</b> use only the authorised Founder account. Never share passwords, session cookies, invitation tokens or private beneficiary documents.</div></section>
+
+<section class="section" id="map"><h2>3. Founder dashboard map</h2>
+<table><thead><tr><th>Section</th><th>Purpose</th><th>Current understanding</th></tr></thead><tbody>
+<tr><td>Master Overview</td><td>Wallet summary, beneficiary distribution, service controls and Founder security.</td><td>Figures need source verification.</td></tr>
+<tr><td>Company Wallets (12)</td><td>Company profit entries and combined totals.</td><td>Profit values are browser-stored in this page's current data model.</td></tr>
+<tr><td>Beneficiary Pool</td><td>Approved beneficiaries, pending registrations, balances and deletion history.</td><td>Mixed: pending is fetched from server; approved list and balances are local browser data.</td></tr>
+<tr><td>Funeral Wallet</td><td>Funeral requests, certificate review, payments and paid records.</td><td>Current request/payment handling appears largely local/front-end.</td></tr>
+<tr><td>School Fees</td><td>School claims, invoices, verified schools, payments and ledger.</td><td>Current request/payment handling appears largely local/front-end.</td></tr>
+<tr><td>Site Settings</td><td>Trust identity, homepage, banners, family information, companies, galleries and branding.</td><td>Configuration save is connected to a server endpoint.</td></tr>
+<tr><td>Admin Control Centre</td><td>Admin status, role templates, modules, permissions, tasks, manual, scope and overrides.</td><td>Detailed editor; each write and enforcement path needs verification.</td></tr>
+<tr><td>Admin Invite + Roles</td><td>Admin invitations and role list.</td><td>Admin list is server-loaded; write actions need endpoint verification.</td></tr>
+<tr><td>5-Man Approval</td><td>Three Trustee and two Elder positions, with Founder override condition.</td><td>Visible calculation is front-end checkbox logic until independently verified.</td></tr>
+<tr><td>8th Day Sweep → FBP</td><td>Move Funeral and School wallet amounts into the FBP destination.</td><td>Current balances and sweep action are local browser state.</td></tr>
+<tr><td>Daughter Rule</td><td>Calculate a proposed distribution under the family rule.</td><td>Calculation/display; governance and execution authority need confirmation.</td></tr>
+<tr><td>Notifications</td><td>Push, email and WhatsApp controls/logs.</td><td>Push can use browser notifications; email appears to log locally; WhatsApp test opens an external link.</td></tr>
+<tr><td>Export PDF</td><td>Generate operational reports.</td><td>Exports depend on data available to the page, possibly local.</td></tr>
+<tr><td>Audit Trail</td><td>Review Trust and Admin activity.</td><td>Must be verified as durable, server-side audit history.</td></tr>
+</tbody></table></section>
+
+<section class="section" id="beneficiaries"><h2>4. Beneficiary Pool — how it currently works</h2>
+<p>The screen contains manual add fields for full name, ID number and phone; tabs for Approved and Pending Auto; a deletion log; and PDF export.</p>
+<h3>Approved list</h3><ul><li>The approved <code>bens</code> array loads from <code>localStorage</code> key <code>guvaza_bens</code>.</li><li>Beneficiary wallet values load from <code>guvaza_ben_wallets</code>.</li><li>Manual Add, edit and delete currently update browser storage rather than a verified central database record.</li><li>The approved list renders from that local array. The reviewed flow does not visibly merge server-approved registration records into it.</li><li>The same local wallet value is displayed in both Login Wallet and Personal Wallet positions in the current rendering.</li></ul>
+<h3>Pending Auto list</h3><ul><li>Rendering the Beneficiary Pool requests <code>GET /api/registrations</code> with the authenticated session.</li><li>The page filters returned records to status <code>PENDING</code>.</li><li>The display includes applicant name, system ID and parent name.</li><li>Approve sends <code>POST /api/registrations/:registration_id/approve</code>, then reloads the list after success.</li><li>Reject is currently a notice that rejection is unavailable because the server has no rejection endpoint.</li><li>The separate <code>approvePending(i)</code> helper is only a render/reload stub, not the server approval action.</li></ul>
+<div class="note danger"><b>Do not treat the two lists as one complete registry.</b> The current Approved list and server Pending list have different sources. Approval success alone does not prove that a beneficiary was added to the Founder approved list, assigned the correct wallet or made payout-eligible.</div></section>
+
+<section class="section" id="review"><h2>5. Proper Founder pending-registration review</h2>
+<p>The target Founder environment must make each application reviewable as a complete case, not merely as a name in a queue. The current pending panel is too limited for that purpose.</p>
+<h3>Information the review workspace should show</h3><ul><li>Registration reference and submission date/time.</li><li>Applicant identity and contact details, masking sensitive fields until the reviewer is authorised.</li><li>Family relationship details and claimed parent/grandparent lineage.</li><li>Submitted documents, upload status and secure preview/download controls.</li><li>Current status, review history and outstanding verification requirements.</li><li>Possible duplicate warnings, without automatically merging people.</li><li>Reviewer identity, review time, decision reason and permanent decision history.</li></ul>
+<h3>Required decision actions</h3><div class="grid">
+<div class="tile"><b>Approve</b>Record approval on the server, preserve the application, create or link the authoritative beneficiary record and return a clear result.</div>
+<div class="tile"><b>Request information</b>Keep the case pending or move it to an information-required state; record what is missing and notify the applicant.</div>
+<div class="tile"><b>Reject</b>Require a reason, record who decided and when, preserve case history and provide an appropriate notification.</div>
+<div class="tile"><b>Refer for verification</b>Assign the case to an authorised reviewer without granting final approval unless permissions allow it.</div></div>
+<div class="note warn">A pending application must never become payout-eligible because a browser form wrote a localStorage entry. Eligibility must follow a server-side decision and be recorded in the authoritative database.</div></section>
+
+<section class="section" id="data"><h2>6. Current data arrangement and key mismatch</h2>
+<table><thead><tr><th>Data/process</th><th>Current source observed</th><th>Target source of truth</th></tr></thead><tbody>
+<tr><td>Pending registrations</td><td><code>GET /api/registrations</code></td><td>PostgreSQL registration records through authorised API.</td></tr>
+<tr><td>Approval decision</td><td>POST approval endpoint is called; backend behaviour remains to be inspected.</td><td>Transactional server status transition with reviewer, time and reason.</td></tr>
+<tr><td>Approved beneficiary list</td><td><code>localStorage: guvaza_bens</code></td><td>Authoritative beneficiary table/API linked to approved registration.</td></tr>
+<tr><td>Beneficiary wallets</td><td><code>localStorage: guvaza_ben_wallets</code></td><td>Server-side ledger with durable entries and calculated balance.</td></tr>
+<tr><td>Registration-page sync keys</td><td>Separate registration page used <code>founder_beneficiary_pool</code>, <code>gft_physical_registry</code> and <code>gft_approved_for_payout</code>.</td><td>One documented server workflow; browser keys must not grant approval or payout eligibility.</td></tr>
+<tr><td>Pool distribution timer</td><td>Browser interval and local timestamp.</td><td>Server-controlled scheduled job or explicit authorised distribution.</td></tr></tbody></table>
+<p>The main issue to resolve is the complete path from submission to reviewed, approved beneficiary record and then to any permitted wallet activity. The backend route, database schema and beneficiary-facing page must be inspected before connecting these pieces.</p></section>
+
+<section class="section" id="other"><h2>7. Other sections — important cautions</h2><ul>
+<li><b>Site Settings:</b> <code>saveCustomConfig()</code> sends <code>PUT /api/admin/config/public</code> with the configuration payload. The page describes live configuration as stored in PostgreSQL.</li>
+<li><b>Company and service wallets:</b> values are read from browser localStorage in the reviewed Founder file; they are not reconciled financial books.</li>
+<li><b>Beneficiary 24-hour distribution:</b> a browser timer divides the local pool across the locally loaded approved list, credits local wallets and clears the local pool. A manual button can force it. This is not a safe final financial mechanism.</li>
+<li><b>School auto-approval:</b> <code>autoApprove</code> defaults to true if no saved preference exists and a check runs every four seconds. Disable this default until a server-authorised payment workflow is established.</li>
+<li><b>8th-day sweep:</b> the current action transfers local Funeral and School balances into the local FBP value. It is not a durable server scheduler.</li>
+<li><b>5-Man Approval:</b> the visible logic counts five browser checkbox values and checks a Founder override condition. It does not prove five separate people authenticated and approved.</li>
+<li><b>Admin authority:</b> the interface has role templates, modules, permissions, tasks, scope and overrides. The page describes scope as descriptive and reserved for later server enforcement.</li>
+<li><b>Audit and notifications:</b> local logs and browser notifications are not substitutes for server audit events and reliable delivery integrations.</li></ul></section>
+
+<section class="section" id="fixes"><h2>8. What must be fixed</h2>
+<table><thead><tr><th>Priority</th><th>Repair required</th><th>Reason</th></tr></thead><tbody>
+<tr><td><span class="tag">Critical</span></td><td>Trace registration creation, pending list, approval endpoint and database writes end-to-end.</td><td>Establish the actual data path and prevent missing/duplicate beneficiaries.</td></tr>
+<tr><td><span class="tag">Critical</span></td><td>Make the server database the single source of truth for approved beneficiaries and status.</td><td>Remove the split between server pending and browser-only approved records.</td></tr>
+<tr><td><span class="tag">Critical</span></td><td>Build a complete Founder case-review screen with secure document review and decision reasons.</td><td>Allow responsible review and resolution of applications.</td></tr>
+<tr><td><span class="tag">Critical</span></td><td>Implement server-side approve, reject, request-information and refer actions with permission checks and audit history.</td><td>Make decisions attributable and durable.</td></tr>
+<tr><td><span class="tag">Critical</span></td><td>Separate registration status, physical verification, beneficiary approval and payout eligibility.</td><td>These are distinct decisions and must not be inferred from one another.</td></tr>
+<tr><td><span class="tag">Critical</span></td><td>Replace local beneficiary balances and payouts with a server-side ledger and controlled transactions.</td><td>Protect financial integrity and prevent browser manipulation or duplicate payouts.</td></tr>
+<tr><td><span class="tag">High</span></td><td>Review registration-page localStorage sync and remove any path that grants payout eligibility without server approval.</td><td>Prevent unreviewed applicants entering payout lists.</td></tr>
+<tr><td><span class="tag">High</span></td><td>Disable school auto-pay by default; verify payment approval on the server.</td><td>Prevent unattended or unauthorised payments.</td></tr>
+<tr><td><span class="tag">High</span></td><td>Move sweeps and distributions to durable server-controlled processing.</td><td>Browser timers stop when a browser closes and can be manipulated.</td></tr>
+<tr><td><span class="tag">High</span></td><td>Enforce Admin permissions, scope, suspension and overrides in server middleware.</td><td>Front-end controls alone do not restrict API access.</td></tr>
+<tr><td><span class="tag">High</span></td><td>Implement independent approval identities and server-side quorum validation.</td><td>Five checkboxes on one screen are not five independent approvals.</td></tr>
+<tr><td><span class="tag">High</span></td><td>Record important actions in a server-side audit trail.</td><td>Provide accountability and investigation history.</td></tr>
+<tr><td>Later</td><td>Connect email/WhatsApp providers, improve exports and add operational monitoring.</td><td>Complete communications and reporting after core integrity is secured.</td></tr></tbody></table></section>
+
+<section class="section" id="target"><h2>9. Intended fully structured Founder environment</h2><p>When complete, the Founder Control Centre should be a secure command environment rather than a collection of disconnected forms.</p>
+<div class="grid">
+<div class="tile"><b>One authoritative record</b>Registrations, beneficiaries, decisions, wallet transactions and Admin accounts are read/written through authenticated server APIs.</div>
+<div class="tile"><b>Founder-first visibility</b>One queue shows pending cases, age, completeness, flags, assignment and decision history.</div>
+<div class="tile"><b>Separate statuses</b>Submitted, pending review, information required, verified, approved, rejected, suspended and payout eligible are explicit states.</div>
+<div class="tile"><b>Safe decision controls</b>Actions require confirmation, permission checks, server validation and audit records.</div>
+<div class="tile"><b>Financial integrity</b>Balances are ledger-derived; transactions are idempotent, authorised and reconciled.</div>
+<div class="tile"><b>Admin accountability</b>Each Admin has a role, modules, permissions, scope, tasks, expiry conditions and server-enforced limits.</div>
+<div class="tile"><b>Operational transparency</b>Figures show their source and last refresh; API errors are visible and not silently replaced with misleading zeros.</div>
+<div class="tile"><b>Recovery and continuity</b>Backups, audit history, error handling and recovery procedures are documented and tested.</div></div></section>
+
+<section class="section" id="workflow"><h2>10. Target pending-registration workflow</h2>
+<div class="flow"><div class="step"><b>1. Application submitted</b><br>Server stores application and documents</div><span class="arrow">→</span><div class="step"><b>2. Founder review queue</b><br>Complete case appears</div><span class="arrow">→</span><div class="step"><b>3. Verification</b><br>Identity and family relationship checked</div><span class="arrow">→</span><div class="step"><b>4. Decision</b><br>Approve / request info / reject / refer</div></div>
+<div class="flow"><div class="step"><b>5. Approved record</b><br>Authoritative beneficiary created or linked</div><span class="arrow">→</span><div class="step"><b>6. Eligibility assessment</b><br>Separate rules and checks</div><span class="arrow">→</span><div class="step"><b>7. Wallet ledger</b><br>Controlled transactions and statements</div></div>
+<p>Every transition should record actor, timestamp, previous state, new state, reason and record reference. Retrying an action must not create duplicate beneficiaries or financial entries.</p></section>
+
+<section class="section" id="rules"><h2>11. Safety and control rules</h2><ol>
+<li>Do not approve a case solely because its name appears in a list or a browser flag says it is verified.</li>
+<li>Do not delete an application or beneficiary to resolve a discrepancy. Preserve it and use a documented correction, merge or archival process.</li>
+<li>Do not distribute funds using localStorage balances, browser timers or front-end checkbox results.</li>
+<li>Do not expose identity documents or personal data to Admins who do not need them for assigned duties.</li>
+<li>Do not allow an Admin to grant themselves greater authority or bypass Founder-controlled deployment.</li>
+<li>Do not treat an interface message as proof of a database write. Confirm the server response and reload the authoritative record.</li>
+<li>Before changing code, inspect the relevant HTML, API route, database schema and every page that reads/writes the same data.</li>
+<li>Test safely, review the code diff and obtain explicit approval before committing, pushing or deploying.</li></ol></section>
+
+<section class="section" id="plan"><h2>12. Recommended work plan</h2><ol>
+<li><b>Map the registration path:</b> inspect registration page, API, database tables, approval route and beneficiary-facing pages. Document without editing.</li>
+<li><b>Reconcile the two lists:</b> determine how server-approved registrations should populate the Founder list and identify all localStorage readers/writers.</li>
+<li><b>Design the review workspace:</b> agree on case details, statuses, verification requirements and Founder actions.</li>
+<li><b>Repair the server workflow:</b> implement secure APIs and database transitions for review decisions.</li>
+<li><b>Connect the Founder interface:</b> make pending and approved views use the same authoritative API with accurate loading, empty and error states.</li>
+<li><b>Validate test cases:</b> new submission, incomplete application, duplicate candidate, approval, rejection, information request, retry, expired session and permission denial.</li>
+<li><b>Only then address wallet eligibility:</b> do not connect payouts until approved-beneficiary and eligibility rules are explicit and verified.</li></ol>
+<div class="note good"><b>Agreed immediate focus:</b> Beneficiary Pool and the Founder pending-registration inspection environment. The first technical step is a read-only end-to-end trace, followed by a proposed repair plan for approval. This manual does not authorise code changes.</div></section>
+
+<section class="section" id="terms"><h2>13. Key terms</h2><table><thead><tr><th>Term</th><th>Meaning in the intended system</th></tr></thead><tbody>
+<tr><td>Registration</td><td>An application submitted by a person seeking recognition in the Trust registry.</td></tr>
+<tr><td>Pending</td><td>Submitted and awaiting a decision; not yet an approved beneficiary.</td></tr>
+<tr><td>Verified</td><td>Required identity or relationship checks completed and recorded. Verification alone may not mean approval.</td></tr>
+<tr><td>Approved beneficiary</td><td>A person whose application received authorised approval and whose beneficiary record is linked to that decision.</td></tr>
+<tr><td>Payout eligible</td><td>A separate state reached only after the Trust's eligibility rules are satisfied.</td></tr>
+<tr><td>Wallet ledger</td><td>Server-side history of credits, debits, adjustments and payouts from which balances are derived.</td></tr>
+<tr><td>Founder Control Centre</td><td>Founder-only administrative interface for Trust-wide oversight and authorised decisions.</td></tr></tbody></table></section>
+</main></div>
+<footer>Guvaza Family Trust · Founder Operating Manual · Prepared from the reviewed Founder Control Centre HTML. This is an operational guide and proposed target-state specification, not a legal instrument or confirmation that every described control is implemented.</footer>
+</body></html>
