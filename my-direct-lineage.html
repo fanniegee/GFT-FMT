@@ -144,7 +144,16 @@ const photo = id => {
            "";
   }
 
-  // Official GFT ancestry records use their separate private photo route.
+// Retrieve a person's saved card colour.
+const personalColor = id => {
+  const record = personalRecord(id);
+
+  return record?.cardColour ||
+         record?.card_colour ||
+         "#e8f4ec";
+};
+
+ // Official GFT ancestry records use their separate private photo route.
   if (SERVER_PEOPLE.some(x => x.systemId === id)) {
     return `/api/beneficiary/lineage/${encodeURIComponent(id)}/photo`;
   }
