@@ -2773,6 +2773,226 @@ app.get('/api/beneficiary/lineage', async (req, res) => {
   }
 });
 
+// ------------------------------------------------------------
+// BENEFICIARY — PRIVATE OFFICIAL LINEAGE PHOTOS
+// Photos are stored separately for each beneficiary.
+// Official family_people records remain unchanged.
+// ------------------------------------------------------------
+
+let beneficiaryLineagePhotoSchemaReady;
+
+async function ensureBeneficiaryLineagePhotoSchema() {
+  if (!beneficiaryLineagePhotoSchemaReady) {
+    beneficiaryLineagePhotoSchemaReady = query(`
+      CREATE TABLE IF NOT EXISTS beneficiary_lineage_photos (
+        beneficiary_id TEXT NOT NULL,
+        system_id TEXT NOT NULL,
+        mime_type TEXT NOT NULL,
+        original_name TEXT NOT NULL,
+        file_data BYTEA NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (beneficiary_id, system_id)
+      )
+    `).then(() => true);
+  }
+
+  return beneficiaryLineagePhotoSchemaReady;
+}
+
+
+// Upload or replace a private photograph for an official
+// person in the authenticated beneficiary's own lineage.
+
+app.post(
+  '/api/beneficiary/lineage/:systemId/photo',
+  beneficiaryPhotoUpload.single('photo'),
+  async (req, res) => {
+    try {
+      const beneficiary = await getAuthenticatedBeneficiary(req);
+
+      if (!beneficiary) {
+        return res.status(401).json({
+          ok: false,
+          error: 'Beneficiary authentication required'
+        });
+      }
+
+      const file = req.file;
+
+      if (!file || !validFamilyPhoto(file)) {
+        return res.status(400).json({
+          ok: false,
+          error: 'Please select a valid JPG, PNG, or WebP image'
+        });
+      }
+
+      const systemId = String(req.params.systemId || '').trim();
+
+      if (!systemId) {
+        return res.status(400).json({
+          ok: false,
+          error: 'Family System ID is required'
+        });
+      }
+
+      await ensureBeneficiaryLineagePhotoSchema();
+
+      // Confirm that the requested person belongs to this
+      // beneficiary's official ancestors or descendants.
+
+      const access = await query(
+        `WITH RECURSIVE
+         ancestors AS (
+           SELECT
+             system_id,
+             parent_system_id,
+             ARRAY[system_id]::text[] AS path
+           FROM family_people
+           WHERE system_id = $1
+
+           UNION ALL
+
+           SELECT
+             parent.system_id,
+             parent.parent_system_id,
+             ancestors.path || parent.system_id
+           FROM family_people parent
+           JOIN ancestors
+             ON parent.system_id = ancestors.parent_system_id
+           WHERE NOT parent.system_id = ANY(ancestors.path)
+         ),
+         descendants AS (
+           SELECT
+             system_id,
+             parent_system_id,
+             ARRAY[system_id]::text[] AS path
+           FROM family_people
+           WHERE system_id = $1
+
+           UNION ALL
+
+           SELECT
+             child.system_id,
+             child.parent_system_id,
+             descendants.path || child.system_id
+           FROM family_people child
+           JOIN descendants
+             ON child.parent_system_id = descendants.system_id
+           WHERE NOT child.system_id = ANY(descendants.path)
+         )
+         SELECT system_id
+         FROM ancestors
+         WHERE system_id = $2
+
+         UNION
+
+         SELECT system_id
+         FROM descendants
+         WHERE system_id = $2
+         LIMIT 1`,
+        [beneficiary.system_id, systemId]
+      );
+
+      if (!access.rows.length) {
+        return res.status(403).json({
+          ok: false,
+          error: 'This person is not within your registered direct lineage.'
+        });
+      }
+
+      await query(
+        `INSERT INTO beneficiary_lineage_photos (
+           beneficiary_id,
+           system_id,
+           mime_type,
+           original_name,
+           file_data
+         )
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (beneficiary_id, system_id)
+         DO UPDATE SET
+           mime_type = EXCLUDED.mime_type,
+           original_name = EXCLUDED.original_name,
+           file_data = EXCLUDED.file_data,
+           updated_at = NOW()`,
+        [
+          String(beneficiary.beneficiary_id),
+          systemId,
+          file.mimetype,
+          file.originalname,
+          file.buffer
+        ]
+      );
+
+      res.set('Cache-Control', 'no-store');
+
+      return res.json({
+        ok: true,
+        message: 'Lineage photograph saved successfully'
+      });
+
+    } catch (error) {
+      console.error('Beneficiary lineage photo upload error:', error);
+
+      return res.status(500).json({
+        ok: false,
+        error: 'Unable to save lineage photograph'
+      });
+    }
+  }
+);
+
+
+// Deliver a lineage photograph only to the beneficiary
+// who uploaded it.
+
+app.get(
+  '/api/beneficiary/lineage/:systemId/photo',
+  async (req, res) => {
+    try {
+      const beneficiary = await getAuthenticatedBeneficiary(req);
+
+      if (!beneficiary) {
+        return res.status(401).end();
+      }
+
+      await ensureBeneficiaryLineagePhotoSchema();
+
+      const result = await query(
+        `SELECT mime_type, file_data
+         FROM beneficiary_lineage_photos
+         WHERE beneficiary_id = $1
+           AND system_id = $2
+         LIMIT 1`,
+        [
+          String(beneficiary.beneficiary_id),
+          String(req.params.systemId || '').trim()
+        ]
+      );
+
+      if (!result.rows.length || !result.rows[0].file_data) {
+        return res.status(404).end();
+      }
+
+      const photo = result.rows[0];
+
+      res.set({
+        'Content-Type': photo.mime_type,
+        'Content-Length': String(photo.file_data.length),
+        'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff'
+      });
+
+      return res.send(photo.file_data);
+
+    } catch (error) {
+      console.error('Beneficiary lineage photo delivery error:', error);
+      return res.status(500).end();
+    }
+  }
+);
+
 
 // ============================================================
 // BENEFICIARY — PERSONAL FAMILY EXTENSION

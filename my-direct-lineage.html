@@ -132,24 +132,24 @@ const get = id =>
 // ------------------------------------------------------------
 
 // Retrieve a person's photograph from the server-managed record.
+// Retrieve a photograph from the correct server-managed source.
 const photo = id => {
   const record = personalRecord(id);
 
-  if (!record) return "";
+  // Beneficiary-managed descendants
+  if (record) {
+    return record.photoUrl ||
+           record.photo_url ||
+           record.photoDocumentUrl ||
+           "";
+  }
 
-  return record.photoUrl ||
-         record.photo_url ||
-         record.photoDocumentUrl ||
-         "";
-};
+  // Official GFT ancestry records use their separate private photo route.
+  if (SERVER_PEOPLE.some(x => x.systemId === id)) {
+    return `/api/beneficiary/lineage/${encodeURIComponent(id)}/photo`;
+  }
 
-// Retrieve a person's saved card colour.
-const personalColor = id => {
-  const record = personalRecord(id);
-
-  return record?.cardColour ||
-         record?.card_colour ||
-         "#e8f4ec";
+  return "";
 };
 
 // Retrieve a spouse's saved card colour.
@@ -196,7 +196,19 @@ let isMale = false;
 let isFemale = false;
 let spouseNoun = "SPOUSE";
 
-function avatar(p){let s=photo(p.systemId);return `<button class="av" onclick="pickPhoto('${esc(p.systemId)}','person')">${s?`<img src="${esc(s)}">`:esc(initials(p.fullName))}</button>`}
+function avatar(p) {
+  const s = photo(p.systemId);
+  const fallback = esc(initials(p.fullName));
+
+  return `<button class="av"
+    onclick="pickPhoto('${esc(p.systemId)}','person')">
+    ${s
+      ? `<img src="${esc(s)}"
+          onerror="this.remove();this.parentElement.textContent='${fallback}'">`
+      : fallback}
+  </button>`;
+}
+
 function chain(){let a=[],p=get(ACTIVE_ID),seen=new Set();while(p&&!seen.has(p.systemId)){seen.add(p.systemId);a.unshift(p);p=p.parentId?get(p.parentId):null}return a}
 function role(i,n){if(i===0)return"Root Ancestor";if(i===n-1)return"YOU";if(i===n-2)return"Parent";if(i===n-3)return"Grandparent";return"Ancestor"}
 function hexToRgb(h){let x=String(h||"").replace("#","");if(x.length!==6)return[35,57,93];return[parseInt(x.slice(0,2),16),parseInt(x.slice(2,4),16),parseInt(x.slice(4,6),16)]}function contrastText(h){let[r,g,b]=hexToRgb(h);let lum=(0.299*r+0.587*g+0.114*b)/255;return lum>0.58?"#17251d":"#ffffff"}function mutedText(h){let fg=contrastText(h);return fg==="#ffffff"?"#eaf3ed":"#44534b"}function renderAncestry(){let a=chain();document.getElementById("ancestry").innerHTML=a.map((p,i)=>{let current=p.systemId===ACTIVE_ID;let bg=current?(personalColor(ACTIVE_ID)||branchDefaultColor(p.branch)||"#23395d"):(branchDefaultColor(p.branch)||"#23395d");let fg=contrastText(bg);let muted=mutedText(bg);let style=`style="--current-bg:${esc(bg)};--current-fg:${esc(fg)};--current-muted:${esc(muted)}"`;return `<div class="node ${current?"current-node":""}" ${style}>${avatar(p)}<div class="info"><div class="name">${esc(p.fullName)}</div><div class="id">${esc(p.systemId)}</div><div class="role">${role(i,a.length)}</div></div>${current?`<button class="colorbtn" title="Choose your personal card colour" onclick="openPersonColor('${esc(ACTIVE_ID)}');event.stopPropagation()">🎨</button><span class="you" style="background:${esc(fg)};color:${esc(bg)}">YOU</span>`:""}</div>`}).join("")}
@@ -606,15 +618,18 @@ function closeModals(){document.querySelectorAll(".modalbg").forEach(x=>x.classL
 document.querySelectorAll(".modalbg").forEach(x=>x.onclick=e=>{if(e.target===x)closeModals()});
 
 function pickPhoto(id, kind = "person") {
-  if (!personalRecord(id)) {
-    return alert(
-      "Photos can currently be uploaded for your personal descendants and spouses. Official GFT ancestry records remain unchanged."
-    );
+  const personal = personalRecord(id);
+  const official = SERVER_PEOPLE.some(x => x.systemId === id);
+
+  if (personal) {
+    photoKind = "person";
+  } else if (official) {
+    photoKind = "lineage";
+  } else {
+    return alert("This family record could not be verified.");
   }
 
   photoTarget = id;
-  photoKind = "person";
-
   document.getElementById("photoInput").click();
 }
 
@@ -651,36 +666,56 @@ async function photoSelected(e) {
       return;
     }
 
-    let memberId = "";
+    const formData = new FormData();
+    formData.append("photo", file);
 
-    if (photoKind === "spouse") {
+    let uploadUrl = "";
+
+    // Official GFT ancestry photograph
+    if (photoKind === "lineage") {
+      const official = SERVER_PEOPLE.some(
+        x => x.systemId === photoTarget
+      );
+
+      if (!official) {
+        throw new Error("The official ancestry record could not be verified.");
+      }
+
+      uploadUrl =
+        `/api/beneficiary/lineage/${encodeURIComponent(photoTarget)}/photo`;
+    }
+
+    // Spouse photograph
+    else if (photoKind === "spouse") {
       const spouse = spouses().find(
         x => x.id === photoTarget
       );
 
-      memberId = spouse?.id || "";
-    } else {
+      if (!spouse) {
+        throw new Error("The spouse record could not be verified.");
+      }
+
+      uploadUrl =
+        `/api/beneficiary/family-extension/${encodeURIComponent(spouse.id)}/photo`;
+    }
+
+    // Personal descendant photograph
+    else {
       const member = personalRecord(photoTarget);
 
-      memberId = member?.memberId || "";
-    }
-
-    if (!memberId) {
-      alert("The personal family record could not be verified.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("photo", file);
-
-    const response = await fetch(
-      `/api/beneficiary/family-extension/${encodeURIComponent(memberId)}/photo`,
-      {
-        method: "POST",
-        credentials: "include",
-        body: formData
+      if (!member?.memberId) {
+        throw new Error("The personal family record could not be verified.");
       }
-    );
+
+      uploadUrl =
+        `/api/beneficiary/family-extension/${encodeURIComponent(member.memberId)}/photo`;
+    }
+
+    const response = await fetch(uploadUrl, {
+      method: "POST",
+      credentials: "include",
+      body: formData
+    });
 
     const result = await response.json().catch(() => ({}));
 
@@ -695,7 +730,10 @@ async function photoSelected(e) {
       );
     }
 
-    await loadFamilyExtensions();
+    // Refresh beneficiary-managed records where applicable.
+    if (photoKind !== "lineage") {
+      await loadFamilyExtensions();
+    }
 
     render();
     search();
