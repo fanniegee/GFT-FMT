@@ -25,8 +25,16 @@ body{margin:0;background:#f4f7f5;font-family:Arial,sans-serif;color:#17251d}.app
 <div class="app">
 <header class="top"><div><h1>🌳 GuVaza Family Tree</h1><small>My Direct Lineage</small></div><button style="background:none;border:0;color:#fff;font-size:23px" onclick="history.back()">☰</button></header>
 <main class="page">
-<section class="sec">
-<div class="head"><span class="badge">GFT FIXED</span><div class="title">MY DIRECT LINEAGE</div><div class="sub">From Guvaza to me</div></div>
+<section class="sec" id="lineagePanel">
+<div class="head">
+  <span class="badge">GFT FIXED</span>
+  <button class="colorbtn"
+    title="Customise the entire lineage panel"
+    onclick="openLineagePanelColor()">🎨</button>
+  <div class="title">MY DIRECT LINEAGE</div>
+  <div class="sub">From Guvaza to me</div>
+</div>
+
 <div id="ancestry" class="chain"></div>
 
 <div class="note">
@@ -59,6 +67,29 @@ body{margin:0;background:#f4f7f5;font-family:Arial,sans-serif;color:#17251d}.app
 <label>Choose Colour</label>
 <input id="personColorPicker" type="color" value="#e8f4ec">
 </div>
+
+<div id="lineagePanelColorModal" class="modalbg">
+  <div class="modal">
+    <h2>🎨 Lineage Panel Colour</h2>
+
+    <div style="font-size:12px;color:#647168;margin-bottom:12px">
+      Choose the background colour for your entire My Direct Lineage panel.
+    </div>
+
+    <div class="group">
+      <label>Choose Background Colour</label>
+      <input id="lineagePanelColorPicker"
+             type="color"
+             value="#ffffff">
+    </div>
+
+    <div class="modalactions">
+      <button class="cancel" onclick="closeModals()">Cancel</button>
+      <button class="save" onclick="saveLineagePanelColor()">Save Colour</button>
+    </div>
+  </div>
+</div>
+
 <div style="font-size:10px;color:#66746c;line-height:1.5;background:#f1f6f2;padding:9px;border-radius:9px">
 This changes only the personal family-card colour. Official GFT branch colours and fixed ancestry colours remain unchanged.
 </div>
@@ -95,6 +126,46 @@ let SK = '';
 const PK="guvaza_profile_";
 const CK="guvaza_personal_color_";
 const WK="guvaza_personal_spouse_color_";
+
+// ------------------------------------------------------------
+// PERSONAL LINEAGE PANEL BACKGROUND COLOUR
+// ------------------------------------------------------------
+
+const lineagePanelColorKey = () =>
+  "guvaza_lineage_panel_color_" + ACTIVE_ID;
+
+function applyLineagePanelColor() {
+  const panel = document.getElementById("lineagePanel");
+  if (!panel) return;
+
+  const savedColour =
+    localStorage.getItem(lineagePanelColorKey()) || "#ffffff";
+
+  panel.style.backgroundColor = savedColour;
+}
+
+function openLineagePanelColor() {
+  const savedColour =
+    localStorage.getItem(lineagePanelColorKey()) || "#ffffff";
+
+  document.getElementById("lineagePanelColorPicker").value = savedColour;
+  document.getElementById("lineagePanelColorModal").classList.add("show");
+}
+
+function saveLineagePanelColor() {
+  const colour =
+    document.getElementById("lineagePanelColorPicker").value;
+
+  if (!ACTIVE_ID) {
+    return alert("Your beneficiary account could not be identified.");
+  }
+
+  localStorage.setItem(lineagePanelColorKey(), colour);
+
+  applyLineagePanelColor();
+  closeModals();
+}
+
 let editId=null,editSpouse=null,editParentId=ACTIVE_ID,photoTarget=null,photoKind="person";
 
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
@@ -157,6 +228,7 @@ const personalColor = id => {
 
   return record?.cardColour ||
          record?.card_colour ||
+         localStorage.getItem(CK + id) ||
          "#e8f4ec";
 };
 
@@ -887,6 +959,7 @@ async function initLineage() {
     if (!ACTIVE_ID) {
       showLineageError('Your authenticated account has no valid System ID.');
       return;
+    applyLineagePanelColor(); 
     }
 
     // Initialise personal browser storage using the authenticated ID.
