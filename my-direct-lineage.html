@@ -131,7 +131,6 @@ const get = id =>
 // Official family lineage remains unchanged.
 // ------------------------------------------------------------
 
-// Retrieve a person's photograph from the server-managed record.
 // Retrieve a photograph from the correct server-managed source.
 const photo = id => {
   const record = personalRecord(id);
@@ -144,6 +143,14 @@ const photo = id => {
            "";
   }
 
+  // Official GFT ancestry records
+  if (SERVER_PEOPLE.some(x => x.systemId === id)) {
+    return `/api/beneficiary/lineage/${encodeURIComponent(id)}/photo`;
+  }
+
+  return "";
+};
+
 // Retrieve a person's saved card colour.
 const personalColor = id => {
   const record = personalRecord(id);
@@ -151,14 +158,6 @@ const personalColor = id => {
   return record?.cardColour ||
          record?.card_colour ||
          "#e8f4ec";
-};
-
- // Official GFT ancestry records use their separate private photo route.
-  if (SERVER_PEOPLE.some(x => x.systemId === id)) {
-    return `/api/beneficiary/lineage/${encodeURIComponent(id)}/photo`;
-  }
-
-  return "";
 };
 
 // Retrieve a spouse's saved card colour.
