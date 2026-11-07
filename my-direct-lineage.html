@@ -59,15 +59,38 @@ body{margin:0;background:#f4f7f5;font-family:Arial,sans-serif;color:#17251d}.app
 </main>
 </div>
 
+<!-- PERSONAL ANCESTRY CARD COLOUR MODAL -->
 <div id="personColorModal" class="modalbg">
-<div class="modal">
-<h2>🎨 Personal Card Colour</h2>
-<div style="font-size:12px;color:#647168;margin-bottom:12px">Choose the personal colour for <b id="personColorName"></b>.</div>
-<div class="group">
-<label>Choose Colour</label>
-<input id="personColorPicker" type="color" value="#e8f4ec">
+  <div class="modal">
+    <h2>🎨 Personal Card Colour</h2>
+
+    <div style="font-size:12px;color:#647168;margin-bottom:12px">
+      Choose the personal colour for
+      <b id="personColorName"></b>.
+    </div>
+
+    <div class="group">
+      <label>Choose Colour</label>
+      <input id="personColorPicker"
+             type="color"
+             value="#e8f4ec">
+    </div>
+
+    <div style="font-size:10px;color:#66746c;line-height:1.5;background:#f1f6f2;padding:9px;border-radius:9px">
+      This changes only the personal family-card colour.
+      Official GFT branch colours remain unchanged.
+    </div>
+
+    <input id="personColorTarget" type="hidden">
+
+    <div class="modalactions">
+      <button class="cancel" onclick="closeModals()">Cancel</button>
+      <button class="save" onclick="savePersonColor()">Save Colour</button>
+    </div>
+  </div>
 </div>
 
+<!-- ENTIRE LINEAGE PANEL BACKGROUND COLOUR MODAL -->
 <div id="lineagePanelColorModal" class="modalbg">
   <div class="modal">
     <h2>🎨 Lineage Panel Colour</h2>
@@ -88,17 +111,6 @@ body{margin:0;background:#f4f7f5;font-family:Arial,sans-serif;color:#17251d}.app
       <button class="save" onclick="saveLineagePanelColor()">Save Colour</button>
     </div>
   </div>
-</div>
-
-<div style="font-size:10px;color:#66746c;line-height:1.5;background:#f1f6f2;padding:9px;border-radius:9px">
-This changes only the personal family-card colour. Official GFT branch colours and fixed ancestry colours remain unchanged.
-</div>
-<input id="personColorTarget" type="hidden">
-<div class="modalactions">
-<button class="cancel" onclick="closeModals()">Cancel</button>
-<button class="save" onclick="savePersonColor()">Save Colour</button>
-</div>
-</div>
 </div>
 
 <input id="photoInput" class="hidden" type="file" accept="image/*" onchange="photoSelected(event)">
@@ -224,6 +236,10 @@ const photo = id => {
 
 // Retrieve a person's saved card colour.
 const personalColor = id => {
+  if (id === ACTIVE_ID) {
+    return LINEAGE_SETTINGS.personalCardColour || "#e8f4ec";
+  }
+
   const record = personalRecord(id);
 
   return record?.cardColour ||
@@ -275,6 +291,107 @@ function branchDefaultColor(branch) {
 let isMale = false;
 let isFemale = false;
 let spouseNoun = "SPOUSE";
+
+// ------------------------------------------------------------
+// SERVER-SAVED MY DIRECT LINEAGE COLOUR SETTINGS
+// ------------------------------------------------------------
+
+let LINEAGE_SETTINGS = {
+  panelColour: "#ffffff",
+  personalCardColour: "#e8f4ec"
+};
+
+async function loadLineageColourSettings() {
+  const response = await fetch(
+    "/api/beneficiary/lineage/settings",
+    {
+      method: "GET",
+      credentials: "include",
+      headers: { "Accept": "application/json" }
+    }
+  );
+
+  const result = await response.json().catch(() => ({}));
+
+  if (response.status === 401) {
+    window.location.href = "beneficiary-login.html";
+    throw new Error("Your beneficiary session has expired.");
+  }
+
+  if (!response.ok || !result.ok) {
+    throw new Error(result.error || "Unable to load lineage colour settings.");
+  }
+
+  LINEAGE_SETTINGS.panelColour =
+    result.panelColour || "#ffffff";
+
+  LINEAGE_SETTINGS.personalCardColour =
+    result.personalCardColour || "#e8f4ec";
+
+  applyLineagePanelColor();
+}
+
+async function saveLineageColourSettings(settings) {
+  const response = await fetch(
+    "/api/beneficiary/lineage/settings",
+    {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(settings)
+    }
+  );
+
+  const result = await response.json().catch(() => ({}));
+
+  if (response.status === 401) {
+    window.location.href = "beneficiary-login.html";
+    throw new Error("Your beneficiary session has expired.");
+  }
+
+  if (!response.ok || !result.ok) {
+    throw new Error(result.error || "Unable to save lineage colour settings.");
+  }
+
+  LINEAGE_SETTINGS.panelColour =
+    result.panelColour || LINEAGE_SETTINGS.panelColour;
+
+  LINEAGE_SETTINGS.personalCardColour =
+    result.personalCardColour || LINEAGE_SETTINGS.personalCardColour;
+
+  return result;
+}
+
+function applyLineagePanelColor() {
+  const panel = document.getElementById("lineagePanel");
+  if (!panel) return;
+
+  panel.style.backgroundColor = LINEAGE_SETTINGS.panelColour;
+}
+
+function openLineagePanelColor() {
+  document.getElementById("lineagePanelColorPicker").value =
+    LINEAGE_SETTINGS.panelColour;
+
+  document.getElementById("lineagePanelColorModal").classList.add("show");
+}
+
+async function saveLineagePanelColor() {
+  const colour =
+    document.getElementById("lineagePanelColorPicker").value;
+
+  try {
+    await saveLineageColourSettings({ panelColour: colour });
+
+    applyLineagePanelColor();
+    closeModals();
+  } catch (error) {
+    alert(error.message);
+  }
+}
 
 function avatar(p) {
   const s = photo(p.systemId);
@@ -641,32 +758,48 @@ function openPersonColor(id) {
 }
 
 async function savePersonColor() {
-  const target = document.getElementById("personColorTarget").value;
-  const colour = document.getElementById("personColorPicker").value;
+  const target =
+    document.getElementById("personColorTarget").value;
+
+  const colour =
+    document.getElementById("personColorPicker").value;
 
   if (!target) return;
 
-  let memberId = "";
+  try {
+    // The authenticated beneficiary's own ancestry card.
+    if (target === ACTIVE_ID) {
+      await saveLineageColourSettings({
+        personalCardColour: colour
+      });
 
-  if (target.startsWith("SPOUSE:")) {
-    const spouseId = target.slice(7);
-    const spouse = spouses().find(x => x.id === spouseId);
-    if (!spouse) return alert("Spouse record not found.");
-    memberId = spouse.id;
-  } else {
-    const person = personalRecord(target);
-
-    if (!person) {
-      localStorage.setItem(CK + target, colour);
       closeModals();
       render();
       return;
     }
 
-    memberId = person.memberId;
-  }
+    // Spouses and personal descendants retain their existing API.
+    let memberId = "";
 
-  try {
+    if (target.startsWith("SPOUSE:")) {
+      const spouseId = target.slice(7);
+      const spouse = spouses().find(x => x.id === spouseId);
+
+      if (!spouse) {
+        return alert("Spouse record not found.");
+      }
+
+      memberId = spouse.id;
+    } else {
+      const person = personalRecord(target);
+
+      if (!person) {
+        return alert("This family member could not be verified.");
+      }
+
+      memberId = person.memberId;
+    }
+
     const response = await fetch(
       `/api/beneficiary/family-extension/${encodeURIComponent(memberId)}`,
       {
@@ -689,6 +822,7 @@ async function savePersonColor() {
     await loadFamilyExtensions();
     closeModals();
     render();
+
   } catch (error) {
     alert(error.message);
   }
@@ -956,11 +1090,12 @@ async function initLineage() {
       ? result.people
       : [];
 
-    if (!ACTIVE_ID) {
-      showLineageError('Your authenticated account has no valid System ID.');
-      return;
-    applyLineagePanelColor(); 
-    }
+   if (!ACTIVE_ID) {
+  showLineageError('Your authenticated account has no valid System ID.');
+  return;
+}
+
+await loadLineageColourSettings();
 
     // Initialise personal browser storage using the authenticated ID.
     EK = 'guvaza_personal_descendants_' + ACTIVE_ID;

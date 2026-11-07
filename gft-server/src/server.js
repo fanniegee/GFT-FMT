@@ -2774,6 +2774,175 @@ app.get('/api/beneficiary/lineage', async (req, res) => {
 });
 
 // ------------------------------------------------------------
+// BENEFICIARY — MY DIRECT LINEAGE COLOUR SETTINGS
+// Stores panel and personal card colours per beneficiary.
+// Settings follow the authenticated account across devices.
+// ------------------------------------------------------------
+
+let beneficiaryLineageSettingsSchemaReady;
+
+async function ensureBeneficiaryLineageSettingsSchema() {
+  if (!beneficiaryLineageSettingsSchemaReady) {
+    beneficiaryLineageSettingsSchemaReady = query(`
+      CREATE TABLE IF NOT EXISTS beneficiary_lineage_settings (
+        beneficiary_id TEXT PRIMARY KEY,
+        panel_colour TEXT NOT NULL DEFAULT '#ffffff',
+        personal_card_colour TEXT NOT NULL DEFAULT '#e8f4ec',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `).then(() => true);
+  }
+
+  return beneficiaryLineageSettingsSchemaReady;
+}
+
+
+// GET the authenticated beneficiary's saved lineage colours.
+
+app.get('/api/beneficiary/lineage/settings', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Beneficiary authentication required'
+      });
+    }
+
+    await ensureBeneficiaryLineageSettingsSchema();
+
+    const result = await query(
+      `SELECT panel_colour, personal_card_colour
+       FROM beneficiary_lineage_settings
+       WHERE beneficiary_id = $1
+       LIMIT 1`,
+      [beneficiary.beneficiary_id]
+    );
+
+    const settings = result.rows[0] || {};
+
+    return res.json({
+      ok: true,
+      panelColour: settings.panel_colour || '#ffffff',
+      personalCardColour:
+        settings.personal_card_colour || '#e8f4ec'
+    });
+
+  } catch (error) {
+    console.error('Beneficiary lineage settings load error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to load lineage colour settings'
+    });
+  }
+});
+
+
+// SAVE one or both lineage colours for the authenticated beneficiary.
+
+app.put('/api/beneficiary/lineage/settings', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+
+    if (!beneficiary) {
+      return res.status(401).json({
+        ok: false,
+        error: 'Beneficiary authentication required'
+      });
+    }
+
+    const panelColour =
+      req.body?.panelColour === undefined
+        ? null
+        : String(req.body.panelColour).trim();
+
+    const personalCardColour =
+      req.body?.personalCardColour === undefined
+        ? null
+        : String(req.body.personalCardColour).trim();
+
+    if (panelColour === null && personalCardColour === null) {
+      return res.status(400).json({
+        ok: false,
+        error: 'No colour setting was supplied'
+      });
+    }
+
+    if (
+      panelColour !== null &&
+      !/^#[0-9a-fA-F]{6}$/.test(panelColour)
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Invalid panel colour'
+      });
+    }
+
+    if (
+      personalCardColour !== null &&
+      !/^#[0-9a-fA-F]{6}$/.test(personalCardColour)
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Invalid personal card colour'
+      });
+    }
+
+    await ensureBeneficiaryLineageSettingsSchema();
+
+    const result = await query(
+      `INSERT INTO beneficiary_lineage_settings (
+         beneficiary_id,
+         panel_colour,
+         personal_card_colour,
+         updated_at
+       )
+       VALUES (
+         $1,
+         COALESCE($2, '#ffffff'),
+         COALESCE($3, '#e8f4ec'),
+         NOW()
+       )
+       ON CONFLICT (beneficiary_id)
+       DO UPDATE SET
+         panel_colour = COALESCE(
+           $2,
+           beneficiary_lineage_settings.panel_colour
+         ),
+         personal_card_colour = COALESCE(
+           $3,
+           beneficiary_lineage_settings.personal_card_colour
+         ),
+         updated_at = NOW()
+       RETURNING panel_colour, personal_card_colour`,
+      [
+        beneficiary.beneficiary_id,
+        panelColour,
+        personalCardColour
+      ]
+    );
+
+    return res.json({
+      ok: true,
+      panelColour: result.rows[0].panel_colour,
+      personalCardColour: result.rows[0].personal_card_colour,
+      serverAuthoritative: true
+    });
+
+  } catch (error) {
+    console.error('Beneficiary lineage settings save error:', error);
+
+    return res.status(500).json({
+      ok: false,
+      error: 'Unable to save lineage colour settings'
+    });
+  }
+});
+
+// ------------------------------------------------------------
 // BENEFICIARY — PRIVATE OFFICIAL LINEAGE PHOTOS
 // Photos are stored separately for each beneficiary.
 // Official family_people records remain unchanged.
