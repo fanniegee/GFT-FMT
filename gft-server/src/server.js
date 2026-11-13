@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { installDepartmentAdmin } from './department-admin.js';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -6898,6 +6899,11 @@ app.use('/api', (_req, res) => {
 
 // ------------------------------------------------------------
 // ERROR HANDLING
+installDepartmentAdmin(app, {
+  query, withTransaction, getAuthenticatedAdmin, getCookie, sha256,
+  createPasswordHash, verifyPassword
+});
+
 // ------------------------------------------------------------
 
 app.use((error, _req, res, _next) => {

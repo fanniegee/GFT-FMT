@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Department Admin | Guvaza Family Trust</title>
+  <link rel="stylesheet" href="typography.css">
+  <style>
+    body { margin: 0; background: #f4f7f5; color: #17251d; }
+    main { max-width: 38rem; margin: 3rem auto; padding: 0 1rem; }
+    nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+    form, #account { padding: 1.3rem; margin: 1rem 0; border: 1px solid #cad8ce; border-radius: .7rem; background: white; }
+    label, input, button { display: block; margin: .55rem 0; }
+    input { box-sizing: border-box; width: 100%; padding: .65rem; }
+    button { background: #185737; color: white; border: 0; border-radius: .4rem; padding: .65rem 1rem; font-weight: 700; cursor: pointer; }
+    a { color: #185737; font-weight: 700; }
+  </style>
+  <script defer src="staff-admin.js"></script>
+</head>
+<body>
+<main>
+  <nav aria-label="Departments">
+    <a href="?department=tv">GFT-TV</a>
+    <a href="?department=spotlight">Spotlight Studio</a>
+    <a href="?department=library">GFT-Library</a>
+  </nav>
+  <h1 id="heading">Department Admin</h1>
+  <p id="status" role="status"></p>
+  <section id="account" hidden>
+    <p id="identity"></p>
+    <button id="logout" type="button">Sign out</button>
+  </section>
+  <form id="login" hidden>
+    <h2>Department sign-in</h2>
+    <label>Email <input name="email" type="email" autocomplete="username" required></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+    <button>Sign in</button>
+  </form>
+  <form id="accept" hidden>
+    <h2>Accept invitation</h2>
+    <label>Choose a password <input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="200" required></label>
+    <button>Activate account</button>
+  </form>
+  <form id="invite" hidden>
+    <h2>Invite a department Admin</h2>
+    <label>Full name <input name="name" maxlength="180" required></label>
+    <label>Email <input name="email" type="email" required></label>
+    <label>Role <select name="role"></select></label>
+    <button>Create private invitation link</button>
+    <label id="linkLabel" hidden>Share this link privately with the invitee
+      <input id="inviteLink" readonly>
+    </label>
+  </form>
+  <form id="delegation" hidden>
+    <h2>Delegate invitation authority</h2>
+    <label>Existing Trust Admin email <input name="email" type="email" required></label>
+    <label>Super Admin invitations <select name="enabled"><option value="true">Grant authority</option><option value="false">Revoke authority</option></select></label>
+    <button>Save authority</button>
+  </form>
+</main>
+</body>
+</html>
+
