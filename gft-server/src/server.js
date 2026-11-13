@@ -2795,15 +2795,33 @@ app.get('/api/beneficiary/generation-tree', async (req, res) => {
     if (!beneficiary) return res.status(401).json({ ok: false, error: 'Beneficiary authentication required' });
 
     const result = await query(`
-      SELECT child.system_id, parent.system_id AS parent_id, child.full_name,
-             parent.generation + 1 AS generation, parent.branch_code, TRUE AS pending_registration
-      FROM beneficiary_family_members child
-      JOIN beneficiaries owner ON owner.beneficiary_id = child.beneficiary_id
-        AND owner.system_id = child.parent_system_id AND UPPER(owner.status) = 'ACTIVE'
-      JOIN family_people parent ON parent.system_id = owner.system_id
-      WHERE child.member_type = 'DESCENDANT' AND child.parent_member_id IS NULL
-        AND parent.profile->>'isPlaceholder' IS DISTINCT FROM 'true'
-        AND NOT EXISTS (SELECT 1 FROM family_people official WHERE official.system_id = child.system_id)
+      WITH RECURSIVE pending_descendants AS (
+        SELECT child.member_id, child.beneficiary_id, child.system_id,
+               parent.system_id AS parent_id, child.full_name,
+               parent.generation + 1 AS generation, parent.branch_code,
+               ARRAY[child.member_id] AS member_path
+        FROM beneficiary_family_members child
+        JOIN beneficiaries owner ON owner.beneficiary_id = child.beneficiary_id
+          AND owner.system_id = child.parent_system_id AND UPPER(owner.status) = 'ACTIVE'
+        JOIN family_people parent ON parent.system_id = owner.system_id
+        WHERE child.member_type = 'DESCENDANT' AND child.parent_member_id IS NULL
+          AND parent.profile->>'isPlaceholder' IS DISTINCT FROM 'true'
+
+        UNION ALL
+
+        SELECT child.member_id, child.beneficiary_id, child.system_id,
+               parent.system_id, child.full_name, parent.generation + 1,
+               parent.branch_code, parent.member_path || child.member_id
+        FROM pending_descendants parent
+        JOIN beneficiary_family_members child ON child.parent_member_id = parent.member_id
+          AND child.beneficiary_id = parent.beneficiary_id
+        WHERE child.member_type = 'DESCENDANT'
+          AND NOT (child.member_id = ANY(parent.member_path))
+      )
+      SELECT child.system_id, child.parent_id, child.full_name,
+             child.generation, child.branch_code, TRUE AS pending_registration
+      FROM pending_descendants child
+      WHERE NOT EXISTS (SELECT 1 FROM family_people official WHERE official.system_id = child.system_id)
 
       UNION ALL
 
