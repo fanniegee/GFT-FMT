@@ -431,6 +431,11 @@ app.get('/api/config/public', async (_req, res) => {
 // ------------------------------------------------------------
 
 app.put('/api/admin/config/public', requireAdmin, async (req, res) => {
+  const permissions = req.admin.deployment?.permissions;
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE &&
+      !(Array.isArray(permissions) && ['homeEdit:edit', 'aboutEdit:edit', 'familyRoot:edit', 'companies:edit'].every(permission => permissions.includes(permission)))) {
+    return res.status(403).json({ ok: false, error: 'Site configuration edit permission is required.' });
+  }
   try {
     const config = req.body?.config;
 
@@ -5418,6 +5423,228 @@ app.get('/api/admin/count', requireAdmin, async (req, res) => {
   }
 });
 
+app.post('/api/founder/service-requests/:service', requireAdmin, registrationUpload.single('evidence'), async (req, res) => {
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
+  const service = req.params.service;
+  const name = String(req.body?.name || '').trim();
+  const subjectId = String(req.body?.subjectId || '').trim();
+  const payee = String(req.body?.payee || '').trim();
+  const account = String(req.body?.account || '').trim();
+  const amount = String(req.body?.amount || '').trim();
+  if (!['funeral','school'].includes(service) || !name || name.length > 180 || !subjectId || subjectId.length > 180 ||
+      !payee || payee.length > 180 || account.length > 180 || (service === 'school' && !account) ||
+      !/^\d{1,16}(?:\.\d{1,2})?$/.test(amount) || Number(amount) <= 0 || !req.file) {
+    return res.status(400).json({error:'Enter claim details, a positive USD amount, and supporting evidence.'});
+  }
+  try {
+    const request = await withTransaction(async client => {
+      const result = await client.query(
+        "INSERT INTO service_requests (service_id,details,status) VALUES ($1,$2::jsonb,'PENDING') RETURNING request_id,status",
+        [service,JSON.stringify({name,subjectId,payee,account,amount,currency:'USD',evidence:{mime:req.file.mimetype,data:req.file.buffer.toString('base64')}})]
+      );
+      await client.query("INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,'SERVICE_REQUEST_CREATED',$4::jsonb)",
+        ['AUD-' + randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,JSON.stringify({service,requestId:result.rows[0].request_id})]);
+      return result.rows[0];
+    });
+    return res.status(201).json({ok:true,request});
+  } catch (error) {
+    console.error('Service request creation failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to save the request.'});
+  }
+});
+
+app.get('/api/admin/service-requests/:service/:requestId/evidence', requireAdmin, async (req,res) => {
+  const {service,requestId}=req.params;
+  if (!['funeral','school'].includes(service) || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(requestId)) return res.sendStatus(404);
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE &&
+      !(Array.isArray(req.admin.deployment?.modules) && req.admin.deployment.modules.includes(service))) return res.sendStatus(403);
+  try {
+    const result = await query("SELECT details->'evidence' AS evidence FROM service_requests WHERE request_id=$1 AND LOWER(service_id)=$2", [requestId,service]);
+    const evidence = result.rows[0]?.evidence;
+    if (!evidence?.data) return res.sendStatus(404);
+    return res.set({'Cache-Control':'no-store','Content-Disposition':'attachment; filename="claim-evidence"',
+      'X-Content-Type-Options':'nosniff'}).type('application/octet-stream').send(Buffer.from(evidence.data,'base64'));
+  } catch (error) {
+    console.error('Service request evidence unavailable',error.code || error.name);
+    return res.sendStatus(500);
+  }
+});
+
+app.get('/api/admin/service-requests/:service', requireAdmin, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  const service = req.params.service;
+  if (!['funeral', 'school'].includes(service)) return res.sendStatus(404);
+  const admin = req.admin;
+  if (String(admin.role).toUpperCase() !== FOUNDER_ROLE &&
+      !(Array.isArray(admin.deployment?.modules) && admin.deployment.modules.includes(service))) return res.sendStatus(403);
+  try {
+    const result = await query(
+      "SELECT request_id, status, created_at, details->>'name' AS name, details->>'payee' AS payee, details->>'amount' AS amount, details->>'currency' AS currency, details ? 'evidence' AS has_evidence FROM service_requests WHERE LOWER(service_id) = $1 ORDER BY created_at DESC",
+      [service]
+    );
+    return res.json({ ok: true, requests: result.rows, canDecide: String(admin.role).toUpperCase() === FOUNDER_ROLE || Boolean(Array.isArray(admin.deployment?.permissions) && admin.deployment.permissions.includes(service + ":approve")) });
+  } catch (error) {
+    console.error('Service requests unavailable', error.code || error.name);
+    return res.status(500).json({ ok: false, error: 'Service requests unavailable' });
+  }
+});
+
+app.post('/api/admin/service-requests/:service/:requestId/decision', requireAdmin, async (req, res) => {
+  const { service, requestId } = req.params;
+  const { decision } = req.body || {};
+  const reason = String(req.body?.reason || '').trim();
+  if (!['funeral', 'school'].includes(service)) return res.sendStatus(404);
+  const admin = req.admin;
+  if (String(admin.role).toUpperCase() !== FOUNDER_ROLE &&
+      !(Array.isArray(admin.deployment?.permissions) && admin.deployment.permissions.includes(service + ':approve'))) return res.sendStatus(403);
+  if (!/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(requestId) ||
+      !['APPROVED', 'REJECTED'].includes(decision) || reason.length < 5 || reason.length > 2000) {
+    return res.status(400).json({ error: 'Select a decision and enter a reason of 5 to 2,000 characters.' });
+  }
+  try {
+    const updated = await withTransaction(async client => {
+      const result = await client.query(
+        "UPDATE service_requests SET status = $1 WHERE request_id = $2 AND LOWER(service_id) = $3 AND status = 'PENDING' RETURNING request_id, status",
+        [decision, requestId, service]
+      );
+      if (!result.rows.length) return null;
+      await client.query(
+        'INSERT INTO gft_admin_audit_events (event_id, admin_id, admin_email, action, details, ip_address, user_agent) VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7)',
+        ['AUD-' + randomBytes(16).toString('hex'), admin.admin_id, admin.email, 'SERVICE_REQUEST_' + decision,
+          JSON.stringify({ requestId, service, reason }), req.ip || null, req.get('user-agent') || null]
+      );
+      return result.rows[0];
+    });
+    if (!updated) return res.status(409).json({ error: 'This request is no longer pending or does not exist.' });
+    return res.json({ ok: true, request: updated });
+  } catch (error) {
+    console.error('Service decision failed', error.code || error.name);
+    return res.status(500).json({ error: 'Unable to save the decision.' });
+  }
+});
+
+app.post('/api/founder/service-requests/:service/:requestId/settlement', requireAdmin, async (req, res) => {
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
+  const { service, requestId } = req.params;
+  const reference = String(req.body?.reference || '').trim();
+  const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+  if (!['funeral', 'school'].includes(service) || !uuid.test(requestId) || reference.length < 4 || reference.length > 180) {
+    return res.status(400).json({error:'Enter the confirmed external payment reference.'});
+  }
+  const fund = service === 'funeral' ? 'FUN' : 'SCH';
+  const walletId = String(process.env['GFT_WALLET_' + fund + '_ID'] || '').trim();
+  if (!uuid.test(walletId)) return res.status(409).json({error:'The Trust fund wallet has not been configured.'});
+  try {
+    const paid = await withTransaction(async client => {
+      await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', ['service-settlement:' + reference]);
+      const wallet = await client.query("SELECT wallet_id, TRIM(currency) AS currency FROM wallets w WHERE wallet_id=$1 AND UPPER(status)='ACTIVE' AND NOT EXISTS (SELECT 1 FROM beneficiaries b WHERE b.system_id=w.owner_system_id) FOR UPDATE", [walletId]);
+      if (!wallet.rows.length) return false;
+      const request = await client.query("SELECT details FROM service_requests WHERE request_id=$1 AND LOWER(service_id)=$2 AND status='APPROVED' FOR UPDATE", [requestId,service]);
+      if (!request.rows.length) return false;
+      const amount = String(request.rows[0].details?.amount ?? '');
+      const currency = request.rows[0].details?.currency;
+      if (!/^\d{1,16}(?:\.\d{1,2})?$/.test(amount) || currency !== wallet.rows[0].currency) return false;
+      const debit = await client.query(
+        "INSERT INTO ledger_entries (wallet_id,entry_type,amount,currency,reference,metadata) " +
+        "SELECT $1,'DEBIT',$2::numeric,$3,$4,jsonb_build_object('serviceRequestId',$5::text) " +
+        "WHERE $2::numeric > 0 AND NOT EXISTS (SELECT 1 FROM ledger_entries WHERE reference=$4) " +
+        "AND (SELECT SUM(CASE WHEN UPPER(TRIM(entry_type)) IN ('CREDIT','DEPOSIT') THEN amount " +
+        "WHEN UPPER(TRIM(entry_type)) IN ('DEBIT','WITHDRAWAL') THEN -amount END) " +
+        "FROM ledger_entries WHERE wallet_id=$1 AND currency=$3) >= $2::numeric RETURNING entry_id",
+        [walletId,amount,currency,reference,requestId]
+      );
+      if (!debit.rows.length) return false;
+      await client.query("UPDATE service_requests SET status='PAID' WHERE request_id=$1", [requestId]);
+      await client.query("INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,'SERVICE_PAYMENT_RECORDED',$4::jsonb)",
+        ['AUD-' + randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,
+         JSON.stringify({service,requestId,reference,entryId:debit.rows[0].entry_id})]);
+      return true;
+    });
+    return paid ? res.json({ok:true,status:'PAID'}) : res.status(409).json({error:'The approved request, external reference, or available fund balance could not be verified.'});
+  } catch (error) {
+    console.error('Service settlement failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to record the settlement.'});
+  }
+});
+
+app.get('/api/founder/payout-requests', requireAdmin, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
+  try {
+    const result = await query(
+      'SELECT payout_id, amount, TRIM(currency) AS currency, status, created_at ' +
+      'FROM payout_requests ORDER BY created_at DESC, payout_id LIMIT 100'
+    );
+    return res.json({ requests: result.rows });
+  } catch (error) {
+    console.error('Payout request list unavailable', error.code || error.name);
+    return res.status(500).json({ error: 'Payout requests unavailable.' });
+  }
+});
+
+app.get('/api/founder/wallet-balances', requireAdmin, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
+  try {
+    const keys = ['MAIN', 'BEN', 'FUN', 'SCH', 'EXP', 'FPB', 'RESERVE'];
+    const ids = keys.map(key => String(process.env['GFT_WALLET_' + key + '_ID'] || '').trim().toLowerCase());
+    const validIds = ids.filter(id => /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(id) && ids.indexOf(id) === ids.lastIndexOf(id));
+    const result = validIds.length ? await query(
+      "SELECT w.wallet_id, TRIM(w.currency) AS currency, " +
+      "SUM(CASE WHEN UPPER(TRIM(le.entry_type)) IN ('CREDIT','DEPOSIT') THEN le.amount " +
+      "WHEN UPPER(TRIM(le.entry_type)) IN ('DEBIT','WITHDRAWAL') THEN -le.amount END) AS balance " +
+      "FROM wallets w LEFT JOIN ledger_entries le ON le.wallet_id = w.wallet_id AND le.currency = w.currency " +
+      "WHERE w.wallet_id = ANY($1::uuid[]) AND UPPER(w.status) = 'ACTIVE' AND NOT EXISTS (SELECT 1 FROM beneficiaries b WHERE b.system_id = w.owner_system_id) GROUP BY w.wallet_id, w.currency",
+      [validIds]
+    ) : { rows: [] };
+    const wallets = Object.fromEntries(keys.map((key, index) => [key.toLowerCase(),
+      result.rows.find(wallet => wallet.wallet_id === ids[index]) || null]));
+    return res.json({ ok: true, wallets });
+  } catch (error) {
+    console.error('Founder wallet balances unavailable', error.code || error.name);
+    return res.status(500).json({ ok: false, error: 'Wallet balances unavailable' });
+  }
+});
+
+app.put('/api/founder/admins/:adminId/deployment', requireAdmin, async (req, res) => {
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
+  const { role, status, modules, permissions } = req.body || {};
+  const roles = ['Trustees','Family Council','Lawyer','Witness',"Founder's Executive Assistant",
+    'Accountant','Secretary','Employee','Super Admin','Finance Admin','Companies Admin','Support'];
+  const allowedModules = ['dashboard','pending','members','aboutEdit','familyRoot','homeEdit','secondEmail',
+    'finances','bookkeeping','funeral','school','companies','approval','lawyer','library','communications','audit'];
+  const allowedActions = ['view','create','edit','delete','approve','export','manage','configure','review','verify','recommend'];
+  if (!roles.includes(role) || !['ACTIVE','PENDING','SUSPENDED','REVOKED','ARCHIVED'].includes(status)
+      || !Array.isArray(modules) || modules.length > allowedModules.length || !modules.every(item => allowedModules.includes(item))
+      || !Array.isArray(permissions) || permissions.length > allowedModules.length * allowedActions.length
+      || !permissions.every(item => typeof item === 'string' && allowedModules.some(module =>
+        allowedActions.some(action => item === module + ':' + action)))) return res.sendStatus(400);
+  try {
+    const updated = await withTransaction(async client => {
+      const target = await client.query(
+        "SELECT deployment FROM gft_admin_accounts WHERE admin_id = $1 AND UPPER(role) <> 'FOUNDER' FOR UPDATE",
+        [req.params.adminId]
+      );
+      if (!target.rows.length) return false;
+      const current = target.rows[0].deployment || {};
+      const reserved = Array.isArray(current.permissions) ? current.permissions.filter(item =>
+        ['REGISTRATION_REVIEW_APPROVE','INVITE_TV_SUPER_ADMIN','INVITE_LIBRARY_SUPER_ADMIN','INVITE_SPOTLIGHT_SUPER_ADMIN'].includes(item)) : [];
+      const deployment = { ...current, status, modules: [...new Set(modules)], permissions: [...new Set([...reserved, ...permissions])] };
+      await client.query('UPDATE gft_admin_accounts SET role=$1,status=$2,active=$3,deployment=$4::jsonb,updated_at=NOW() WHERE admin_id=$5',
+        [role,status,status === 'ACTIVE',JSON.stringify(deployment),req.params.adminId]);
+      if (status !== 'ACTIVE') await client.query('DELETE FROM gft_admin_sessions WHERE admin_id=$1', [req.params.adminId]);
+      await client.query('INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,$4,$5::jsonb)',
+        ['AUD-' + randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,'ADMIN_DEPLOYMENT_UPDATED',
+          JSON.stringify({adminId:req.params.adminId,role,status,modules:deployment.modules,permissions:deployment.permissions})]);
+      return true;
+    });
+    return updated ? res.json({ok:true}) : res.sendStatus(404);
+  } catch (error) {
+    console.error('Admin deployment update failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to save Admin authority.'});
+  }
+});
+
 app.get('/api/founder/admins', requireAdmin, async (req, res) => {
   try {
     if (
@@ -5936,15 +6163,13 @@ app.post('/api/clinic/staff/accept-invitation', async (req, res) => {
     if (existing.rows.length) return res.status(409).json({ ok: false, error: 'A clinic staff account already exists for this email' });
     const staffId = `GGC-${randomBytes(12).toString('hex').toUpperCase()}`;
     const passwordHash = await createPasswordHash(password);
-    await query('BEGIN');
-    try {
-      await query(`INSERT INTO clinic_staff_users (staff_id,full_name,email,role,department,permissions,password_hash,invited_by,invited_by_role)
+    await withTransaction(async client => {
+      await client.query(`INSERT INTO clinic_staff_users (staff_id,full_name,email,role,department,permissions,password_hash,invited_by,invited_by_role)
         VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9)`,
         [staffId,invite.full_name,invite.email,invite.role,invite.department,JSON.stringify(invite.permissions || []),passwordHash,invite.invited_by,invite.invited_by_role]);
-      const consumed = await query(`UPDATE clinic_staff_invitations SET used_at = NOW() WHERE invitation_id = $1 AND used_at IS NULL AND expires_at > NOW() RETURNING invitation_id`, [invite.invitation_id]);
+      const consumed = await client.query(`UPDATE clinic_staff_invitations SET used_at = NOW() WHERE invitation_id = $1 AND used_at IS NULL AND expires_at > NOW() RETURNING invitation_id`, [invite.invitation_id]);
       if (!consumed.rows.length) throw new Error('Invitation was already consumed');
-      await query('COMMIT');
-    } catch (e) { await query('ROLLBACK'); throw e; }
+    });
     return res.status(201).json({ ok: true, message: 'Clinic staff account activated. You can now sign in.' });
   } catch (error) {
     console.error('Clinic invitation acceptance error:', error);

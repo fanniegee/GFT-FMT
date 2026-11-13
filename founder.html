@@ -167,14 +167,14 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <div class="content">
 <div id="sec-master" class="section active">
 <div class="grid" id="accountsGrid">
-<div class="card trust"><h2><span class="mi">account_balance_wallet</span> <span class="title-main">TRUST ACCOUNT</span></h2><div class="amt" id="mainAmt">$10,000</div><input id="incomeInput" type="number" placeholder="Enter PRESENT MONTH income - 70% locked"><button onclick="allocate()"><span class="mi">pie_chart</span> Allocate <span id="allocLabel">70 / 30</span></button></div>
-<div class="card ben"><h2><span class="mi">group</span> <span class="title-main">Beneficiary Pool</span> <span class="badge ok">AUTO</span></h2><div class="amt" id="benAmt">$0</div>Slider: <input type="range" id="benSlider" min="10" max="20" value="15" oninput="updateBenLabel()"><span id="benLabel">15%</span><div class="row"><span class="mi">payments</span> Each: <b id="perHead">$0</b> / <span id="benCount">0</span></div></div>
-<div class="card fun"><h2><span class="mi">church</span> <span class="title-main">FUNERAL WALLET</span> <span class="title-sub" id="funCapLabel">Cap $6,000 - AUTO</span></h2><div class="amt" id="funAmt">$0 / $6,000</div><div id="funStatus" class="badge wait">Below Cap</div><div class="log" id="funPayLog" style="margin-top:8px">Last: None</div></div>
-<div class="card sch"><h2><span class="mi">school</span> <span class="title-main">SCHOOL FEES</span> <span class="title-sub" id="schCapLabel">Cap $5,000 - AUTO + VERIFIED</span></h2><div class="amt" id="schAmt">$0 / $5,000</div><div id="schStatus" class="badge wait">Below Cap</div><div class="log" id="schPayLog" style="margin-top:8px">Last: None</div></div>
-<div class="card dist"><h2><span class="mi">account_balance</span> <span class="title-main">DISTRIBUTION ACCOUNT</span></h2><div class="amt" id="expAmt">$0</div><span class="badge ok"><span class="mi">lock</span> LOCKED - 3 Trustees + 2 Elders</span><div class="row">Approvals: <b id="expApprove">0/5</b></div><button class="danger" onclick="requestExpansion()"><span class="mi">lock_open</span> Request Withdrawal</button><button class="primary" onclick="allocateDistribution()" style="margin-top:6px;background:#10b981;width:100%;justify-content:center"><span class="mi">call_split</span> Distribute 60/15/10/15 Now</button><div class="log" id="distBreakdown" style="margin-top:8px;font-size:10px">60% Ben Pool | 15% School cap $5000 | 10% Funeral cap $6000 | 15% Reserve stays in Dist</div></div>
+<div class="card trust"><h2><span class="mi">account_balance_wallet</span> <span class="title-main">TRUST ACCOUNT</span></h2><div class="amt" id="mainAmt">Unavailable</div><input id="incomeInput" type="number" placeholder="Enter PRESENT MONTH income - 70% locked"><button onclick="allocate()"><span class="mi">pie_chart</span> Allocate <span id="allocLabel">70 / 30</span></button></div>
+<div class="card ben"><h2><span class="mi">group</span> <span class="title-main">Beneficiary Pool</span> <span class="badge ok">AUTO</span></h2><div class="amt" id="benAmt">Unavailable</div>Slider: <input type="range" id="benSlider" min="10" max="20" value="15" oninput="updateBenLabel()"><span id="benLabel">15%</span><div class="row"><span class="mi">payments</span> Each: <b id="perHead">Unavailable</b> / <span id="benCount">0</span></div></div>
+<div class="card fun"><h2><span class="mi">church</span> <span class="title-main">FUNERAL WALLET</span> <span class="title-sub" id="funCapLabel">Cap $6,000 - AUTO</span></h2><div class="amt" id="funAmt">Unavailable</div><div id="funStatus" class="badge wait">Below Cap</div><div class="log" id="funPayLog" style="margin-top:8px">Last: None</div></div>
+<div class="card sch"><h2><span class="mi">school</span> <span class="title-main">SCHOOL FEES</span> <span class="title-sub" id="schCapLabel">Cap $5,000 - AUTO + VERIFIED</span></h2><div class="amt" id="schAmt">Unavailable</div><div id="schStatus" class="badge wait">Below Cap</div><div class="log" id="schPayLog" style="margin-top:8px">Last: None</div></div>
+<div class="card dist"><h2><span class="mi">account_balance</span> <span class="title-main">DISTRIBUTION ACCOUNT</span></h2><div class="amt" id="expAmt">Unavailable</div><span class="badge ok"><span class="mi">lock</span> LOCKED - 3 Trustees + 2 Elders</span><div class="row">Approvals: <b id="expApprove">0/5</b></div><button class="danger" onclick="requestExpansion()"><span class="mi">lock_open</span> Request Withdrawal</button><button class="primary" onclick="allocateDistribution()" style="margin-top:6px;background:#10b981;width:100%;justify-content:center"><span class="mi">call_split</span> Distribute 60/15/10/15 Now</button><div class="log" id="distBreakdown" style="margin-top:8px;font-size:10px">60% Ben Pool | 15% School cap $5000 | 10% Funeral cap $6000 | 15% Reserve stays in Dist</div></div>
 <div class="card notif"><h2><span class="mi">notifications</span> <span class="title-main">ALERTS STATUS</span></h2><div class="amt" style="font-size:18px" id="notifStatus">Push: OFF<br>Email: OFF<br>WhatsApp: OFF</div><button class="blue" onclick="showSec('notif', document.querySelectorAll('.menu')[9])"><span class="mi">settings</span> Setup Alerts</button></div>
 <!-- NEW FBP ACCOUNT UNDER EXISTING 6 CARDS - AS REQUESTED -->
-<div class="card fpb"><h2><span class="mi">workspace_premium</span> <span class="title-main" style="color:#f9a8d4">FBP ACCOUNT - Founder's Patent Benefit</span> <span class="badge" style="background:#ec489922;color:#ec4899;border:1px solid #ec489944">NEW - 8th Day Sweep Destination</span></h2><div class="amt" id="fpbAmt" style="color:#f9a8d4">$0</div><div class="log" style="font-size:10px;background:#ec489911;border:1px solid #ec489944">Receives 100% of Funeral + School on 8th Day. If not used, founder benefits. Resets Funeral & School to $0.00</div><div id="fpbBreakdown" class="log" style="margin-top:8px;font-size:10px">No sweeps yet - FBP waits for 8th day</div></div>
+<div class="card fpb"><h2><span class="mi">workspace_premium</span> <span class="title-main" style="color:#f9a8d4">FBP ACCOUNT - Founder's Patent Benefit</span> <span class="badge" style="background:#ec489922;color:#ec4899;border:1px solid #ec489944">NEW - 8th Day Sweep Destination</span></h2><div class="amt" id="fpbAmt" style="color:#f9a8d4">Unavailable</div><div class="log" style="font-size:10px;background:#ec489911;border:1px solid #ec489944">Receives 100% of Funeral + School on 8th Day. If not used, founder benefits. Resets Funeral & School to $0.00</div><div id="fpbBreakdown" class="log" style="margin-top:8px;font-size:10px">No sweeps yet - FBP waits for 8th day</div></div>
 
 <div class="card" style="border-left:4px solid #a78bfa; border-right:2px solid #7c3aed; background:linear-gradient(135deg,#1e293b 0%,#1a1033 100%);">
 <h2><span class="mi">security</span> <span class="title-main" style="color:#c4b5fd">LOCK 8 - SILENT ALIAS MONITOR</span> <span class="badge" style="background:#7c3aed22;color:#a78bfa;border:1px solid #7c3aed44">FOUNDER ONLY</span></h2>
@@ -375,9 +375,9 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 </div>
 </div>
 <div id="sec-wallets" class="section"><h1><span class="mi lg">account_balance_wallet</span> Company Wallets (12)</h1><div class="grid" style="margin-top:16px" id="walletGrid"></div><div class="card" style="margin-top:16px"><h2><span class="mi">pie_chart</span> Live Preview</h2><div class="amt" id="totalProfit">$0</div><div id="livePreview"></div></div></div>
-<div id="sec-ben" class="section"><div class="card ben"><h2><span class="mi">group</span> Beneficiary Pool</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0"><input id="newBenName" placeholder="Full Name *"><input id="newBenID" placeholder="ID Number *"><input id="newBenPhone" placeholder="Phone for WhatsApp" style="grid-column:span 2"></div><button class="primary" onclick="addBen()"><span class="mi">person_add</span> Add with ID</button><button class="blue" onclick="exportBenPDF()"><span class="mi">picture_as_pdf</span> Export PDF</button><button class="blue" onclick="previewRegistrationReconciliation()"><span class="mi">fact_check</span> Preview Family Reconciliation</button><div id="registrationReconciliationPreview" style="display:none;margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:10px"><h3 style="margin:0 0 8px">Read-only Family Reconciliation Preview</h3><p id="registrationReconciliationSummary" style="color:var(--muted)"></p><div id="registrationReconciliationRows"></div></div><div class="tabs"><div class="tab active" id="tab-approved" onclick="switchBenTab('approved')">Approved (<span id="countApproved">0</span>)</div><div class="tab" id="tab-pending" onclick="switchBenTab('pending')">Pending Auto (<span id="countPending">0</span>)</div></div><div id="benListApproved"></div><div id="benListPending" style="display:none"></div></div><div class="card" style="margin-top:12px"><h2><span class="mi">history</span> Deletion Log</h2><div class="log" id="delLog">No deletions yet...</div></div></div>
-<div id="sec-fun" class="section"><h1><span class="mi lg">church</span> Funeral</h1><div class="grid"><div class="card fun"><h2><span class="title-main">BALANCE</span></h2><div class="amt" id="funAmt2">$0 / $6,000</div><div id="funStatus2" class="badge wait"></div><div class="log" id="funPayLog2" style="margin-top:10px">No payments</div></div><div class="card"><h2>Test Simulate Claim</h2><input id="testDeceasedName" placeholder="Deceased Name"><input id="testDeceasedID" placeholder="Deceased ID"><select id="testPayTo"><option value="Parlour">Parlour</option><option value="Church">Church</option></select><input type="file" id="testCertFile" accept="image/*,.pdf"><button class="orange" onclick="simulateFuneralClaim()">Submit Cert</button></div></div><div class="card" style="margin-top:16px"><div class="tabs"><div class="tab funTab active" id="funTab-pending" onclick="switchFunTab('pending')">Pending (<span id="countFunPending">0</span>)</div><div class="tab funTab" id="funTab-paid" onclick="switchFunTab('paid')">Paid (<span id="countFunPaid">0</span>)</div></div><div id="funListPending"></div><div id="funListPaid" style="display:none"></div><button class="orange" onclick="exportFuneralPDF()" style="margin-top:12px"><span class="mi">picture_as_pdf</span> Export Funeral PDF</button></div></div>
-<div id="sec-sch" class="section"><h1><span class="mi lg">school</span> School Fees</h1><div class="grid"><div class="card sch"><h2><span class="title-main">BALANCE</span></h2><div class="amt" id="schAmt2">$0 / $5,000</div><div id="schStatus2" class="badge wait"></div><div class="log" id="schPayLog2" style="margin-top:10px">No payments</div></div><div class="card"><h2>Test Simulate Invoice</h2><input id="testStudentName" placeholder="Student Name *"><input id="testStudentID" placeholder="Student ID"><input id="testSchoolName" placeholder="School Name *"><input id="testSchoolAccount" placeholder="School Account *"><input id="testSchoolAmount" type="number" placeholder="Amount *"><input type="file" id="testInvoiceFile" accept="image/*,.pdf"><button class="purple" onclick="simulateSchoolClaim()">Submit Invoice</button></div></div><div class="card" style="margin-top:16px"><h2><span class="mi">verified</span> Verified Schools List</h2><div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0"><input id="newVerifiedSchool" placeholder="School Name"><input id="newVerifiedAccountPrefix" placeholder="Prefix"><button class="purple" onclick="addVerifiedSchool()">Add Verified School</button></div><div id="verifiedSchoolsList" class="log" style="max-height:120px"></div></div><div class="card" style="margin-top:16px"><div class="tabs"><div class="tab schTab active" id="schTab-pending" onclick="switchSchTab('pending')">Pending (<span id="countSchPending">0</span>)</div><div class="tab schTab" id="schTab-paid" onclick="switchSchTab('paid')">Paid Ledger (<span id="countSchPaid">0</span>)</div></div><div id="schListPending"></div><div id="schListPaid" style="display:none"></div><button class="purple" onclick="exportSchoolPDF()" style="margin-top:12px"><span class="mi">picture_as_pdf</span> Export School PDF</button></div></div>
+<div id="sec-ben" class="section"><div class="card"><h2>Recent payout requests</h2><button type="button" onclick="loadFounderPayoutRequests()">Refresh requests</button><ul id="founderPayoutRequests"></ul></div><div class="card ben"><h2><span class="mi">group</span> Beneficiary Pool</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0"><input id="newBenName" placeholder="Full Name *"><input id="newBenID" placeholder="ID Number *"><input id="newBenPhone" placeholder="Phone for WhatsApp" style="grid-column:span 2"></div><button class="primary" onclick="addBen()"><span class="mi">person_add</span> Add with ID</button><button class="blue" onclick="exportBenPDF()"><span class="mi">picture_as_pdf</span> Export PDF</button><button class="blue" onclick="previewRegistrationReconciliation()"><span class="mi">fact_check</span> Preview Family Reconciliation</button><div id="registrationReconciliationPreview" style="display:none;margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:10px"><h3 style="margin:0 0 8px">Read-only Family Reconciliation Preview</h3><p id="registrationReconciliationSummary" style="color:var(--muted)"></p><div id="registrationReconciliationRows"></div></div><div class="tabs"><div class="tab active" id="tab-approved" onclick="switchBenTab('approved')">Approved (<span id="countApproved">0</span>)</div><div class="tab" id="tab-pending" onclick="switchBenTab('pending')">Pending Auto (<span id="countPending">0</span>)</div></div><div id="benListApproved"></div><div id="benListPending" style="display:none"></div></div><div class="card" style="margin-top:12px"><h2><span class="mi">history</span> Deletion Log</h2><div class="log" id="delLog">No deletions yet...</div></div></div>
+<div id="sec-fun" class="section"><h1><span class="mi lg">church</span> Funeral</h1><div class="grid"><div class="card fun"><h2><span class="title-main">BALANCE</span></h2><div class="amt" id="funAmt2">Unavailable</div><div id="funStatus2" class="badge wait"></div><div class="log" id="funPayLog2" style="margin-top:10px">No payments</div></div><div class="card"><h2>Test Simulate Claim</h2><input id="testDeceasedName" placeholder="Deceased Name"><input id="testDeceasedID" placeholder="Deceased ID"><select id="testPayTo"><option value="Parlour">Parlour</option><option value="Church">Church</option></select><input type="file" id="testCertFile" accept="image/*,.pdf"><button class="orange" onclick="simulateFuneralClaim()">Submit Cert</button></div></div><div class="card" style="margin-top:16px"><div class="tabs"><div class="tab funTab active" id="funTab-pending" onclick="switchFunTab('pending')">Pending (<span id="countFunPending">0</span>)</div><div class="tab funTab" id="funTab-paid" onclick="switchFunTab('paid')">Paid (<span id="countFunPaid">0</span>)</div></div><div id="funListPending"></div><div id="funListPaid" style="display:none"></div><button class="orange" onclick="exportFuneralPDF()" style="margin-top:12px"><span class="mi">picture_as_pdf</span> Export Funeral PDF</button></div></div>
+<div id="sec-sch" class="section"><h1><span class="mi lg">school</span> School Fees</h1><div class="grid"><div class="card sch"><h2><span class="title-main">BALANCE</span></h2><div class="amt" id="schAmt2">Unavailable</div><div id="schStatus2" class="badge wait"></div><div class="log" id="schPayLog2" style="margin-top:10px">No payments</div></div><div class="card"><h2>Test Simulate Invoice</h2><input id="testStudentName" placeholder="Student Name *"><input id="testStudentID" placeholder="Student ID"><input id="testSchoolName" placeholder="School Name *"><input id="testSchoolAccount" placeholder="School Account *"><input id="testSchoolAmount" type="number" placeholder="Amount *"><input type="file" id="testInvoiceFile" accept="image/*,.pdf"><button class="purple" onclick="simulateSchoolClaim()">Submit Invoice</button></div></div><div class="card" style="margin-top:16px"><h2><span class="mi">verified</span> Verified Schools List</h2><div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0"><input id="newVerifiedSchool" placeholder="School Name"><input id="newVerifiedAccountPrefix" placeholder="Prefix"><button class="purple" onclick="addVerifiedSchool()">Add Verified School</button></div><div id="verifiedSchoolsList" class="log" style="max-height:120px"></div></div><div class="card" style="margin-top:16px"><div class="tabs"><div class="tab schTab active" id="schTab-pending" onclick="switchSchTab('pending')">Pending (<span id="countSchPending">0</span>)</div><div class="tab schTab" id="schTab-paid" onclick="switchSchTab('paid')">Paid Ledger (<span id="countSchPaid">0</span>)</div></div><div id="schListPending"></div><div id="schListPaid" style="display:none"></div><button class="purple" onclick="exportSchoolPDF()" style="margin-top:12px"><span class="mi">picture_as_pdf</span> Export School PDF</button></div></div>
 
 <!-- ====== NEW ADMIN INVITE SYSTEM - REPLACES OLD SIMPLE ADMIN ROLES - ALL ORIGINAL KEPT BUT ENHANCED ====== -->
 <!-- ====== FOUNDER ADMIN CONTROL CENTRE ====== -->
@@ -473,13 +473,12 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <div id="sec-adminRoles" class="section">
 <div class="card" style="border-left:4px solid #f59e0b">
 <h2><span class="mi">manage_accounts</span> <span class="title-main">Admin Invite System - Email + Password for admin.html + 12 Roles</span></h2>
-<p style="font-size:11px;color:var(--muted)">Founder sets Email + Password. Admin logs into admin.html ONLY. Founder.html is only you. Roles: Trustees, Family Council, Lawyer, Witness, Founder's Executive Assistant, Accountant, Secretary, Employee + Super Admin, Finance, Companies, Support</p>
+<p style="font-size:11px;color:var(--muted)">Founder creates an invitation link. The invitee chooses their password. Admin logs into admin.html ONLY. Founder.html is only you. Roles: Trustees, Family Council, Lawyer, Witness, Founder's Executive Assistant, Accountant, Secretary, Employee + Super Admin, Finance, Companies, Support</p>
 <div style="background:#020617;padding:14px;border-radius:12px;border:1px solid var(--border);margin:12px 0">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
 <input id="adminName" placeholder="Full Name * e.g. John Guvaza">
 <input id="adminEmail" placeholder="Email * e.g. john@guvaza.com - for login">
 <input id="adminPhone" placeholder="Phone * e.g. +26377...">
-<input id="adminPassword" type="text" placeholder="Temp Password * you set e.g. Guvaza123">
 <select id="adminRole" style="grid-column:span 2">
 <option value="">-- Select Role * --</option>
 <option value="Trustees">Trustees - Board, Approval, Finances</option>
@@ -523,7 +522,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 </div>
 
 <div id="sec-approval" class="section"><h1><span class="mi lg">verified_user</span> 5-Man Approval</h1><div class="grid" style="margin-top:16px"><div class="card"><h2><span class="mi">how_to_reg</span> Trustees + Elders</h2><div class="row"><input type="checkbox" id="t1" onchange="checkApproval()" style="width:auto"> Trustee 1</div><div class="row" style="background:#10b98111;padding:8px;border-radius:8px;border:1px solid #10b98144"><input type="checkbox" id="founderIsTrustee" checked onchange="checkApproval()" style="width:auto"> <b>Founder IS Trustee (3/5 = PASS)</b></div><div class="row"><input type="checkbox" id="t2" onchange="checkApproval()" style="width:auto"> Trustee 2</div><div class="row"><input type="checkbox" id="t3" onchange="checkApproval()" style="width:auto"> Trustee 3</div><div class="row"><input type="checkbox" id="e1" onchange="checkApproval()" style="width:auto"> Elder 1</div><div class="row"><input type="checkbox" id="e2" onchange="checkApproval()" style="width:auto"> Elder 2</div><div style="margin-top:16px;background:#020617;padding:12px;border-radius:10px"><div>Count: <b id="approveCount" style="font-size:18px">0/5</b></div><div id="overrideMsg" style="font-size:13px;margin-top:8px;color:#10b981;font-weight:700"></div><div style="margin-top:8px">Distribution Status: <b id="expApprove2">0/5</b></div></div><button class="primary" style="margin-top:12px" onclick="approveWithdrawal()"><span class="mi">check_circle</span> Approve Withdrawal</button></div><div class="card"><h2><span class="mi">lock_open</span> Withdrawal Log</h2><div class="log" id="approvalLog">No withdrawals yet...</div></div></div></div>
-<div id="sec-sweep" class="section"><h1><span class="mi lg">autorenew</span> 8th Day Sweep → FBP</h1><div class="grid" style="margin-top:16px"><div class="card"><h2><span class="mi">calendar_today</span> 8th Day Rule - NOW TO FBP</h2><p>Today: <b id="todayDate"></b></p><p id="windowMsg" style="color:var(--muted);font-size:13px"></p><div style="background:#020617;padding:12px;border-radius:10px;margin:12px 0"><div>Funeral: <b id="sweepFunAmt">$0</b></div><div>School: <b id="sweepSchAmt">$0</b></div><div>Total to FBP: <b id="sweepExpAmt">$0</b> (NEW - not Trust)</div><div>FBP Balance: <b id="sweepFpbAmt">$0</b></div></div><button class="primary" onclick="runEighthSweep()"><span class="mi">sync</span> Run Sweep Now → FBP Account</button><button class="orange" onclick="autoCheckSweepDate()" style="margin-top:8px"><span class="mi">schedule</span> Check if 8th</button><div class="log" style="margin-top:10px;font-size:10px">NEW RULE: 100% sweep to FBP Account - Founder Patent Benefit - NOT Trust. Funeral + School reset to $0.00</div></div><div class="card"><h2><span class="mi">receipt</span> Sweep History</h2><div class="log" id="sweepLog">No sweeps yet...</div><div class="log" id="sweepLog2" style="margin-top:8px"></div></div></div></div>
+<div id="sec-sweep" class="section"><h1><span class="mi lg">autorenew</span> 8th Day Sweep → FBP</h1><div class="grid" style="margin-top:16px"><div class="card"><h2><span class="mi">calendar_today</span> 8th Day Rule - NOW TO FBP</h2><p>Today: <b id="todayDate"></b></p><p id="windowMsg" style="color:var(--muted);font-size:13px"></p><div style="background:#020617;padding:12px;border-radius:10px;margin:12px 0"><div>Funeral: <b id="sweepFunAmt">Unavailable</b></div><div>School: <b id="sweepSchAmt">Unavailable</b></div><div>Total to FBP: <b id="sweepExpAmt">Unavailable</b> (NEW - not Trust)</div><div>FBP Balance: <b id="sweepFpbAmt">Unavailable</b></div></div><button class="primary" onclick="runEighthSweep()"><span class="mi">sync</span> Run Sweep Now → FBP Account</button><button class="orange" onclick="autoCheckSweepDate()" style="margin-top:8px"><span class="mi">schedule</span> Check if 8th</button><div class="log" style="margin-top:10px;font-size:10px">NEW RULE: 100% sweep to FBP Account - Founder Patent Benefit - NOT Trust. Funeral + School reset to $0.00</div></div><div class="card"><h2><span class="mi">receipt</span> Sweep History</h2><div class="log" id="sweepLog">No sweeps yet...</div><div class="log" id="sweepLog2" style="margin-top:8px"></div></div></div></div>
 <div id="sec-daughter" class="section"><h1><span class="mi lg">family_restroom</span> Daughter Rule</h1><div class="grid" style="margin-top:16px"><div class="card"><h2><span class="mi">female</span> Daughter Inheritance</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0"><input id="daughterCount" type="number" placeholder="Number of Daughters" value="2"><input id="sonCount" type="number" placeholder="Number of Sons" value="3"><input id="daughterSharePct" type="number" placeholder="Daughter share % each" value="20"></div><button class="primary" onclick="calculateDaughterRule()"><span class="mi">calculate</span> Calculate</button><div style="background:#020617;padding:12px;border-radius:10px;margin-top:12px"><div id="daughterResult">Enter counts...</div><div id="daughterResult2" class="log" style="margin-top:8px"></div></div></div><div class="card"><h2><span class="mi">balance</span> Equal Share Check</h2><div id="daughterFairness" class="log">Run calculation...</div><button class="blue" onclick="applyDaughterRule()" style="margin-top:12px"><span class="mi">verified</span> Apply Rule</button></div></div></div>
 <div id="sec-notif" class="section"><h1><span class="mi lg">notifications</span> Push + Email + WhatsApp</h1><div class="grid" style="margin-top:16px"><div class="card notif"><h2><span class="mi">notifications_active</span> Push Notifications</h2><button class="primary" onclick="requestPushPermission()"><span class="mi">notifications</span> Enable Push</button><div id="pushStatus" class="badge wait" style="margin-top:8px">Not enabled</div><div style="margin-top:12px"><input id="testPushMsg" placeholder="Test push"><button class="blue" onclick="testPush()">Send Test Push</button></div></div><div class="card"><h2><span class="mi">email</span> Email Alerts</h2><input id="founderEmail" placeholder="Founder Email"><div style="display:flex;gap:8px;align-items:center;margin:8px 0"><span style="font-size:12px">Enable Email</span><div id="emailSwitch" class="switch on" onclick="toggleEmail()"></div><span id="emailLabel" style="font-size:11px;color:#10b981">ON</span></div><button class="blue" onclick="testEmail()"><span class="mi">send</span> Test Email</button><div class="log" id="emailLog" style="margin-top:8px">No emails yet...</div></div><div class="card"><h2><span class="mi">chat</span> WhatsApp Notifications</h2><input id="whatsappNumber" placeholder="WhatsApp"><div style="display:flex;gap:8px;align-items:center;margin:8px 0"><span style="font-size:12px">Enable WhatsApp</span><div id="waSwitch" class="switch on" onclick="toggleWhatsApp()"></div><span id="waLabel" style="font-size:11px;color:#10b981">ON</span></div><button class="primary" style="background:#25D366" onclick="testWhatsApp()"><span class="mi">chat</span> Test WhatsApp</button><div class="log" id="whatsappLog" style="margin-top:8px">No WhatsApp yet...</div></div></div><div class="card" style="margin-top:16px"><h2><span class="mi">history</span> All Alerts History</h2><div class="log" id="allAlertsLog" style="max-height:300px">No alerts yet...</div></div></div>
 <div id="sec-export" class="section"><h1><span class="mi lg">picture_as_pdf</span> Export to PDF</h1><div class="grid" style="margin-top:16px"><div class="card export"><h2><span class="mi">group</span> Beneficiaries Export</h2><button class="blue" onclick="exportBenPDF()"><span class="mi">picture_as_pdf</span> Export Beneficiaries PDF</button><button class="primary" onclick="exportBenCSV()"><span class="mi">table_view</span> Export CSV</button></div><div class="card export"><h2><span class="mi">church</span> Funeral Export</h2><button class="orange" onclick="exportFuneralPDF()"><span class="mi">picture_as_pdf</span> Export Funeral PDF</button><button class="primary" onclick="exportFuneralCSV()"><span class="mi">table_view</span> Export CSV</button></div><div class="card export"><h2><span class="mi">school</span> School Fees Export</h2><button class="purple" onclick="exportSchoolPDF()"><span class="mi">picture_as_pdf</span> Export School PDF</button><button class="primary" onclick="exportSchoolCSV()"><span class="mi">table_view</span> Export CSV</button></div><div class="card export"><h2><span class="mi">receipt_long</span> Full Trust Report PDF</h2><button class="primary" onclick="exportFullReportPDF()"><span class="mi">picture_as_pdf</span> Export FULL Report PDF</button></div></div><div class="card" style="margin-top:16px"><h2><span class="mi">history</span> Export Log</h2><div class="log" id="exportLog">No exports yet...</div></div></div>
@@ -1177,7 +1176,7 @@ async function checkFounderSession() {
       // Server has authenticated the Founder.
       // Remove the login screen and reveal the dashboard.
       loginBox.remove();
-      await loadFounderAdmins();
+      await Promise.all([loadFounderAdmins(), loadFounderWalletBalances()]);
       console.log(
         'Founder server authentication successful.'
       );
@@ -1309,7 +1308,7 @@ function save2FA() {
 
 
 // Check the authenticated Founder session when the page loads.
-checkFounderSession();
+checkFounderSession().then(loadFounderWalletBalances);
 
 let autoApprove=JSON.parse(localStorage.getItem('guvaza_auto_approve')??'true');
 let emailEnabled=JSON.parse(localStorage.getItem('guvaza_email_enabled')??'true');
@@ -1324,32 +1323,39 @@ function updateFounderHeader(id){
  const x=map[id]||['Founder Control Centre','The Guvaza Family Trust Founder administration panel.'];
  const h=document.getElementById('founderHeaderTitle'),p=document.getElementById('founderHeaderSubtitle');if(h)h.innerHTML='<span class="mi lg">admin_panel_settings</span> FOUNDER — '+x[0];if(p){p.innerHTML='';p.appendChild(document.createTextNode(x[1]+' | '));const badge=document.createElement('span');badge.id='configLoadedBadge';badge.textContent='Loading config...';p.appendChild(badge);}if(typeof refreshConfigDisplay==='function')refreshConfigDisplay();
 }
-function showSec(id, el){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));let t=document.getElementById('sec-'+id);if(t)t.classList.add('active');document.querySelectorAll('.menu').forEach(m=>m.classList.remove('active'));if(el)el.classList.add('active');updateFounderHeader(id);if(id==='ben')renderBens();if(id==='fun')renderFuneral();if(id==='sch')renderSchool();if(id==='adminRoles')renderAdmins();if(id==='adminControl')refreshAdminControlCentre();if(id==='approval')checkApproval();if(id==='sweep')updateSweepUI();if(id==='daughter')calculateDaughterRule();if(id==='notif')renderNotif();if(id==='export')renderExport();if(id==='siteSettings')renderSiteSettings();if(id==='wallets'){let wg=document.getElementById('walletGrid');if(wg&&customConfig.companies){wg.innerHTML='';customConfig.companies.forEach((comp)=>{wg.innerHTML+=`<div class="card" style="border-left-color:${comp.color||'#10b981'}"><h2><span class="mi">business</span> Co ${comp.id} - ${comp.name}</h2><p style="font-size:11px;color:var(--muted)">${comp.info||''}<br>Banner: ${(comp.banner||'').substring(0,40)}<br>Gallery: ${(comp.gallery||[]).length} pics</p><div style="margin-top:8px;display:flex;gap:8px"><img src="${comp.logo}" onerror="this.style.display='none'" style="max-width:60px;max-height:40px;border-radius:6px"><img src="${comp.banner}" onerror="this.style.display='none'" style="max-width:90px;max-height:40px;border-radius:6px"></div><input type="number" id="c${comp.id}" placeholder="Profit $" value="${comp.profit||0}" oninput="saveCompanyWallets()"></div>`;});}}}
+function showSec(id, el){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));let t=document.getElementById('sec-'+id);if(t)t.classList.add('active');document.querySelectorAll('.menu').forEach(m=>m.classList.remove('active'));if(el)el.classList.add('active');updateFounderHeader(id);if(id==='ben'){renderBens();loadFounderPayoutRequests();}if(id==='fun')renderFuneral();if(id==='sch')renderSchool();if(id==='adminRoles')renderAdmins();if(id==='adminControl')refreshAdminControlCentre();if(id==='approval')checkApproval();if(id==='sweep')updateSweepUI();if(id==='daughter')calculateDaughterRule();if(id==='notif')renderNotif();if(id==='export')renderExport();if(id==='siteSettings')renderSiteSettings();if(id==='wallets'){let wg=document.getElementById('walletGrid');if(wg&&customConfig.companies){wg.innerHTML='';customConfig.companies.forEach((comp)=>{wg.innerHTML+=`<div class="card" style="border-left-color:${comp.color||'#10b981'}"><h2><span class="mi">business</span> Co ${comp.id} - ${comp.name}</h2><p style="font-size:11px;color:var(--muted)">${comp.info||''}<br>Banner: ${(comp.banner||'').substring(0,40)}<br>Gallery: ${(comp.gallery||[]).length} pics</p><div style="margin-top:8px;display:flex;gap:8px"><img src="${comp.logo}" onerror="this.style.display='none'" style="max-width:60px;max-height:40px;border-radius:6px"><img src="${comp.banner}" onerror="this.style.display='none'" style="max-width:90px;max-height:40px;border-radius:6px"></div><input type="number" id="c${comp.id}" placeholder="Profit $" value="${comp.profit||0}" oninput="saveCompanyWallets()"></div>`;});}}}
 
 // === ENGINE WITH FBP + BEN 24H EQUAL + PAY NOW BUTTON AUTO-INJECT ===
-let wallets={
-  exp: parseFloat(localStorage.getItem('guvaza_dist')||'0'),
-  ben: parseFloat(localStorage.getItem('guvaza_ben_pool')||'0'),
-  fun: parseFloat(localStorage.getItem('guvaza_fun')||'3200'),
-  sch: parseFloat(localStorage.getItem('guvaza_sch')||'1200'),
-  main: parseFloat(localStorage.getItem('guvaza_trust')||'10000'),
-  fpb: parseFloat(localStorage.getItem('guvaza_fpb')||'0'),
-  reserve: parseFloat(localStorage.getItem('guvaza_reserve')||'0')
-};
-let benWallets = JSON.parse(localStorage.getItem('guvaza_ben_wallets')||'{}');
-let benPoolLoadedAt = parseInt(localStorage.getItem('guvaza_ben_pool_loaded_at')||'0');
-let benPoolPayouts = JSON.parse(localStorage.getItem('guvaza_ben_pool_payouts')||'[]');
-function saveWallets(){
-  localStorage.setItem('guvaza_dist', wallets.exp);
-  localStorage.setItem('guvaza_ben_pool', wallets.ben);
-  localStorage.setItem('guvaza_fun', wallets.fun);
-  localStorage.setItem('guvaza_sch', wallets.sch);
-  localStorage.setItem('guvaza_trust', wallets.main);
-  localStorage.setItem('guvaza_fpb', wallets.fpb);
-  localStorage.setItem('guvaza_reserve', wallets.reserve);
-  localStorage.setItem('guvaza_ben_wallets', JSON.stringify(benWallets));
-  if(benPoolLoadedAt) localStorage.setItem('guvaza_ben_pool_loaded_at', benPoolLoadedAt.toString()); else localStorage.removeItem('guvaza_ben_pool_loaded_at');
-  localStorage.setItem('guvaza_ben_pool_payouts', JSON.stringify(benPoolPayouts.slice(0,50)));
+let wallets = {};
+
+const benPoolPayouts = [];
+async function loadFounderPayoutRequests(){
+  const list = document.getElementById("founderPayoutRequests");
+  list.textContent = "Loading payout requests…";
+  try {
+    const response = await fetch("/api/founder/payout-requests", {cache:"no-store"});
+    if (!response.ok) throw new Error("Payout requests unavailable.");
+    const {requests} = await response.json();
+    list.replaceChildren();
+    if (!requests.length) { list.textContent = "No payout requests recorded."; return; }
+    for (const row of requests) {
+      const item = document.createElement("li");
+      item.textContent = [row.payout_id, row.currency + " " + row.amount, row.status, new Date(row.created_at).toLocaleDateString()].join(" · ");
+      list.append(item);
+    }
+  } catch { list.textContent = "Payout requests unavailable."; }
+}
+async function loadFounderWalletBalances(){
+  try {
+    const response = await fetch('/api/founder/wallet-balances', {cache:'no-store'});
+    if (!response.ok) { wallets = {}; return; }
+    wallets = (await response.json()).wallets || {};
+  } catch (error) { wallets = {}; }
+  finally { updateUI(); }
+}
+function walletDisplay(key){
+  const wallet = wallets[key];
+  return wallet?.balance == null ? "Unavailable" : wallet.currency + " " + wallet.balance;
 }
 let benCount=0;
 function log(msg){let a=document.getElementById('audit');if(!a)return;a.innerHTML=`[${new Date().toLocaleTimeString()}] ${msg}<br>`+a.innerHTML; addAlertLog(msg);}
@@ -1357,146 +1363,37 @@ document.getElementById('todayDate').innerText=new Date().toLocaleDateString();
 let day=new Date().getDate();
 document.getElementById('windowMsg').innerText=day===8?`TODAY IS 8TH - SWEEP TO FBP ENABLED (Day ${day})`:`Day ${day} - Sweep only on 8th`;
 
-function allocate(){
-  let presentIncome = parseFloat(document.getElementById('incomeInput').value);
-  if(!presentIncome || presentIncome<=0) return alert('Enter PRESENT MONTH income');
-  let oldTrust = wallets.main;
-  let addToTrust = presentIncome * 0.70;
-  let addToDist = presentIncome * 0.30;
-  wallets.main = oldTrust + addToTrust;
-  wallets.exp = (wallets.exp||0) + addToDist;
-  saveWallets(); updateUI();
-  log(`ALLOCATE: Present $${presentIncome} -> Trust +$${addToTrust.toFixed(2)} + Dist +$${addToDist.toFixed(2)}`);
-  alert(`Trust $${wallets.main.toFixed(2)} | Dist $${addToDist.toFixed(2)} - Approve then Distribute`);
-}
-
-function allocateDistribution(){
-  let c=['t1','t2','t3','e1','e2'].filter(id=>document.getElementById(id)?.checked).length;
-  let isT=document.getElementById('founderIsTrustee')?.checked;
-  let pass=(isT&&c>=3)||c>=5;
-  if(!pass) return alert(`Need 5-man! Have ${c}/5`);
-  if(wallets.exp<=0) return alert('Distribution $0');
-  let distTotal = wallets.exp;
-  let toBen = distTotal * 0.60;
-  let toSchoolReq = distTotal * 0.15;
-  let toFuneralReq = distTotal * 0.10;
-  let toReserveReq = distTotal * 0.15;
-  let schoolSpace = Math.max(0, CFG.caps.school - wallets.sch);
-  let schoolAdd = Math.min(toSchoolReq, schoolSpace);
-  let leftoverSchool = toSchoolReq - schoolAdd;
-  let funeralSpace = Math.max(0, CFG.caps.funeral - wallets.fun);
-  let funeralAdd = Math.min(toFuneralReq, funeralSpace);
-  let leftoverFuneral = toFuneralReq - funeralAdd;
-  wallets.ben += toBen;
-  wallets.sch += schoolAdd;
-  wallets.fun += funeralAdd;
-  wallets.reserve = toReserveReq + leftoverSchool + leftoverFuneral;
-  wallets.exp = wallets.reserve;
-  benPoolLoadedAt = Date.now();
-  saveWallets(); updateUI();
-  let msg=`DIST $${distTotal.toFixed(2)} = Ben 60% $${toBen.toFixed(2)} timer start | School +$${schoolAdd.toFixed(2)} | Funeral +$${funeralAdd.toFixed(2)} | Reserve $${wallets.reserve.toFixed(2)}`;
-  document.getElementById('distBreakdown').innerText=msg + `\nBEN TIMER: ${new Date(benPoolLoadedAt).toLocaleString()} -> Auto in 24h = $${benCount? (wallets.ben/benCount).toFixed(2):'0'} each to ${benCount} bens`;
-  log(msg);
-  alert(`Ben Pool $${wallets.ben.toFixed(2)} loaded! Auto payout in 24h to ${benCount} bens = $${benCount? (wallets.ben/benCount).toFixed(2):'0'} each`);
-}
-
-function checkBen24hPayout(force=false){
-  if(wallets.ben<=0) return false;
-  if(!benPoolLoadedAt &&!force) return false;
-  let now = Date.now();
-  let diff = now - benPoolLoadedAt;
-  if(!force && diff < 86400000) return false;
-  let bensList = JSON.parse(localStorage.getItem('guvaza_bens')||'[]');
-  if(bensList.length===0) return false;
-  let perHead = wallets.ben / bensList.length;
-  bensList.forEach(b=>{ benWallets[b.id] = (parseFloat(benWallets[b.id])||0) + perHead; });
-  let payout = {date:new Date().toLocaleString(), total:wallets.ben, count:bensList.length, perHead:perHead};
-  benPoolPayouts.unshift(payout);
-  log(`BEN 24H PAYOUT $${wallets.ben.toFixed(2)} / ${bensList.length} = $${perHead.toFixed(2)} each`);
-  addAlertLog(`BEN PAYOUT $${wallets.ben.toFixed(2)} -> ${bensList.length} x $${perHead.toFixed(2)}`);
-  sendPushNotification('Ben Pool Paid', `Ben $${wallets.ben.toFixed(2)} -> ${bensList.length} x $${perHead.toFixed(2)}`);
-  wallets.ben = 0; benPoolLoadedAt = 0; saveWallets(); updateUI(); renderBens();
-  alert(`PAYOUT DONE! $${payout.total.toFixed(2)} -> ${payout.count} bens x $${payout.perHead.toFixed(2)} each added to login wallets`);
-  return true;
-}
-function manualBenPayoutNow(){ if(wallets.ben<=0) return alert('Ben Pool $0 - nothing to pay'); if(!confirm(`Force pay $${wallets.ben.toFixed(2)} to ${benCount} bens now? Bypasses 24h timer`)) return; checkBen24hPayout(true); }
-setInterval(()=>{ checkBen24hPayout(false); }, 60000);
-setTimeout(()=>{ checkBen24hPayout(false); }, 5000);
-
+function allocate(){alert("This action requires the server payment workflow.");}
+function allocateDistribution(){alert("This action requires the server payment workflow.");}
+function manualBenPayoutNow(){alert("This action requires the server payment workflow.");}
 function updateUI(){
-  document.getElementById('expAmt').innerText=`$${wallets.exp.toFixed(2)}`;
-  let benTimerTxt = '';
-  if(wallets.ben>0 && benPoolLoadedAt){
-    let remaining = (benPoolLoadedAt + 86400000) - Date.now();
-    if(remaining<=0) benTimerTxt = ' - READY NOW! Click Force Pay';
-    else { let hrs=Math.floor(remaining/3600000); let mins=Math.floor((remaining%3600000)/60000); benTimerTxt = ` - Auto in ${hrs}h ${mins}m`; }
+  const fields = {mainAmt:"main",benAmt:"ben",funAmt:"fun",funAmt2:"fun",schAmt:"sch",schAmt2:"sch",
+    expAmt:"exp",fpbAmt:"fpb",sweepFunAmt:"fun",sweepSchAmt:"sch",sweepFpbAmt:"fpb"};
+  for (const [id,key] of Object.entries(fields)) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = walletDisplay(key);
   }
-  document.getElementById('benAmt').innerText=`$${wallets.ben.toFixed(2)}${benTimerTxt}`;
-  document.getElementById('funAmt').innerText=`$${wallets.fun.toFixed(2)} / $${CFG.caps.funeral}`;
-  if(document.getElementById('funAmt2'))document.getElementById('funAmt2').innerText=`$${wallets.fun.toFixed(2)} / $${CFG.caps.funeral}`;
-  document.getElementById('schAmt').innerText=`$${wallets.sch.toFixed(2)} / $${CFG.caps.school}`;
-  if(document.getElementById('schAmt2'))document.getElementById('schAmt2').innerText=`$${wallets.sch.toFixed(2)} / $${CFG.caps.school}`;
-  if(document.getElementById('fpbAmt')) document.getElementById('fpbAmt').innerText=`$${wallets.fpb.toFixed(2)}`;
-  let fStat=wallets.fun>=CFG.caps.funeral?'<span class="badge ok">Capped</span>':`<span class="badge wait">Need $${(CFG.caps.funeral-wallets.fun).toFixed(2)}</span>`;
-  document.getElementById('funStatus').innerHTML=fStat;if(document.getElementById('funStatus2'))document.getElementById('funStatus2').innerHTML=fStat;
-  let sStat=wallets.sch>=CFG.caps.school?'<span class="badge ok">Capped</span>':`<span class="badge wait">Need $${(CFG.caps.school-wallets.sch).toFixed(2)}</span>`;
-  document.getElementById('schStatus').innerHTML=sStat;if(document.getElementById('schStatus2'))document.getElementById('schStatus2').innerHTML=sStat;
-  document.getElementById('perHead').innerText=`$${(benCount? wallets.ben/benCount:0).toFixed(2)}`;
-  document.getElementById('mainAmt').innerText=`$${wallets.main.toFixed(2)}`;
-  document.getElementById('benCount').innerText=benCount;
-  updateSweepUI();
-  injectBenPayButtons();
+  for (const id of ["sweepSchNeed","sweepExpAmt","perHead","funStatus","funStatus2","schStatus","schStatus2"]) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = "Unavailable";
+  }
+  document.getElementById("benCount").textContent = benCount;
 }
 function updateBenLabel(){document.getElementById('benLabel').innerText=document.getElementById('benSlider').value+'%';}updateUI();
-function injectBenPayButtons(){
-  // Inject Force Pay Now button in master ben card if not exists
-  let benCard = document.querySelector('.card.ben');
-  if(benCard &&!document.getElementById('forcePayBtnMaster')){
-    let perHeadRow = benCard.querySelector('#perHead')?.parentElement;
-    if(perHeadRow){
-      let btn = document.createElement('button');
-      btn.id='forcePayBtnMaster';
-      btn.className='blue';
-      btn.style.cssText='margin-top:8px;width:100%;justify-content:center;background:#3b82f6';
-      btn.innerHTML='<span class="mi">bolt</span> Force Pay Now - Bypass 24h (Test)';
-      btn.onclick=manualBenPayoutNow;
-      perHeadRow.parentElement.insertBefore(btn, perHeadRow.nextSibling);
-      let logDiv = document.createElement('div');
-      logDiv.id='benPayoutHistory';
-      logDiv.className='log';
-      logDiv.style.cssText='margin-top:8px;font-size:10px';
-      logDiv.innerText='No payouts yet - auto after 24h';
-      btn.parentElement.insertBefore(logDiv, btn.nextSibling);
-    }
-  }
-  // Inject in Ben section tab
-  let benSec = document.getElementById('sec-ben');
-  if(benSec &&!document.getElementById('forcePayBtnSec')){
-    let firstBtn = benSec.querySelector('button');
-    if(firstBtn){
-      let btn2 = document.createElement('button');
-      btn2.id='forcePayBtnSec';
-      btn2.className='primary';
-      btn2.style.cssText='background:#ec4899;margin-left:6px';
-      btn2.innerHTML='<span class="mi">payments</span> Force 24h Payout Now to Login Wallets';
-      btn2.onclick=manualBenPayoutNow;
-      firstBtn.parentElement.insertBefore(btn2, firstBtn.nextSibling);
-    }
-  }
-}
+
 function checkApproval(){let c=['t1','t2','t3','e1','e2'].filter(id=>document.getElementById(id)?.checked).length;let isT=document.getElementById('founderIsTrustee')?.checked;document.getElementById('approveCount').innerText=c+'/5';document.getElementById('expApprove').innerText=c+'/5';if(document.getElementById('expApprove2'))document.getElementById('expApprove2').innerText=c+'/5';let msg=document.getElementById('overrideMsg');if(isT&&c>=3&&c<5){msg.innerText='FOUNDER OVERRIDE: 3/5 = PASS';}else if(c>=5){msg.innerText='5/5 APPROVED';}else{msg.innerText=`Need ${isT?'3/5':'5/5'} Have ${c}/5`;}}
-function requestExpansion(){checkApproval();log('Withdrawal requested');}
-function approveWithdrawal(){let c=['t1','t2','t3','e1','e2'].filter(id=>document.getElementById(id).checked).length;let isT=document.getElementById('founderIsTrustee').checked;let pass=(isT&&c>=3)||c>=5;if(pass){document.getElementById('approvalLog').innerHTML=`[${new Date().toLocaleString()}] APPROVED ${c}/5<br>`+document.getElementById('approvalLog').innerHTML;log(`APPROVED ${c}/5`);alert(`Approved ${c}/5`);}else alert(`Need ${isT?'3/5':'5/5'} Have ${c}/5`);}
-function updateSweepUI(){if(!document.getElementById('sweepFunAmt'))return;document.getElementById('sweepFunAmt').innerText=`$${wallets.fun.toFixed(2)}`;document.getElementById('sweepSchAmt').innerText=`$${wallets.sch.toFixed(2)}`;let total=wallets.fun+wallets.sch;if(document.getElementById('sweepSchNeed'))document.getElementById('sweepSchNeed').innerText=`$0 (to FBP)`;document.getElementById('sweepExpAmt').innerText=`$${total.toFixed(2)} → FBP`;if(document.getElementById('sweepFpbAmt'))document.getElementById('sweepFpbAmt').innerText=`$${wallets.fpb.toFixed(2)}`;}
-function runEighthSweep(){let funBefore=wallets.fun;let schBefore=wallets.sch;let totalSweep=funBefore+schBefore;if(totalSweep<=0)return alert('Nothing to sweep');wallets.fpb=(wallets.fpb||0)+totalSweep;wallets.fun=0;wallets.sch=0;saveWallets();updateUI();let msg=`[${new Date().toLocaleString()}] SWEEP → FBP: $${totalSweep.toFixed(2)}`;document.getElementById('sweepLog').innerHTML=msg+'<br>'+document.getElementById('sweepLog').innerHTML;log(msg);alert(`Sweep to FBP $${totalSweep.toFixed(2)} Done!`);}
-function autoCheckSweepDate(){let d=new Date().getDate();if(d===8){runEighthSweep();}else alert(`Today ${d} not 8th`);}
-function calculateDaughterRule(){let dCount=parseInt(document.getElementById('daughterCount').value)||0;let sCount=parseInt(document.getElementById('sonCount').value)||0;let dPct=parseFloat(document.getElementById('daughterSharePct').value)||20;let totalPeople=dCount+sCount;if(totalPeople===0)return;let totalPool=wallets.ben||10000;let eachDaughter=totalPool*(dPct/100);let daughterTotal=dCount*eachDaughter;let remaining=totalPool-daughterTotal;let sonShare=sCount>0?remaining/sCount:0;let result=`Total Pool: $${totalPool.toFixed(2)}<br>Daughters: ${dCount} x $${eachDaughter.toFixed(2)} = $${daughterTotal.toFixed(2)}<br>Sons: ${sCount} x $${sonShare.toFixed(2)} = $${(sonShare*sCount).toFixed(2)}`;document.getElementById('daughterResult').innerHTML=result;document.getElementById('daughterResult2').innerHTML=`[${new Date().toLocaleString()}] D=${dCount} S=${sCount} D%=${dPct}`;document.getElementById('daughterFairness').innerHTML=`Daughters each $${eachDaughter.toFixed(2)} Sons each $${sonShare.toFixed(2)}`;log(`Daughter Rule D=${dCount} S=${sCount}`);}
-function applyDaughterRule(){calculateDaughterRule();log('Applied');alert('Applied');}
+function requestExpansion(){alert("Withdrawal requests require the server payment workflow.");}
+function approveWithdrawal(){alert("Approval requires a server-recorded decision.");}
+function updateSweepUI(){}
+function runEighthSweep(){alert("This action requires the server payment workflow.");}
+function autoCheckSweepDate(){alert("This action requires the server payment workflow.");}
+function calculateDaughterRule(){alert("This action requires the server payment workflow.");}
+function applyDaughterRule(){alert("This action requires the server payment workflow.");}
 const companies=['Transport','Mining','Property','Logistics','Agric','Retail','Tech','Energy','Construction','Import/Export','Finance','Education'];
 const grid=document.getElementById('walletGrid');
-if(grid){ companies.forEach((name,i)=>{let id=i+1;grid.innerHTML+=`<div class="card"><h2><span class="mi">business</span> Co ${id} - ${name}</h2><input type="number" id="c${id}" placeholder="Profit $" oninput="saveCompanyWallets()"></div>`;});}
-function saveCompanyWallets(){let profits={},total=0;companies.forEach((_,i)=>{let v=parseFloat(document.getElementById('c'+(i+1))?.value)||0;profits['c'+(i+1)]=v;total+=v;});localStorage.setItem('guvaza_profits',JSON.stringify({profits,total,date:new Date().toISOString()}));document.getElementById('totalProfit').textContent=`$${total.toLocaleString()}`;document.getElementById('livePreview').innerHTML=`Total: <b>$${total.toLocaleString()}</b>`;document.getElementById('incomeInput').value=total;updateUI();}
-(function loadWallets(){let s=JSON.parse(localStorage.getItem('guvaza_profits')||'null');if(s){companies.forEach((_,i)=>{let el=document.getElementById('c'+(i+1));if(el)el.value=s.profits['c'+(i+1)]||0;});saveCompanyWallets();}})();
+if(grid){ companies.forEach((name,i)=>{let id=i+1;grid.innerHTML+=`<div class="card"><h2><span class="mi">business</span> Co ${id} - ${name}</h2><input type="number" id="c${id}" placeholder="Profit $" oninput="saveCompanyWallets()" placeholder="Unavailable" disabled></div>`;});}
+function saveCompanyWallets(){alert("This action requires the server payment workflow.");}
+
 let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');let pendingRegs=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');let delLogs=JSON.parse(localStorage.getItem('guvaza_del_log')||'[]');let deleteIndex=-1,editIndex=-1;
 function switchBenTab(tab){document.getElementById('tab-approved').classList.toggle('active', tab==='approved');document.getElementById('tab-pending').classList.toggle('active', tab==='pending');document.getElementById('benListApproved').style.display=tab==='approved'?'block':'none';document.getElementById('benListPending').style.display=tab==='pending'?'block':'none';renderBens();}
 async function previewRegistrationReconciliation(){
@@ -1533,8 +1430,7 @@ async function renderBens(){
   if(listA){
     listA.innerHTML='';
     bens.forEach((b,i)=>{
-      const bal=parseFloat(benWallets[b.id])||0;
-      listA.innerHTML+=`<div class="ben-item"><div class="ben-info"><b>${b.name}</b> <span class="badge blue">Legacy local record</span> <span class="badge blue">Login Wallet $${bal.toFixed(2)}</span><br><small>ID:${b.id} | ${b.phone||''}<br>Personal Wallet: $${bal.toFixed(2)} - Existing local wallet record</small></div><div class="ben-actions"><button class="icon-btn edit" onclick="openEditModal(${i})">Edit</button><button class="icon-btn del" onclick="openDeleteModal(${i})">Delete</button></div></div>`;
+      listA.innerHTML+=`<div class="ben-item"><div class="ben-info"><b>${b.name}</b> <span class="badge blue">Legacy local record</span> <span class="badge blue">Login Wallet unavailable</span><br><small>ID:${b.id} | ${b.phone||''}<br></small></div><div class="ben-actions"><button class="icon-btn edit" onclick="openEditModal(${i})">Edit</button><button class="icon-btn del" onclick="openDeleteModal(${i})">Delete</button></div></div>`;
     });
     try{
       const poolResponse=await fetch('/api/beneficiaries/admin/pool',{credentials:'include',cache:'no-store'});
@@ -1654,7 +1550,7 @@ async function renderBens(){
   renderDelLog();
   const histEl=document.getElementById('benPayoutHistory');
   if(histEl){
-    if(benPoolPayouts.length===0)histEl.innerHTML='No payouts yet - existing local pool only | '+(wallets.ben>0?`Pool $${wallets.ben.toFixed(2)} waiting`:'Pool empty');
+    if(benPoolPayouts.length===0)histEl.textContent="Payment history unavailable";
     else histEl.innerHTML=benPoolPayouts.slice(0,10).map(p=>`[${p.date}] $${p.total.toFixed(2)}/${p.count}=$${p.perHead.toFixed(2)} each`).join('<br>');
   }
 }
@@ -1748,50 +1644,213 @@ async function saveWifeCorrection(){
   }catch(error){alert(error.message||'Wife correction failed.');save.disabled=false;}
 }
 
-function addBen(){let name=document.getElementById('newBenName').value.trim();let id=document.getElementById('newBenID').value.trim();let phone=document.getElementById('newBenPhone').value.trim();if(!name||!id)return alert('Name+ID');if(bens.some(b=>b.id===id))return alert('ID exists');bens.push({name,id,phone,dateAdded:new Date().toLocaleString()});if(!(id in benWallets)) benWallets[id]=0;saveWallets();document.getElementById('newBenName').value='';document.getElementById('newBenID').value='';document.getElementById('newBenPhone').value='';renderBens();log(`Added ${name}`);}
+function addBen(){let name=document.getElementById('newBenName').value.trim();let id=document.getElementById('newBenID').value.trim();let phone=document.getElementById('newBenPhone').value.trim();if(!name||!id)return alert('Name+ID');if(bens.some(b=>b.id===id))return alert('ID exists');bens.push({name,id,phone,dateAdded:new Date().toLocaleString()});localStorage.setItem("guvaza_bens", JSON.stringify(bens));document.getElementById('newBenName').value='';document.getElementById('newBenID').value='';document.getElementById('newBenPhone').value='';renderBens();log(`Added ${name}`);}
 async function approvePending(i){await renderBens();}
 function rejectPending(i){alert('Rejection is not available yet because the server has no registration rejection endpoint. This application remains pending.');}
 function openEditModal(i){editIndex=i;document.getElementById('editNameInput').value=bens[i].name;document.getElementById('editIDInput').value=bens[i].id;document.getElementById('editPhoneInput').value=bens[i].phone||'';document.getElementById('editModal').classList.add('show');}
 function closeEditModal(){document.getElementById('editModal').classList.remove('show');}
-function confirmEdit(){let nn=document.getElementById('editNameInput').value.trim();let nid=document.getElementById('editIDInput').value.trim();let nphone=document.getElementById('editPhoneInput').value.trim();if(!nn||!nid||editIndex<0)return;if(bens.some((b,idx)=>idx!==editIndex && b.id===nid))return alert('ID used');let oldId=bens[editIndex].id;if(oldId!==nid && benWallets[oldId]!=null){benWallets[nid]=(benWallets[nid]||0)+(benWallets[oldId]||0);delete benWallets[oldId];}bens[editIndex].name=nn;bens[editIndex].id=nid;bens[editIndex].phone=nphone;localStorage.setItem('guvaza_bens',JSON.stringify(bens));saveWallets();renderBens();closeEditModal();}
+function confirmEdit(){let nn=document.getElementById('editNameInput').value.trim();let nid=document.getElementById('editIDInput').value.trim();let nphone=document.getElementById('editPhoneInput').value.trim();if(!nn||!nid||editIndex<0)return;if(bens.some((b,idx)=>idx!==editIndex && b.id===nid))return alert('ID used');bens[editIndex].name=nn;bens[editIndex].id=nid;bens[editIndex].phone=nphone;localStorage.setItem('guvaza_bens',JSON.stringify(bens));renderBens();closeEditModal();}
 function openDeleteModal(i){deleteIndex=i;document.getElementById('deleteName').innerText=bens[i].name;document.getElementById('deleteID').innerText=bens[i].id;document.getElementById('deleteModal').classList.add('show');}
 function closeDeleteModal(){document.getElementById('deleteModal').classList.remove('show');}
 function confirmDelete(){if(deleteIndex<0)return;let removed=bens.splice(deleteIndex,1)[0];delLogs.unshift({name:removed.name,id:removed.id,reason:'Manual delete',time:new Date().toLocaleString()});localStorage.setItem('guvaza_del_log',JSON.stringify(delLogs));localStorage.setItem('guvaza_bens',JSON.stringify(bens));renderBens();closeDeleteModal();}
 function renderDelLog(){let el=document.getElementById('delLog');if(!el)return;if(delLogs.length===0){el.innerText='No deletions';return;}el.innerHTML=delLogs.map(d=>`[${d.time}] ${d.name} ID:${d.id} - ${d.reason}`).join('<br>');}
 renderBens();
-function autoApprovePendingRegs(){if(!autoApprove)return;pendingRegs=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');if(pendingRegs.length===0)return;let rem=[];pendingRegs.forEach(p=>{if(p.id&&p.name&&!bens.some(b=>b.id===p.id)){bens.push({name:p.name,id:p.id,phone:p.phone||'',dateAdded:new Date().toLocaleString()+' (AUTO)'});if(!(p.id in benWallets)) benWallets[p.id]=0;saveWallets();log(`AUTO APPROVED ${p.name}`);}else rem.push(p);});localStorage.setItem('guvaza_bens',JSON.stringify(bens));localStorage.setItem('guvaza_pending_regs',JSON.stringify(rem));renderBens();}
+
 // Automatic local-storage approval disabled: server registrations require authorised review.
-let funeralRequests=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');let funeralPaid=JSON.parse(localStorage.getItem('guvaza_funeral_paid')||'[]');
+const funeralRequests = [], funeralPaid = [];
 function switchFunTab(tab){document.getElementById('funTab-pending').classList.toggle('active', tab==='pending');document.getElementById('funTab-paid').classList.toggle('active', tab==='paid');document.getElementById('funListPending').style.display=tab==='pending'?'block':'none';document.getElementById('funListPaid').style.display=tab==='paid'?'block':'none';renderFuneral();}
-function renderFuneral(){funeralRequests=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');funeralPaid=JSON.parse(localStorage.getItem('guvaza_funeral_paid')||'[]');let listP=document.getElementById('funListPending');listP.innerHTML='';if(funeralRequests.length===0)listP.innerHTML='<p style="color:var(--muted)">No pending funeral</p>';else funeralRequests.forEach((r,i)=>{listP.innerHTML+=`<div class="deceased-card"><b>Deceased: ${r.deceasedName}</b> ID:${r.deceasedID} PayTo:${r.payTo}<br><small>${r.dateSubmitted}</small><div class="ben-actions"><button class="icon-btn view" onclick="viewCert(${i},'pending','funeral')">View Cert</button><button class="icon-btn approve" onclick="approveFuneral(${i})">Force Pay $${CFG.caps.funeralPayout}</button><button class="icon-btn del" onclick="rejectFuneral(${i})">Reject</button></div></div>`;});let listPaid=document.getElementById('funListPaid');listPaid.innerHTML='';if(funeralPaid.length===0)listPaid.innerHTML='<p style="color:var(--muted)">No paid</p>';else funeralPaid.forEach((r,i)=>{listPaid.innerHTML+=`<div class="ben-item" style="border-left:4px solid #10b981"><div class="ben-info"><b>${r.deceasedName}</b> - $${r.amount} → ${r.payTo}<br><small>ID:${r.deceasedID} | ${r.datePaid}</small></div><div class="ben-actions"><button class="icon-btn view" onclick="viewCert(${i},'paid','funeral')">Cert</button></div></div>`;});document.getElementById('countFunPending').innerText=funeralRequests.length;document.getElementById('countFunPaid').innerText=funeralPaid.length;document.getElementById('funPendingBadge').style.display=funeralRequests.length>0?'inline-flex':'none';document.getElementById('funPendingBadge').innerText=funeralRequests.length+' claims';}
+async function renderFuneral(){
+  const pending = document.getElementById("funListPending");
+  const paid = document.getElementById("funListPaid");
+  if (!pending || !paid) return;
+  pending.textContent = paid.textContent = "Loading server records…";
+  try {
+    const response = await fetch("/api/admin/service-requests/funeral", {cache:"no-store"});
+    if (!response.ok) throw new Error("Service requests unavailable");
+    const {requests, canDecide} = await response.json();
+    const settled = row => ["PAID", "SETTLED"].includes(row.status);
+    function display(element, rows, empty){
+      element.replaceChildren();
+      if (!rows.length) { element.textContent = empty; return; }
+      for (const row of rows) {
+        const item = document.createElement("p");
+        item.textContent = [row.status, row.name, row.payee, row.amount && row.currency + " " + row.amount, row.request_id, new Date(row.created_at).toLocaleDateString()].filter(Boolean).join(" · ");
+        if (row.has_evidence) {
+          const evidence = document.createElement("a");
+          evidence.href = "/api/admin/service-requests/funeral/" + encodeURIComponent(row.request_id) + "/evidence";
+          evidence.textContent = "Download evidence";
+          item.append(" ", evidence);
+        }
+        if (canDecide && row.status === "PENDING") {
+          for (const decision of ["APPROVED", "REJECTED"]) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = decision === "APPROVED" ? "Approve for payment review" : "Reject";
+            button.onclick = async () => {
+              const reason = prompt("Record the reason for this decision:");
+              if (reason === null) return;
+              button.disabled = true;
+              try {
+                const result = await fetch("/api/admin/service-requests/funeral/" + encodeURIComponent(row.request_id) + "/decision", {
+                  method: "POST", headers: {"Content-Type":"application/json"},
+                  body: JSON.stringify({decision, reason})
+                });
+                const data = await result.json().catch(() => ({}));
+                if (!result.ok) throw new Error(data.error || "Decision could not be saved.");
+                item.textContent = data.request.status + " · " + row.request_id;
+              } catch (error) { alert(error.message); }
+              finally { button.disabled = false; }
+            };
+            item.append(" ", button);
+          }
+        }
+        if (row.status === "APPROVED") {
+          const settle = document.createElement("button");
+          settle.type = "button";
+          settle.textContent = "Record confirmed payment";
+          settle.onclick = async () => {
+            const reference = prompt("Enter the reference of the payment already completed outside GFT:");
+            if (reference === null) return;
+            settle.disabled = true;
+            try {
+              const response = await fetch("/api/founder/service-requests/funeral/" + encodeURIComponent(row.request_id) + "/settlement", {
+                method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({reference})
+              });
+              const data = await response.json().catch(() => ({}));
+              if (!response.ok) throw new Error(data.error || "Unable to record payment.");
+              await Promise.all([renderFuneral(), loadFounderWalletBalances()]);
+            } catch (error) { alert(error.message); }
+            finally { settle.disabled = false; }
+          };
+          item.append(" ", settle);
+        }
+        element.append(item);
+      }
+    }
+    display(pending, requests.filter(row => !settled(row)), "No open server records");
+    display(paid, requests.filter(settled), "No recorded payments");
+  } catch { pending.textContent = paid.textContent = "Server records unavailable"; }
+}
 function viewCert(index,type,wallet){let r;if(wallet==='school'){r=type==='pending'?schoolRequests[index]:schoolPaid[index];}else{r=type==='pending'?funeralRequests[index]:funeralPaid[index];}document.getElementById('certInfo').innerText=`Doc: ${r.deceasedName||r.studentName}`;let preview=document.getElementById('certPreview');let b64=r.certBase64||r.invoiceBase64;if(b64){if((r.certName||r.invoiceName||'').toLowerCase().includes('.pdf')){preview.innerHTML=`<a href="${b64}" target="_blank">Open PDF</a>`;}else{preview.innerHTML=`<img src="${b64}" style="max-width:100%">`;}}else preview.innerHTML='No file';document.getElementById('certModal').classList.add('show');}
 function closeCertModal(){document.getElementById('certModal').classList.remove('show');}
-function approveFuneral(i){let req=funeralRequests[i];if(wallets.fun<CFG.caps.funeralPayout)return alert(`Low - Need $${CFG.caps.funeralPayout}`);wallets.fun-=CFG.caps.funeralPayout;saveWallets();updateUI();let found=bens.findIndex(b=>b.id===req.deceasedID||b.name.toLowerCase()===req.deceasedName.toLowerCase());let wasDel=false;if(found>=0){let rem=bens.splice(found,1)[0];delLogs.unshift({name:rem.name,id:rem.id,reason:`Death Funeral $${CFG.caps.funeralPayout}`,time:new Date().toLocaleString()});wasDel=true;}let paid={deceasedName:req.deceasedName,deceasedID:req.deceasedID,payTo:req.payTo,amount:CFG.caps.funeralPayout,datePaid:new Date().toLocaleString(),certName:req.certName,certBase64:req.certBase64,wasDeleted:wasDel,autoApproved:false};funeralPaid.unshift(paid);funeralRequests.splice(i,1);localStorage.setItem('guvaza_funeral_requests',JSON.stringify(funeralRequests));localStorage.setItem('guvaza_funeral_paid',JSON.stringify(funeralPaid));localStorage.setItem('guvaza_bens',JSON.stringify(bens));localStorage.setItem('guvaza_del_log',JSON.stringify(delLogs));updateUI();renderBens();renderFuneral();log(`FUNERAL PAID $${CFG.caps.funeralPayout} ${req.deceasedName}`);}
-function rejectFuneral(i){funeralRequests.splice(i,1);localStorage.setItem('guvaza_funeral_requests',JSON.stringify(funeralRequests));renderFuneral();}
-function autoApproveFuneral(){if(!autoApprove)return;funeralRequests=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');if(funeralRequests.length===0||wallets.fun<CFG.caps.funeralPayout)return;let remaining=[];funeralRequests.forEach(r=>{if(r.certBase64&&wallets.fun>=CFG.caps.funeralPayout){wallets.fun-=CFG.caps.funeralPayout;saveWallets();let f=bens.findIndex(b=>b.id===r.deceasedID||b.name.toLowerCase()===r.deceasedName.toLowerCase());let wd=false;if(f>=0){let rem=bens.splice(f,1)[0];delLogs.unshift({name:rem.name,id:rem.id,reason:`AUTO Death ${r.deceasedName}`,time:new Date().toLocaleString()});wd=true;}let paidRec={deceasedName:r.deceasedName,deceasedID:r.deceasedID,payTo:r.payTo,amount:CFG.caps.funeralPayout,datePaid:new Date().toLocaleString(),certName:r.certName,certBase64:r.certBase64,wasDeleted:wd,autoApproved:true};funeralPaid.unshift(paidRec);log(`AUTO FUNERAL $${CFG.caps.funeralPayout} ${r.deceasedName}`);}else remaining.push(r);});localStorage.setItem('guvaza_bens',JSON.stringify(bens));localStorage.setItem('guvaza_del_log',JSON.stringify(delLogs));localStorage.setItem('guvaza_funeral_requests',JSON.stringify(remaining));localStorage.setItem('guvaza_funeral_paid',JSON.stringify(funeralPaid));updateUI();renderBens();renderFuneral();}
+function approveFuneral(){alert("This action requires the server payment workflow.");}
+function rejectFuneral(){alert("This action requires the server service workflow.");}
+function autoApproveFuneral(){}
 setInterval(autoApproveFuneral,4000);
-function simulateFuneralClaim(){let name=document.getElementById('testDeceasedName').value.trim();let id=document.getElementById('testDeceasedID').value.trim();let payTo=document.getElementById('testPayTo').value;let file=document.getElementById('testCertFile').files[0];if(!name||!id)return alert('Name+ID');if(file){let rd=new FileReader();rd.onload=e=>{saveFuneralReq(name,id,payTo,file.name,e.target.result);};rd.readAsDataURL(file);}else saveFuneralReq(name,id,payTo,'test.jpg',null);}
-function saveFuneralReq(n,i,p,cn,cb){let reqs=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');reqs.unshift({deceasedName:n,deceasedID:i,claimantName:'Test',payTo:p,certName:cn,certBase64:cb,dateSubmitted:new Date().toLocaleString()});localStorage.setItem('guvaza_funeral_requests',JSON.stringify(reqs));renderFuneral();}
+async function submitServiceRequest(service, fields, evidence) {
+  if (!evidence) return alert("Attach supporting evidence.");
+  const body = new FormData();
+  for (const [key, value] of Object.entries(fields)) body.append(key, value);
+  body.append("evidence", evidence);
+  try {
+    const response = await fetch("/api/founder/service-requests/" + service, {method:"POST",body});
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || "Unable to save the request.");
+    await (service === "funeral" ? renderFuneral() : renderSchool());
+  } catch (error) { alert(error.message); }
+}
+function simulateFuneralClaim(){
+  const amount=prompt("Enter the confirmed claim amount in USD:");
+  if (amount === null) return;
+  submitServiceRequest("funeral",{name:document.getElementById("testDeceasedName").value,
+    subjectId:document.getElementById("testDeceasedID").value,payee:document.getElementById("testPayTo").value,amount},
+    document.getElementById("testCertFile").files[0]);
+}
 renderFuneral();
-let schoolRequests=JSON.parse(localStorage.getItem('guvaza_school_requests')||'[]');let schoolPaid=JSON.parse(localStorage.getItem('guvaza_school_paid')||'[]');
+const schoolRequests = [], schoolPaid = [];
 function switchSchTab(tab){document.getElementById('schTab-pending').classList.toggle('active', tab==='pending');document.getElementById('schTab-paid').classList.toggle('active', tab==='paid');document.getElementById('schListPending').style.display=tab==='pending'?'block':'none';document.getElementById('schListPaid').style.display=tab==='paid'?'block':'none';renderSchool();}
 function verifySchoolAccount(schoolName, accountNumber){return {valid:true,verified:true,reason:'Verified'};}
 function addVerifiedSchool(){let name=document.getElementById('newVerifiedSchool').value.trim();let pref=document.getElementById('newVerifiedAccountPrefix').value.trim();if(!name||!pref)return alert('Name+Prefix');verifiedSchools.push({name,prefix:pref});localStorage.setItem('guvaza_verified_schools',JSON.stringify(verifiedSchools));document.getElementById('newVerifiedSchool').value='';document.getElementById('newVerifiedAccountPrefix').value='';renderVerifiedSchools();}
 function renderVerifiedSchools(){let el=document.getElementById('verifiedSchoolsList');if(!el)return;if(verifiedSchools.length===0){el.innerText='No verified schools';return;}el.innerHTML=verifiedSchools.map((s,i)=>`${s.name} | ${s.prefix} <button onclick="removeVerifiedSchool(${i})" style="padding:2px 6px;font-size:10px;background:#ef4444;color:#fff;border:0;border-radius:4px">X</button>`).join('<br>');}
 function removeVerifiedSchool(i){verifiedSchools.splice(i,1);localStorage.setItem('guvaza_verified_schools',JSON.stringify(verifiedSchools));renderVerifiedSchools();}
 renderVerifiedSchools();
-function renderSchool(){schoolRequests=JSON.parse(localStorage.getItem('guvaza_school_requests')||'[]');schoolPaid=JSON.parse(localStorage.getItem('guvaza_school_paid')||'[]');let listP=document.getElementById('schListPending');listP.innerHTML='';if(schoolRequests.length===0)listP.innerHTML='<p style="color:var(--muted)">No pending school</p>';else schoolRequests.forEach((r,i)=>{listP.innerHTML+=`<div class="school-card"><b>Student: ${r.studentName}</b> ID:${r.studentID||''}<br>School: ${r.schoolName}<br>Account: <b>${r.schoolAccount}</b><br>Amount: $${r.amount}<br><small>${r.dateSubmitted}</small><div class="ben-actions" style="margin-top:8px"><button class="icon-btn view" onclick="viewSchoolInvoice(${i},'pending')">View Invoice</button><button class="icon-btn approve" onclick="approveSchool(${i})">Force Pay $${r.amount}</button><button class="icon-btn del" onclick="rejectSchool(${i})">Reject</button></div></div>`;});let listPaid=document.getElementById('schListPaid');listPaid.innerHTML='';if(schoolPaid.length===0)listPaid.innerHTML='<p style="color:var(--muted)">No paid ledger yet</p>';else schoolPaid.forEach((r,i)=>{listPaid.innerHTML+=`<div class="ben-item" style="border-left:4px solid #10b981"><div class="ben-info"><b>${r.studentName}</b> | ${r.schoolName} | Acc:<b>${r.schoolAccount}</b> | $${r.amount} | ${r.datePaid}</div><div class="ben-actions"><button class="icon-btn view" onclick="viewSchoolInvoice(${i},'paid')">Invoice</button></div></div>`;});document.getElementById('countSchPending').innerText=schoolRequests.length;document.getElementById('countSchPaid').innerText=schoolPaid.length;document.getElementById('schPendingBadge').style.display=schoolRequests.length>0?'inline-flex':'none';document.getElementById('schPendingBadge').innerText=schoolRequests.length+' invoices';}
+async function renderSchool(){
+  const pending = document.getElementById("schListPending");
+  const paid = document.getElementById("schListPaid");
+  if (!pending || !paid) return;
+  pending.textContent = paid.textContent = "Loading server records…";
+  try {
+    const response = await fetch("/api/admin/service-requests/school", {cache:"no-store"});
+    if (!response.ok) throw new Error("Service requests unavailable");
+    const {requests, canDecide} = await response.json();
+    const settled = row => ["PAID", "SETTLED"].includes(row.status);
+    function display(element, rows, empty){
+      element.replaceChildren();
+      if (!rows.length) { element.textContent = empty; return; }
+      for (const row of rows) {
+        const item = document.createElement("p");
+        item.textContent = [row.status, row.name, row.payee, row.amount && row.currency + " " + row.amount, row.request_id, new Date(row.created_at).toLocaleDateString()].filter(Boolean).join(" · ");
+        if (row.has_evidence) {
+          const evidence = document.createElement("a");
+          evidence.href = "/api/admin/service-requests/school/" + encodeURIComponent(row.request_id) + "/evidence";
+          evidence.textContent = "Download evidence";
+          item.append(" ", evidence);
+        }
+        if (canDecide && row.status === "PENDING") {
+          for (const decision of ["APPROVED", "REJECTED"]) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = decision === "APPROVED" ? "Approve for payment review" : "Reject";
+            button.onclick = async () => {
+              const reason = prompt("Record the reason for this decision:");
+              if (reason === null) return;
+              button.disabled = true;
+              try {
+                const result = await fetch("/api/admin/service-requests/school/" + encodeURIComponent(row.request_id) + "/decision", {
+                  method: "POST", headers: {"Content-Type":"application/json"},
+                  body: JSON.stringify({decision, reason})
+                });
+                const data = await result.json().catch(() => ({}));
+                if (!result.ok) throw new Error(data.error || "Decision could not be saved.");
+                item.textContent = data.request.status + " · " + row.request_id;
+              } catch (error) { alert(error.message); }
+              finally { button.disabled = false; }
+            };
+            item.append(" ", button);
+          }
+        }
+        if (row.status === "APPROVED") {
+          const settle = document.createElement("button");
+          settle.type = "button";
+          settle.textContent = "Record confirmed payment";
+          settle.onclick = async () => {
+            const reference = prompt("Enter the reference of the payment already completed outside GFT:");
+            if (reference === null) return;
+            settle.disabled = true;
+            try {
+              const response = await fetch("/api/founder/service-requests/school/" + encodeURIComponent(row.request_id) + "/settlement", {
+                method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({reference})
+              });
+              const data = await response.json().catch(() => ({}));
+              if (!response.ok) throw new Error(data.error || "Unable to record payment.");
+              await Promise.all([renderSchool(), loadFounderWalletBalances()]);
+            } catch (error) { alert(error.message); }
+            finally { settle.disabled = false; }
+          };
+          item.append(" ", settle);
+        }
+        element.append(item);
+      }
+    }
+    display(pending, requests.filter(row => !settled(row)), "No open server records");
+    display(paid, requests.filter(settled), "No recorded payments");
+  } catch { pending.textContent = paid.textContent = "Server records unavailable"; }
+}
 function viewSchoolInvoice(idx,type){let r=type==='pending'?schoolRequests[idx]:schoolPaid[idx];document.getElementById('certInfo').innerText=`Student: ${r.studentName} | School: ${r.schoolName} | Account: ${r.schoolAccount} | $${r.amount}`;let preview=document.getElementById('certPreview');let b64=r.invoiceBase64;if(b64){if((r.invoiceName||'').toLowerCase().includes('.pdf')){preview.innerHTML=`<a href="${b64}" target="_blank">Open PDF</a>`;}else{preview.innerHTML=`<img src="${b64}" style="max-width:100%">`;}}else preview.innerHTML='No invoice';document.getElementById('certModal').classList.add('show');}
-function approveSchool(i){let req=schoolRequests[i];if(wallets.sch<req.amount)return alert(`Low $${wallets.sch} need $${req.amount}`);wallets.sch-=req.amount;saveWallets();updateUI();let paid={studentName:req.studentName,studentID:req.studentID,schoolName:req.schoolName,schoolAccount:req.schoolAccount,amount:req.amount,datePaid:new Date().toLocaleString(),dateSubmitted:req.dateSubmitted,invoiceName:req.invoiceName,invoiceBase64:req.invoiceBase64,claimantName:req.claimantName,verified:true,verifyReason:'Verified',autoApproved:false};schoolPaid.unshift(paid);schoolRequests.splice(i,1);localStorage.setItem('guvaza_school_requests',JSON.stringify(schoolRequests));localStorage.setItem('guvaza_school_paid',JSON.stringify(schoolPaid));renderSchool();log(`SCHOOL PAID $${req.amount} FOR ${req.studentName}`);}
-function rejectSchool(i){schoolRequests.splice(i,1);localStorage.setItem('guvaza_school_requests',JSON.stringify(schoolRequests));renderSchool();}
-function autoApproveSchool(){if(!autoApprove)return;schoolRequests=JSON.parse(localStorage.getItem('guvaza_school_requests')||'[]');if(schoolRequests.length===0)return;let remaining=[];schoolRequests.forEach(r=>{if(r.invoiceBase64 && wallets.sch>=r.amount){wallets.sch-=r.amount;saveWallets();schoolPaid.unshift({studentName:r.studentName,studentID:r.studentID,schoolName:r.schoolName,schoolAccount:r.schoolAccount,amount:r.amount,datePaid:new Date().toLocaleString(),dateSubmitted:r.dateSubmitted,invoiceName:r.invoiceName,invoiceBase64:r.invoiceBase64,claimantName:r.claimantName,verified:true,verifyReason:'Verified',autoApproved:true});log(`AUTO SCHOOL $${r.amount} FOR ${r.studentName}`);}else remaining.push(r);});localStorage.setItem('guvaza_school_requests',JSON.stringify(remaining));localStorage.setItem('guvaza_school_paid',JSON.stringify(schoolPaid));updateUI();renderSchool();}
+function approveSchool(){alert("This action requires the server payment workflow.");}
+function rejectSchool(){alert("This action requires the server service workflow.");}
+function autoApproveSchool(){}
 setInterval(autoApproveSchool,4000);
-function simulateSchoolClaim(){let sName=document.getElementById('testStudentName').value.trim();let sID=document.getElementById('testStudentID').value.trim();let schName=document.getElementById('testSchoolName').value.trim();let schAcc=document.getElementById('testSchoolAccount').value.trim();let amt=parseFloat(document.getElementById('testSchoolAmount').value);let file=document.getElementById('testInvoiceFile').files[0];if(!sName||!schName||!schAcc||!amt)return alert('Fill all');if(file){let rd=new FileReader();rd.onload=e=>{saveSchoolReq(sName,sID,schName,schAcc,amt,file.name,e.target.result);};rd.readAsDataURL(file);}else saveSchoolReq(sName,sID,schName,schAcc,amt,'inv.jpg',null);}
-function saveSchoolReq(sName,sID,schName,schAcc,amt,invName,invB64){let reqs=JSON.parse(localStorage.getItem('guvaza_school_requests')||'[]');reqs.unshift({studentName:sName,studentID:sID,schoolName:schName,schoolAccount:schAcc,amount:amt,invoiceName:invName,invoiceBase64:invB64,dateSubmitted:new Date().toLocaleString(),claimantName:'Test'});localStorage.setItem('guvaza_school_requests',JSON.stringify(reqs));renderSchool();alert('Invoice submitted');}
+function simulateSchoolClaim(){
+  const value=id=>document.getElementById(id).value;
+  submitServiceRequest("school",{name:value("testStudentName"),subjectId:value("testStudentID"),
+    payee:value("testSchoolName"),account:value("testSchoolAccount"),amount:value("testSchoolAmount")},
+    document.getElementById("testInvoiceFile").files[0]);
+}
 renderSchool();
 let emailLogs=JSON.parse(localStorage.getItem('guvaza_email_log')||'[]');let whatsappLogs=JSON.parse(localStorage.getItem('guvaza_whatsapp_log')||'[]');let allAlerts=JSON.parse(localStorage.getItem('guvaza_all_alerts')||'[]');
 function renderNotif(){document.getElementById('founderEmail').value=founderEmail;document.getElementById('whatsappNumber').value=whatsappNumber;updateNotifUI();document.getElementById('emailLog').innerHTML=emailLogs.length?emailLogs.slice(0,20).map(e=>`[${e.time}] To:${e.to} | ${e.subject}`).join('<br>'):'No emails yet';document.getElementById('whatsappLog').innerHTML=whatsappLogs.length?whatsappLogs.slice(0,20).map(w=>`[${w.time}] To:${w.to} | ${w.message.substring(0,60)}`).join('<br>'):'No WhatsApp yet';document.getElementById('allAlertsLog').innerHTML=allAlerts.length?allAlerts.slice(0,50).map(a=>`[${a.time}] ${a.type}: ${a.message}`).join('<br>'):'No alerts yet';document.getElementById('pushStatus').innerText=Notification.permission==='granted'?'Push ENABLED':'Push '+Notification.permission;document.getElementById('pushStatus').className=Notification.permission==='granted'?'badge ok':'badge wait';}
-function updateNotifUI(){let es=document.getElementById('emailSwitch');let el=document.getElementById('emailLabel');if(es){if(emailEnabled){es.classList.add('on');el.innerText='ON';el.style.color='#10b981';}else{es.classList.remove('on');el.innerText='OFF';el.style.color='#f59e0b';}}let ws=document.getElementById('waSwitch');let wl=document.getElementById('waLabel');if(ws){if(whatsappEnabled){ws.classList.add('on');wl.innerText='ON';wl.style.color='#10b981';}else{ws.classList.remove('on');wl.innerText='OFF';wl.style.color='#f59e0b';}}let ns=document.getElementById('notifStatus');if(ns){ns.innerHTML=`Push: ${Notification.permission}<br>Email: ${emailEnabled?'ON':'OFF'}<br>WhatsApp: ${whatsappEnabled?'ON':'OFF'}<br>FBP: $${wallets.fpb.toFixed(2)}`;}}
+function updateNotifUI(){let es=document.getElementById('emailSwitch');let el=document.getElementById('emailLabel');if(es){if(emailEnabled){es.classList.add('on');el.innerText='ON';el.style.color='#10b981';}else{es.classList.remove('on');el.innerText='OFF';el.style.color='#f59e0b';}}let ws=document.getElementById('waSwitch');let wl=document.getElementById('waLabel');if(ws){if(whatsappEnabled){ws.classList.add('on');wl.innerText='ON';wl.style.color='#10b981';}else{ws.classList.remove('on');wl.innerText='OFF';wl.style.color='#f59e0b';}}let ns=document.getElementById('notifStatus');if(ns){ns.innerHTML=`Push: ${Notification.permission}<br>Email: ${emailEnabled?'ON':'OFF'}<br>WhatsApp: ${whatsappEnabled?'ON':'OFF'}<br>FBP: ${walletDisplay("fpb")}`;}}
 function toggleEmail(){emailEnabled=!emailEnabled;localStorage.setItem('guvaza_email_enabled',JSON.stringify(emailEnabled));founderEmail=document.getElementById('founderEmail').value.trim()||founderEmail;localStorage.setItem('guvaza_founder_email',founderEmail);updateNotifUI();log(`Email ${emailEnabled?'ON':'OFF'}`);}
 function toggleWhatsApp(){whatsappEnabled=!whatsappEnabled;localStorage.setItem('guvaza_whatsapp_enabled',JSON.stringify(whatsappEnabled));whatsappNumber=document.getElementById('whatsappNumber').value.trim()||whatsappNumber;localStorage.setItem('guvaza_whatsapp_number',whatsappNumber);updateNotifUI();log(`WhatsApp ${whatsappEnabled?'ON':'OFF'}`);}
 function requestPushPermission(){if(!('Notification' in window)) return alert('Push not supported');Notification.requestPermission().then(p=>{document.getElementById('pushStatus').innerText=p==='granted'?'Push ENABLED':'Push '+p;document.getElementById('pushStatus').className=p==='granted'?'badge ok':'badge wait';if(p==='granted'){new Notification('Guvaza Family Trust',{body:'Push Enabled'});log('Push granted');updateNotifUI();}});}
@@ -1804,13 +1863,13 @@ function testWhatsApp(){let to=document.getElementById('whatsappNumber').value||
 function addAlertLog(message){let type='INFO';if(message.includes('FUNERAL')) type='FUNERAL';else if(message.includes('SCHOOL')) type='SCHOOL';else if(message.includes('BEN')) type='BENEFICIARY';else if(message.includes('FBP')) type='FBP';allAlerts.unshift({type, message, time:new Date().toLocaleString()});if(allAlerts.length>200) allAlerts=allAlerts.slice(0,200);localStorage.setItem('guvaza_all_alerts',JSON.stringify(allAlerts));if(document.getElementById('allAlertsLog')) document.getElementById('allAlertsLog').innerHTML=allAlerts.slice(0,50).map(a=>`[${a.time}] ${a.type}: ${a.message}`).join('<br>');}
 function renderExport(){let el=document.getElementById('exportLog'); if(!el) return; el.innerText=localStorage.getItem('guvaza_export_log')||'No exports yet';}
 function logExport(msg){let logs=JSON.parse(localStorage.getItem('guvaza_export_log_arr')||'[]');logs.unshift(`[${new Date().toLocaleString()}] ${msg}`);localStorage.setItem('guvaza_export_log_arr',JSON.stringify(logs.slice(0,50)));localStorage.setItem('guvaza_export_log',logs.slice(0,20).join('\n'));document.getElementById('exportLog').innerText=logs.slice(0,20).join('\n');}
-function exportBenPDF(){const { jsPDF } = window.jspdf; const doc = new jsPDF();doc.text(`${CFG.name} - Beneficiaries Wallets`,10,10);doc.setFontSize(10); doc.text(`Date: ${new Date().toLocaleString()} | Total: ${bens.length}`,10,18);let y=28; bens.forEach((b,i)=>{ if(y>270){doc.addPage(); y=10;} let bal=benWallets[b.id]||0; doc.text(`${i+1}. ${b.name} | ID:${b.id} | Wallet $${bal.toFixed(2)}`,10,y); y+=7;});doc.save(`Beneficiaries_Wallets_${new Date().toISOString().slice(0,10)}.pdf`); logExport(`Ben Wallets PDF`);}
+function exportBenPDF(){const { jsPDF } = window.jspdf; const doc = new jsPDF();doc.text(`${CFG.name} - Beneficiaries Wallets`,10,10);doc.setFontSize(10); doc.text(`Date: ${new Date().toLocaleString()} | Total: ${bens.length}`,10,18);let y=28; bens.forEach((b,i)=>{ if(y>270){doc.addPage(); y=10;} doc.text(`${i+1}. ${b.name} | ID:${b.id} | Wallet unavailable`,10,y); y+=7;});doc.save(`Beneficiaries_Wallets_${new Date().toISOString().slice(0,10)}.pdf`); logExport(`Ben Wallets PDF`);}
 function exportFuneralPDF(){const { jsPDF } = window.jspdf; const doc = new jsPDF();doc.text(`${CFG.name} - Funeral Paid`,10,10);doc.save(`Funeral_${new Date().toISOString().slice(0,10)}.pdf`);}
 function exportSchoolPDF(){const { jsPDF } = window.jspdf; const doc = new jsPDF();doc.text(`${CFG.name} - School Paid`,10,10);doc.save(`School_${new Date().toISOString().slice(0,10)}.pdf`);}
 function exportFullReportPDF(){const { jsPDF } = window.jspdf; const doc = new jsPDF();doc.text(`${CFG.name} - FULL REPORT`,10,10);doc.save(`Full_${new Date().toISOString().slice(0,10)}.pdf`);}
-function exportBenCSV(){let csv='Name,ID,Wallet\n'+bens.map(b=>`"${b.name}","${b.id}",${(benWallets[b.id]||0).toFixed(2)}`).join('\n');downloadCSV(csv,`Ben_Wallets_${new Date().toISOString().slice(0,10)}.csv`);}
-function exportFuneralCSV(){let csv='DeceasedName,Amount\n'+funeralPaid.map(r=>`"${r.deceasedName}",${r.amount}`).join('\n');downloadCSV(csv,`Funeral_${new Date().toISOString().slice(0,10)}.csv`);}
-function exportSchoolCSV(){let csv='StudentName,Amount\n'+schoolPaid.map(r=>`"${r.studentName}",${r.amount}`).join('\n');downloadCSV(csv,`School_${new Date().toISOString().slice(0,10)}.csv`);}
+function exportBenCSV(){let csv='Name,ID,Wallet\n'+bens.map(b=>`"${b.name}","${b.id}",Unavailable`).join('\n');downloadCSV(csv,`Ben_Wallets_${new Date().toISOString().slice(0,10)}.csv`);}
+function exportFuneralCSV(){alert("This action requires the server service workflow.");}
+function exportSchoolCSV(){alert("This action requires the server service workflow.");}
 function downloadCSV(csv, filename){let blob=new Blob([csv],{type:'text/csv'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
 
 
@@ -2562,7 +2621,19 @@ function adminServerWritePending(){
   alert('This Admin action is now server-controlled. The protected server write endpoint for this action has not been connected yet. No browser-local Admin record will be created.');
 }
 
-function addAdminInvite(){ adminServerWritePending(); }
+async function addAdminInvite(){
+  const name = document.getElementById("adminName").value.trim();
+  const email = document.getElementById("adminEmail").value.trim();
+  const role = document.getElementById("adminRole").value;
+  try {
+    const response = await fetch("/api/staff-admin/trust/invitations", {
+      method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name,email,role})
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Unable to create the Trust Admin invitation.");
+    prompt("Share this private link with the invitee. It expires in 48 hours.", new URL(data.path,location.origin).href);
+  } catch (error) { alert(error.message); }
+}
 function delAdmin(){ adminServerWritePending(); }
 function resetAdminPw(){ adminServerWritePending(); }
 function changeAdminRole(){ adminServerWritePending(); }
@@ -2571,8 +2642,24 @@ function addAdminDeploymentTask(){ adminServerWritePending(); }
 function removeAdminDeploymentTask(){ adminServerWritePending(); }
 function addAdminDeploymentOverride(){ adminServerWritePending(); }
 function removeAdminDeploymentOverride(){ adminServerWritePending(); }
-function deploySelectedAdmin(){ adminServerWritePending(); }
-function suspendSelectedAdmin(){ adminServerWritePending(); }
+async function deploySelectedAdmin(statusOverride){
+  const index = document.getElementById("controlAdminSelect").value;
+  const admin = admins[index];
+  if (!admin) return;
+  const role = document.getElementById("adminDeployRole").value;
+  const status = statusOverride || document.getElementById("adminDeployStatus").value;
+  const modules = [...document.querySelectorAll("[data-admin-module]:checked")].map(box => box.dataset.adminModule);
+  const permissions = [...document.querySelectorAll("[data-admin-permission]:checked")].map(box => box.dataset.adminPermission);
+  try {
+    const response = await fetch("/api/founder/admins/" + encodeURIComponent(admin.admin_id || admin.adminId) + "/deployment", {
+      method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({role,status,modules,permissions})
+    });
+    if (!response.ok) throw new Error("Unable to save Admin authority (" + response.status + ").");
+    await loadFounderAdmins();
+    document.getElementById("adminControlAuditMsg").textContent = "Admin authority saved.";
+  } catch (error) { alert(error.message); }
+}
+function suspendSelectedAdmin(){ if (confirm("Suspend this Admin and end their sessions?")) deploySelectedAdmin("SUSPENDED"); }
 function reloadSelectedAdminControl(){ loadFounderAdmins(); }
 
 // ------------------------------------------------------------

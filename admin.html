@@ -64,7 +64,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <button class="primary" onclick="doAdminLogin()" style="width:100%;justify-content:center;margin-top:10px"><span class="mi">login</span> Login to Admin Panel</button>
 <div id="loginMsg" style="font-size:11px;color:#ef4444;margin-top:10px"></div>
 <div class="log" style="margin-top:12px;font-size:10px">
-<b>New invite?</b> Founder invites with your email, you get WhatsApp + Email link to set your OWN password. Click that link.<br>
+<b>New invite?</b> Founder invites with your email, the Founder shares a private link to set your password. Click that link.<br>
 <b>Demo:</b> If no admin yet, go to founder.html > Admin Invite to create one.<br>
 Founder login is ONLY in founder.html, not here.<br>
 Roles: Trustees, Family Council, Lawyer, Witness, Exec Assistant, Accountant, Secretary, Employee, Super Admin, Finance, etc.
@@ -74,13 +74,7 @@ Roles: Trustees, Family Council, Lawyer, Witness, Exec Assistant, Accountant, Se
 <div class="login-box" id="setPasswordBox" style="display:none;border:2px solid #f59e0b">
 <h2 style="display:flex;align-items:center;color:#f59e0b"><span class="mi">lock_open</span> SET YOUR OWN PASSWORD</h2>
 <p style="font-size:11px;color:var(--muted)">Founder invited you. You create your OWN password now. Founder will NEVER know it.</p>
-<div class="log" style="margin:10px 0;font-size:11px;background:#f59e0b11;border-color:#f59e0b44">
-Invited as: <b id="setRoleDisplay"></b><br>
-Name: <b id="setNameDisplay"></b><br>
-Email: <b id="setEmailDisplay"></b><br>
-Phone: <b id="setPhoneDisplay"></b>
-</div>
-<input id="setPw1" type="password" placeholder="Create your password min 6 chars">
+<input id="setPw1" type="password" placeholder="Create your password min 12 characters">
 <input id="setPw2" type="password" placeholder="Confirm your password">
 <button class="primary" onclick="doSetOwnPassword()" style="width:100%;justify-content:center;margin-top:10px;background:#f59e0b;color:#000"><span class="mi">verified_user</span> Create My Password & Activate Account</button>
 <div id="setPwMsg" style="font-size:11px;color:#ef4444;margin-top:10px"></div>
@@ -356,9 +350,8 @@ if(!customConfig.about.familyMembers) customConfig.about.familyMembers=[];
 if(!customConfig.about.sections) customConfig.about.sections=[];
 if(!customConfig.homepage) customConfig.homepage={cards:[]};
 customConfigBaseline = JSON.parse(JSON.stringify(customConfig));
-let admins=JSON.parse(localStorage.getItem('guvaza_admins')||'[]');
 let currentAdmin=null;
-let pendingInvite=null;
+let pendingInvite = new URLSearchParams(location.hash.slice(1)).get("invite");
 
 const ROLE_DEFS = {
  "Super Admin": {label:"Super Admin - All except Founder", color:"#f59e0b", perms:["dashboard","homeEdit","aboutEdit","familyRoot","secondEmail","pending","members","finances","bookkeeping","funeral","school","companies","approval","lawyer"]},
@@ -469,45 +462,31 @@ function logAdminControlEvent(action,details){
   localStorage.setItem('gft_admin_audit_events',JSON.stringify(logs));
 }
 
-function hashPw(s){return btoa(s).split('').reverse().join('');}
-function getUrlParams(){let p=new URLSearchParams(window.location.search);return {invite:p.get('invite'), code:p.get('code')};}
 function checkInviteLink(){
- let {invite, code}=getUrlParams();
- if(!invite||!code) return false;
- admins=JSON.parse(localStorage.getItem('guvaza_admins')||'[]');
- let found=admins.find(a=>a.email.toLowerCase()===invite.toLowerCase() && a.inviteCode===code);
- if(!found){document.getElementById('loginMsg').innerText='Invalid invite link. Ask founder to re-invite.';return false;}
- if(found.active){document.getElementById('loginMsg').innerText='Account already active. Login with your password you set.';document.getElementById('loginEmail').value=found.email;return false;}
- pendingInvite=found;
- document.getElementById('loginBox').style.display='none';
- document.getElementById('setPasswordBox').style.display='block';
- document.getElementById('setRoleDisplay').innerText=found.role;
- document.getElementById('setNameDisplay').innerText=found.name;
- document.getElementById('setEmailDisplay').innerText=found.email;
- document.getElementById('setPhoneDisplay').innerText=found.phone;
- return true;
+  if (!pendingInvite) return false;
+  history.replaceState(null,"",location.pathname + location.search);
+  document.getElementById("loginBox").style.display="none";
+  document.getElementById("setPasswordBox").style.display="block";
+  return true;
 }
-function doSetOwnPassword(){
- let p1=document.getElementById('setPw1').value.trim();
- let p2=document.getElementById('setPw2').value.trim();
- let msg=document.getElementById('setPwMsg');
- if(p1.length<6){msg.innerText='Password min 6 chars';return;}
- if(p1!==p2){msg.innerText='Passwords do not match';return;}
- if(!pendingInvite){msg.innerText='No invite found';return;}
- admins=JSON.parse(localStorage.getItem('guvaza_admins')||'[]');
- let idx=admins.findIndex(a=>a.email===pendingInvite.email && a.inviteCode===pendingInvite.inviteCode);
- if(idx<0){msg.innerText='Invite expired';return;}
- admins[idx].passwordPlain=p1;
- admins[idx].passwordHash=hashPw(p1);
- admins[idx].active=true;
- localStorage.setItem('guvaza_admins',JSON.stringify(admins));
- currentAdmin=admins[idx];
- localStorage.setItem('guvaza_current_admin', JSON.stringify(currentAdmin));
- alert('Password created! Account activated. Welcome '+currentAdmin.name);
- window.history.replaceState({},document.title, window.location.pathname);
- showAdminApp();
+async function doSetOwnPassword(){
+  const password=document.getElementById("setPw1").value;
+  const confirmation=document.getElementById("setPw2").value;
+  const message=document.getElementById("setPwMsg");
+  if (password.length<12 || password.length>200 || password!==confirmation) {
+    message.textContent="Use a matching password of 12 to 200 characters."; return;
+  }
+  try {
+    const response=await fetch("/api/staff-admin/trust/accept",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:pendingInvite,password})});
+    const data=await response.json().catch(()=>({}));
+    if (!response.ok) throw new Error(data.error || "Unable to activate this account.");
+    pendingInvite=null;
+    document.getElementById("setPw1").value=document.getElementById("setPw2").value="";
+    document.getElementById("setPasswordBox").style.display="none";
+    document.getElementById("loginBox").style.display="block";
+    document.getElementById("loginMsg").textContent="Account activated. Sign in with your email and password.";
+  } catch(error) { message.textContent=error.message; }
 }
-
 async function doAdminLogin(){
   const email =
     document.getElementById('loginEmail').value.trim().toLowerCase();
@@ -1374,40 +1353,112 @@ function doBookAllocate(){
  document.getElementById('bookLog').innerHTML=msg+'<br>'+document.getElementById('bookLog').innerHTML;
  renderBookkeeping();
 }
-function renderFuneralAdmin(){
- let reqs=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');
- let paid=JSON.parse(localStorage.getItem('guvaza_funeral_paid')||'[]');
- document.getElementById('adminFunListPending').innerHTML=reqs.length?reqs.map((r,i)=>`<div class="ben-item" style="border-left:4px solid #f59e0b;border-right:4px solid #f59e0b"><div><b>${r.deceasedName}</b> ID:${r.deceasedID}</div><div><button class="primary" onclick="approveFunAdmin(${i})">Approve $600</button></div></div>`).join(''):'No pending';
- document.getElementById('adminFunListPaid').innerHTML=paid.length?paid.map(p=>`<div class="log">${p.deceasedName} $${p.amount} on ${p.datePaid}</div>`).join(''):'No paid';
+async function renderFuneralAdmin(){
+  const pending = document.getElementById("adminFunListPending");
+  const paid = document.getElementById("adminFunListPaid");
+  if (!pending || !paid) return;
+  pending.textContent = paid.textContent = "Loading server records…";
+  try {
+    const response = await fetch("/api/admin/service-requests/funeral", {cache:"no-store"});
+    if (!response.ok) throw new Error("Service requests unavailable");
+    const {requests, canDecide} = await response.json();
+    const settled = row => ["PAID", "SETTLED"].includes(row.status);
+    function display(element, rows, empty){
+      element.replaceChildren();
+      if (!rows.length) { element.textContent = empty; return; }
+      for (const row of rows) {
+        const item = document.createElement("p");
+        item.textContent = [row.status, row.name, row.payee, row.amount && row.currency + " " + row.amount, row.request_id, new Date(row.created_at).toLocaleDateString()].filter(Boolean).join(" · ");
+        if (row.has_evidence) {
+          const evidence = document.createElement("a");
+          evidence.href = "/api/admin/service-requests/funeral/" + encodeURIComponent(row.request_id) + "/evidence";
+          evidence.textContent = "Download evidence";
+          item.append(" ", evidence);
+        }
+        if (canDecide && row.status === "PENDING") {
+          for (const decision of ["APPROVED", "REJECTED"]) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = decision === "APPROVED" ? "Approve for payment review" : "Reject";
+            button.onclick = async () => {
+              const reason = prompt("Record the reason for this decision:");
+              if (reason === null) return;
+              button.disabled = true;
+              try {
+                const result = await fetch("/api/admin/service-requests/funeral/" + encodeURIComponent(row.request_id) + "/decision", {
+                  method: "POST", headers: {"Content-Type":"application/json"},
+                  body: JSON.stringify({decision, reason})
+                });
+                const data = await result.json().catch(() => ({}));
+                if (!result.ok) throw new Error(data.error || "Decision could not be saved.");
+                item.textContent = data.request.status + " · " + row.request_id;
+              } catch (error) { alert(error.message); }
+              finally { button.disabled = false; }
+            };
+            item.append(" ", button);
+          }
+        }
+        element.append(item);
+      }
+    }
+    display(pending, requests.filter(row => !settled(row)), "No open server records");
+    display(paid, requests.filter(settled), "No recorded payments");
+  } catch { pending.textContent = paid.textContent = "Server records unavailable"; }
 }
-function approveFunAdmin(i){
- if(currentAdmin.role==='Witness' || currentAdmin.role==='Employee') return alert('Not allowed');
- let reqs=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');
- let paid=JSON.parse(localStorage.getItem('guvaza_funeral_paid')||'[]');
- let r=reqs[i];
- paid.unshift({deceasedName:r.deceasedName,deceasedID:r.deceasedID,payTo:r.payTo,amount:600,datePaid:new Date().toLocaleString()+' by '+currentAdmin.name});
- reqs.splice(i,1);
- localStorage.setItem('guvaza_funeral_requests',JSON.stringify(reqs));
- localStorage.setItem('guvaza_funeral_paid',JSON.stringify(paid));
- renderFuneralAdmin();
+function approveFunAdmin(){alert("This action requires the server payment workflow.");}
+async function renderSchoolAdmin(){
+  const pending = document.getElementById("adminSchListPending");
+  const paid = document.getElementById("adminSchListPaid");
+  if (!pending || !paid) return;
+  pending.textContent = paid.textContent = "Loading server records…";
+  try {
+    const response = await fetch("/api/admin/service-requests/school", {cache:"no-store"});
+    if (!response.ok) throw new Error("Service requests unavailable");
+    const {requests, canDecide} = await response.json();
+    const settled = row => ["PAID", "SETTLED"].includes(row.status);
+    function display(element, rows, empty){
+      element.replaceChildren();
+      if (!rows.length) { element.textContent = empty; return; }
+      for (const row of rows) {
+        const item = document.createElement("p");
+        item.textContent = [row.status, row.name, row.payee, row.amount && row.currency + " " + row.amount, row.request_id, new Date(row.created_at).toLocaleDateString()].filter(Boolean).join(" · ");
+        if (row.has_evidence) {
+          const evidence = document.createElement("a");
+          evidence.href = "/api/admin/service-requests/school/" + encodeURIComponent(row.request_id) + "/evidence";
+          evidence.textContent = "Download evidence";
+          item.append(" ", evidence);
+        }
+        if (canDecide && row.status === "PENDING") {
+          for (const decision of ["APPROVED", "REJECTED"]) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = decision === "APPROVED" ? "Approve for payment review" : "Reject";
+            button.onclick = async () => {
+              const reason = prompt("Record the reason for this decision:");
+              if (reason === null) return;
+              button.disabled = true;
+              try {
+                const result = await fetch("/api/admin/service-requests/school/" + encodeURIComponent(row.request_id) + "/decision", {
+                  method: "POST", headers: {"Content-Type":"application/json"},
+                  body: JSON.stringify({decision, reason})
+                });
+                const data = await result.json().catch(() => ({}));
+                if (!result.ok) throw new Error(data.error || "Decision could not be saved.");
+                item.textContent = data.request.status + " · " + row.request_id;
+              } catch (error) { alert(error.message); }
+              finally { button.disabled = false; }
+            };
+            item.append(" ", button);
+          }
+        }
+        element.append(item);
+      }
+    }
+    display(pending, requests.filter(row => !settled(row)), "No open server records");
+    display(paid, requests.filter(settled), "No recorded payments");
+  } catch { pending.textContent = paid.textContent = "Server records unavailable"; }
 }
-function renderSchoolAdmin(){
- let reqs=JSON.parse(localStorage.getItem('guvaza_school_requests')||'[]');
- let paid=JSON.parse(localStorage.getItem('guvaza_school_paid')||'[]');
- document.getElementById('adminSchListPending').innerHTML=reqs.length?reqs.map((r,i)=>`<div class="ben-item" style="border-left:4px solid #8b5cf6;border-right:4px solid #8b5cf6"><div><b>${r.studentName}</b> | ${r.schoolName} | $${r.amount}</div><div><button class="purple" onclick="approveSchAdmin(${i})">Approve</button></div></div>`).join(''):'No pending';
- document.getElementById('adminSchListPaid').innerHTML=paid.length?paid.map(p=>`<div class="log">${p.studentName} $${p.amount} on ${p.datePaid}</div>`).join(''):'No paid';
-}
-function approveSchAdmin(i){
- if(currentAdmin.role==='Witness' || currentAdmin.role==='Employee') return alert('Not allowed');
- let reqs=JSON.parse(localStorage.getItem('guvaza_school_requests')||'[]');
- let paid=JSON.parse(localStorage.getItem('guvaza_school_paid')||'[]');
- let r=reqs[i];
- paid.unshift({...r,datePaid:new Date().toLocaleString()+' by '+currentAdmin.name});
- reqs.splice(i,1);
- localStorage.setItem('guvaza_school_requests',JSON.stringify(reqs));
- localStorage.setItem('guvaza_school_paid',JSON.stringify(paid));
- renderSchoolAdmin();
-}
+function approveSchAdmin(){alert("This action requires the server payment workflow.");}
 let adminCompaniesCache = JSON.parse(localStorage.getItem('guvaza_admin_companies')||'null') || customConfig.companies || [
  {id:'GH',name:'Guvaza Holdings',color:'#7a1a24',info:'Holdings',logo:'',description:'Trust Holdings - Main'},
  {id:'GA',name:'Guvaza Agri',color:'#10b981',info:'Agri',logo:'',description:'Agriculture division'},

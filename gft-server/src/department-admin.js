@@ -3,7 +3,8 @@ import rateLimit from 'express-rate-limit';
 
 export function installDepartmentAdmin(app, services) {
   const { query, withTransaction, getAuthenticatedAdmin, getCookie, sha256, createPasswordHash, verifyPassword } = services;
-  const departments = ['tv', 'spotlight', 'library'];
+  const departments = ['tv', 'spotlight', 'library', 'trust'];
+  const trustRoles = new Set(['Trustees','Family Council','Lawyer','Witness',"Founder's Executive Assistant",'Accountant','Secretary','Employee','Super Admin','Finance Admin','Companies Admin','Support']);
   const base = '/api/staff-admin/:department';
   const cookieName = 'gft_department_session';
   const secret = () => randomBytes(32).toString('base64url');
@@ -18,7 +19,10 @@ export function installDepartmentAdmin(app, services) {
       if (method === 'post' && !req.is('application/json')) return res.sendStatus(415);
       res.set('Cache-Control', 'no-store');
       try {
-        schema ??= query("CREATE TABLE IF NOT EXISTS gft_department_staff (id TEXT PRIMARY KEY, department TEXT NOT NULL, email TEXT NOT NULL, name TEXT NOT NULL, role TEXT NOT NULL CHECK (role IN ('SUPER_ADMIN','ADMIN')), password_hash TEXT, invite_hash TEXT UNIQUE, invite_expires TIMESTAMPTZ, invited_by TEXT NOT NULL, UNIQUE (department,email)); CREATE TABLE IF NOT EXISTS gft_department_sessions (token_hash TEXT PRIMARY KEY, staff_id TEXT NOT NULL REFERENCES gft_department_staff ON DELETE CASCADE, expires_at TIMESTAMPTZ NOT NULL)").catch(error => {
+        schema ??= withTransaction(async client => {
+          await client.query("CREATE TABLE IF NOT EXISTS gft_department_staff (id TEXT PRIMARY KEY, department TEXT NOT NULL, email TEXT NOT NULL, name TEXT NOT NULL, role TEXT NOT NULL , password_hash TEXT, invite_hash TEXT UNIQUE, invite_expires TIMESTAMPTZ, invited_by TEXT NOT NULL, UNIQUE (department,email)); CREATE TABLE IF NOT EXISTS gft_department_sessions (token_hash TEXT PRIMARY KEY, staff_id TEXT NOT NULL REFERENCES gft_department_staff ON DELETE CASCADE, expires_at TIMESTAMPTZ NOT NULL)");
+          await client.query("ALTER TABLE gft_department_staff DROP CONSTRAINT IF EXISTS gft_department_staff_role_check");
+        }).catch(error => {
           schema = undefined;
           throw error;
         });
@@ -56,6 +60,7 @@ export function installDepartmentAdmin(app, services) {
   });
 
   route('post', '/delegation', async (req, res, department) => {
+    if (department === 'trust') return res.sendStatus(404);
     const actor = await getAuthenticatedAdmin(req);
     if (String(actor?.role).toUpperCase() !== 'FOUNDER') return res.sendStatus(403);
     const email = String(req.body?.email || '').trim().toLowerCase();
@@ -87,7 +92,11 @@ export function installDepartmentAdmin(app, services) {
   route('post', '/invitations', async (req, res, department) => {
     const { staff, admin, canInviteSuperAdmin } = await authority(req, department);
     const role = req.body?.role;
-    const inviter = role === 'SUPER_ADMIN' && canInviteSuperAdmin ? admin.admin_id
+    if (department === 'trust') {
+      if (String(admin?.role).toUpperCase() !== 'FOUNDER') return res.sendStatus(403);
+      if (!trustRoles.has(role)) return res.status(400).json({ error: 'Choose a valid Trust role.' });
+    }
+    const inviter = department === 'trust' ? admin.admin_id : role === 'SUPER_ADMIN' && canInviteSuperAdmin ? admin.admin_id
       : role === 'ADMIN' && staff?.role === 'SUPER_ADMIN' ? staff.id : null;
     if (!inviter) return res.status(403).json({ error: 'Invitation authority is required.' });
     const email = String(req.body?.email || '').trim().toLowerCase();
@@ -95,13 +104,16 @@ export function installDepartmentAdmin(app, services) {
     if (!name || name.length > 180 || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ error: 'Enter a valid name and email.' });
     }
+    if (department === 'trust' && (await query('SELECT 1 FROM gft_admin_accounts WHERE LOWER(email) = $1', [email])).rows.length) {
+      return res.status(409).json({ error: 'A Trust Admin account already exists for this email.' });
+    }
     const invitation = secret();
     const result = await query(
       "INSERT INTO gft_department_staff (id, department, email, name, role, invite_hash, invite_expires, invited_by) VALUES ($1,$2,$3,$4,$5,$6,NOW() + INTERVAL '48 hours',$7) ON CONFLICT (department,email) DO UPDATE SET name = EXCLUDED.name, role = EXCLUDED.role, invite_hash = EXCLUDED.invite_hash, invite_expires = EXCLUDED.invite_expires, invited_by = EXCLUDED.invited_by WHERE gft_department_staff.password_hash IS NULL AND gft_department_staff.role = EXCLUDED.role RETURNING id",
       [secret(), department, email, name, role, sha256(invitation), inviter]
     );
     if (!result.rows.length) return res.status(409).json({ error: 'An account or invitation already exists for this email.' });
-    return res.status(201).json({ path: '/staff-admin.html?department=' + department + '#invite=' + invitation });
+    return res.status(201).json({ path: (department === 'trust' ? '/admin.html#invite=' : '/staff-admin.html?department=' + department + '#invite=') + invitation });
   });
 
   route('post', '/accept', async (req, res, department) => {
@@ -112,10 +124,18 @@ export function installDepartmentAdmin(app, services) {
     }
     const accepted = await withTransaction(async client => {
       const match = await client.query(
-        'SELECT id FROM gft_department_staff WHERE department = $1 AND invite_hash = $2 AND invite_expires > NOW() AND password_hash IS NULL FOR UPDATE',
+        'SELECT id, name, email, role FROM gft_department_staff WHERE department = $1 AND invite_hash = $2 AND invite_expires > NOW() AND password_hash IS NULL FOR UPDATE',
         [department, sha256(invitation)]
       );
       if (!match.rows.length) return false;
+      if (department === 'trust') {
+        const { id, name, email, role } = match.rows[0];
+        if (!trustRoles.has(role)) return false;
+        await client.query("INSERT INTO gft_admin_accounts (admin_id,name,email,role,permissions,tasks,deployment,password_hash,password_algorithm,status,active,invited_at,activated_at) VALUES ($1,$2,$3,$4,'[]','[]','{\"modules\":[\"dashboard\"],\"permissions\":[]}', $5,'scrypt','ACTIVE',TRUE,NOW(),NOW())",
+          [id, name, email, role, await createPasswordHash(password)]);
+        await client.query('DELETE FROM gft_department_staff WHERE id = $1', [id]);
+        return true;
+      }
       await client.query('UPDATE gft_department_staff SET password_hash = $1, invite_hash = NULL, invite_expires = NULL WHERE id = $2',
         [await createPasswordHash(password), match.rows[0].id]);
       return true;
@@ -128,6 +148,7 @@ export function installDepartmentAdmin(app, services) {
   }
 
   route('post', '/login', async (req, res, department) => {
+    if (department === 'trust') return res.sendStatus(404);
     const email = String(req.body?.email || '').trim().toLowerCase();
     const password = String(req.body?.password || '');
     const result = await query('SELECT id,password_hash FROM gft_department_staff WHERE department = $1 AND email = $2', [department, email]);
