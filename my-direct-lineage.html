@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>My Direct Lineage</title>
+<link rel="stylesheet" href="typography.css">
 <script src="trustRules.js"></script>
 <script src="guvazaTree.js"></script>
 <script src="guvazaMainTree.js"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:#f4f7f5;font-family:Arial,sans-serif;color:#17251d}.app{max-width:680px;margin:auto;min-height:100vh}
+body{margin:0;background:#f4f7f5;font-family:Montserrat, Arial, sans-serif;color:#17251d}.app{max-width:680px;margin:auto;min-height:100vh}
 .top{position:sticky;top:0;z-index:10;background:#0d4f2c;color:#fff;padding:15px 18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 12px #0002}.top h1{font-size:19px;margin:0}.top small{font-size:11px;opacity:.8}
 .page{padding:10px}.sec{background:#fff;border-radius:18px;margin-bottom:13px;box-shadow:0 2px 10px #00000010;overflow:hidden}.head{padding:16px 15px 10px}.title{font-size:20px;font-weight:800}.sub{font-size:13px;color:#657269;margin-top:4px}.badge{float:right;background:#edf5ef;color:#176438;border-radius:18px;padding:5px 9px;font-size:10px;font-weight:bold}
 .chain{padding:5px 14px 8px}.node{position:relative;display:flex;align-items:center;gap:11px;padding:8px 9px;min-height:70px;border-radius:14px}.node.current-node{background:var(--current-bg,#e7f6eb);border:2px solid var(--current-border,#1b8a4b);color:var(--current-fg,#17251d)}.node.current-node .name{color:var(--current-fg,#17251d)}.node.current-node .id{color:var(--current-muted,#304038)}.node.current-node .role{color:var(--current-fg,#17251d)}.node + .node{margin-top:16px}.node + .node:before{content:"";position:absolute;left:29px;top:-16px;width:3px;height:16px;background:#23844a;border-radius:3px}.node + .node:after{content:"";position:absolute;left:24px;top:-21px;width:13px;height:13px;border-radius:50%;background:#23844a;border:2px solid #fff}
@@ -117,7 +118,7 @@ body{margin:0;background:#f4f7f5;font-family:Arial,sans-serif;color:#17251d}.app
 
 <div id="spouseModal" class="modalbg"><div class="modal"><h2 id="spouseTitle">Add Spouse</h2><div class="group"><label id="spouseNameLabel">Name</label><input id="spouseName" placeholder="Enter full name"></div><div class="group"><label>Family Position</label><select id="spouseSlot"></select></div><div class="group"><label>Personal Card Colour</label><input id="spouseColor" type="color" value="#f7eef8"></div><div class="modalactions"><button class="cancel" onclick="closeModals()">Cancel</button><button id="deleteSpouseBtn" class="delete" style="display:none" onclick="deleteSpouse()">Delete</button><button class="save" onclick="saveSpouse()">Save</button></div></div></div>
 
-<div id="childModal" class="modalbg"><div class="modal"><h2 id="childTitle">Add Child</h2><div class="group"><label>Full Name</label><input id="childName" placeholder="Enter child's full name"></div><div class="group"><label>Official GFT ID</label><input id="childId" class="locked" readonly><small>🔒 Permanent official ID; cannot be edited.</small></div><div class="group"><label>Personal Lineage ID</label><input id="lineageId" placeholder="e.g. FG-GEN2-01"><small>Editable personal family ID.</small></div><div class="group"><label>Personal Card Colour</label><input id="childColor" type="color" value="#e8f4ec"></div><div class="group"><label>Biological Parent</label><input id="childParent" class="locked" readonly></div><div class="modalactions"><button class="cancel" onclick="closeModals()">Cancel</button><button id="deleteBtn" class="delete" style="display:none" onclick="deleteChild()">Delete</button><button class="save" onclick="saveChild()">Save</button></div></div></div>
+<div id="childModal" class="modalbg"><div class="modal"><h2 id="childTitle">Add Child</h2><div class="group"><label>Full Name</label><input id="childName" placeholder="Enter child's full name"></div><div class="group"><label>Official GFT ID</label><input id="childId" class="locked" readonly><small>🔒 A personal descendant’s ID stays reserved for registration.</small></div><div class="group"><label>Personal Lineage ID</label><input id="lineageId" placeholder="e.g. FG-GEN2-01"><small>Editable personal family ID.</small></div><div class="group"><label>Personal Card Colour</label><input id="childColor" type="color" value="#e8f4ec"></div><div class="group"><label>Biological Parent</label><input id="childParent" class="locked" readonly></div><div class="modalactions"><button class="cancel" onclick="closeModals()">Cancel</button><button type="button" id="registrationCodeBtn" class="cancel" hidden>Issue private registration code</button><button id="deleteBtn" class="delete" style="display:none" onclick="deleteChild()">Delete</button><button class="save" onclick="saveChild()">Save</button></div></div></div>
 
 <script>
 const params = new URLSearchParams(location.search);
@@ -201,7 +202,10 @@ const saveSpouses = x => {
   SERVER_SPOUSES = Array.isArray(x) ? x : [];
 };
 
-const all = () => [...SERVER_PEOPLE, ...extras()];
+const all = () => {
+  const officialIds = new Set(SERVER_PEOPLE.map(person => person.systemId));
+  return [...SERVER_PEOPLE, ...extras().filter(person => !officialIds.has(person.systemId))];
+};
 
 const get = id =>
   SERVER_PEOPLE.find(x => x.systemId === id) ||
@@ -564,6 +568,11 @@ function openChild(id = null, sid = "", parentId = ACTIVE_ID) {
   const parentField = document.getElementById("childParent");
   const deleteButton = document.getElementById("deleteBtn");
   const saveButton = document.querySelector("#childModal .save");
+  const codeButton = document.getElementById("registrationCodeBtn");
+  const reservation = id ? personalRecord(id) : null;
+  codeButton.hidden = !reservation || reservation.parentId !== ACTIVE_ID
+    || SERVER_PEOPLE.some(person => person.systemId === id);
+  codeButton.onclick = () => issueDescendantRegistrationCode(reservation.memberId);
 
   if (id) {
     const child = get(id);
@@ -603,6 +612,22 @@ function openChild(id = null, sid = "", parentId = ACTIVE_ID) {
   }
 
   document.getElementById("childModal").classList.add("show");
+}
+
+async function issueDescendantRegistrationCode(memberId) {
+  const button = document.getElementById("registrationCodeBtn");
+  button.disabled = true;
+  try {
+    const url = "/api/beneficiary/family-extension/" + encodeURIComponent(memberId) + "/registration-code";
+    const response = await fetch(url, { method: "POST", credentials: "include" });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Unable to issue the registration code.");
+    prompt("Share this private code only with the descendant. It expires in 30 days and replaces any previous code. Their reserved GFT ID is " + result.systemId + ".", result.code);
+  } catch (error) {
+    alert(error.message);
+  } finally {
+    button.disabled = false;
+  }
 }
 
 async function saveChild() {
@@ -697,10 +722,10 @@ async function saveChild() {
 
     if (!editing && savedId) {
       alert(
-        "Child added successfully.\n\nOfficial GFT ID: " +
+        "Child added successfully.\n\nReserved GFT ID: " +
         savedId +
         "\nPersonal Lineage ID: " +
-        lineageId
+        lineageId + (parent.systemId === ACTIVE_ID ? "\n\nOpen the descendant’s card to issue their private registration code." : "")
       );
     }
   } catch (error) {

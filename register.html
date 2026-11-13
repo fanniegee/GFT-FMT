@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Guvaza Family Trust — Beneficiary Registration</title>
+<link rel="stylesheet" href="typography.css">
 <meta name="description" content="Guvaza Family Trust beneficiary registration">
 
 <link rel="stylesheet" href="public-footer.css">
@@ -27,7 +28,7 @@
   --shadow:0 12px 35px rgba(20,35,50,.08);
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:#f7f8fa;line-height:1.5}
+body{margin:0;font-family:Montserrat, Arial, sans-serif;color:var(--ink);background:#f7f8fa;line-height:1.5}
 a{color:var(--blue)}
 header{background:linear-gradient(110deg,var(--maroon),#8b2340 48%,var(--blue));color:#fff}
 .nav{max-width:1180px;margin:auto;padding:17px 22px;display:flex;align-items:center;justify-content:space-between;gap:20px}
@@ -145,6 +146,10 @@ footer{max-width:1080px;margin:0 auto 40px;padding:0 18px;color:var(--muted);fon
         <div class="field full"><label>Grandparent full name <span class="required">*</span></label><input id="grandparentName" required></div>
         <div class="field"><label>Parent ID number <span class="help">(optional)</span></label><input id="parentIdNumber"></div>
         <div class="field"><label>Parent supporting document <span class="help">(optional quick proof)</span></label><input id="parentDocument" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
+      </div>
+      <div class="grid">
+        <div class="field"><label for="reservedSystemId">Reserved GFT ID (if your parent added you)</label><input id="reservedSystemId" autocomplete="off"></div>
+        <div class="field"><label for="registrationCode">Private code from your parent</label><input id="registrationCode" type="password" autocomplete="off"></div>
       </div>
       <div id="lineageResult" class="notice hidden"></div>
       <div class="actions"><button type="button" class="secondary" data-back>Back</button><button type="button" class="primary" id="verifyLineageBtn">Verify lineage & continue</button></div>
@@ -470,7 +475,7 @@ function showStep(n){
     b.classList.toggle("active", x === n);
     b.classList.toggle("done", x < n);
     b.classList.toggle("locked", x > n);
-    b.disabled = x > n || (state.wifeFrozen && x < 3);
+    b.disabled = x > n || (state.wifeFrozen && x < 3) || (state.lineage?.reservationConfirmed && x === 3);
   });
   if (n === 4) updateDocumentRule();
   if (n === 5) buildReview();
@@ -509,7 +514,16 @@ async function verifyLineage(){
   const relationship = fieldValue("parentRelationship");
   const result = $("lineageResult");
 
-  if (!parentName || !grandparentName || !relationship) {
+  const reservedSystemId = fieldValue("reservedSystemId");
+  const registrationCode = fieldValue("registrationCode");
+  const usesReservation = Boolean(reservedSystemId || registrationCode);
+  if (usesReservation && (!reservedSystemId || !registrationCode)) {
+    result.className = "notice danger";
+    result.textContent = "Enter both the reserved GFT ID and the private code your parent gave you.";
+    return;
+  }
+
+  if (!parentName || (!grandparentName && !usesReservation) || !relationship) {
     result.className = "notice danger";
     result.textContent =
       "Parent relationship, parent full name and grandparent full name are required.";
@@ -528,7 +542,8 @@ async function verifyLineage(){
   try {
     const data = await api("/verify-lineage", {
       method: "POST",
-      body: JSON.stringify({ parentName, grandparentName, parentRelationship: relationship })
+      body: JSON.stringify({ parentName, grandparentName, parentRelationship: relationship,
+        fullName: fieldValue("fullName"), reservedSystemId, registrationCode })
     });
 
     if (!data.ok || data.status !== "LINEAGE_CONFIRMED") {
@@ -555,7 +570,7 @@ async function verifyLineage(){
       return;
     }
 
-    if (!data.parent || !data.grandparent) {
+    if (!data.parent || (!data.grandparent && !data.reservationConfirmed)) {
       result.className = "notice danger";
       result.textContent = "The Trust server did not return both the verified parent and grandparent. Registration cannot continue.";
       result.classList.remove("hidden");
@@ -566,7 +581,8 @@ async function verifyLineage(){
       status: "LINEAGE_CONFIRMED",
       parent: data.parent,
       grandparent: data.grandparent,
-      femaleGrace: data.femaleGrace || { eligible: false }
+      femaleGrace: data.femaleGrace || { eligible: false },
+      reservationConfirmed: data.reservationConfirmed === true
     };
     state.lockedLineage = true;
 
@@ -575,12 +591,16 @@ async function verifyLineage(){
     result.classList.remove("hidden");
 
     prepareStructure();
-    showStep(3);
+    if (state.lineage.reservationConfirmed) {
+      showStep(4);
+    } else {
+      showStep(3);
+    }
 
   } catch (error) {
     console.error("GFT server lineage verification failed:", error);
     result.className = "notice danger";
-    result.textContent = "The Trust server could not verify the lineage because of a connection or service error. No attempt has been counted. Please try again.";
+    result.textContent = error.message || "The Trust server could not verify the lineage. Please try again.";
     result.classList.remove("hidden");
   }
 }
@@ -814,6 +834,7 @@ function createCanonicalRecord(){
   idNumber:fieldValue("documentNumber"),
 
     parentId:getPersonId(parent),
+    parentRelationship:fieldValue("parentRelationship"),
     parentName:parent?getFullName(parent):fieldValue("parentName"),
     grandparentId:getPersonId(gp),
     grandparentName:gp?getFullName(gp):fieldValue("grandparentName"),
@@ -839,10 +860,10 @@ function createCanonicalRecord(){
 }
 
 async function submitRegistration(){
-  if(!state.lineage || state.lineage.status !== "LINEAGE_CONFIRMED" || !state.lineage.parent || !state.lineage.grandparent){
+  if(!state.lineage || state.lineage.status !== "LINEAGE_CONFIRMED" || !state.lineage.parent || (!state.lineage.grandparent && !state.lineage.reservationConfirmed)){
     throw new Error("Registration cannot be submitted until the Trust server confirms both the parent and grandparent.");
   }
-  if(!state.wifeVerified && !state.wifeFrozen){
+  if(!state.lineage.reservationConfirmed && !state.wifeVerified && !state.wifeFrozen){
     throw new Error("Registration cannot be submitted until the wife number is verified or the second confirmed mismatch is referred to the Founder.");
   }
   if(!state.emailVerified){
@@ -854,7 +875,11 @@ async function submitRegistration(){
 
  const formData = new FormData();
 
-formData.append("record", JSON.stringify(record));
+formData.append("record", JSON.stringify(state.lineage.reservationConfirmed ? {
+  ...record,
+  reservedSystemId: fieldValue("reservedSystemId"),
+  registrationCode: fieldValue("registrationCode")
+} : record));
 
 const applicantFile = $("applicantDocument")?.files?.[0];
 const parentFile = $("parentDocument")?.files?.[0];
@@ -901,6 +926,7 @@ if (result.verification) {
       record.systemId = result.systemId;
     }
 
+    $("registrationCode").value = "";
     state.application = record;
 
     renderFinal();
@@ -911,7 +937,7 @@ if (result.verification) {
 
     alert(
       "Registration was not submitted to the Trust server.\n\n" +
-      "Please check your connection and try again.\n\n" +
+      (error.message || "Please check your connection and try again.") + "\n\n" +
       "No beneficiary record was saved locally."
     );
   }
@@ -921,6 +947,9 @@ function renderFinal(){
   const r=state.application;
   const review = r.beneficiaryStatus==="AUTO_VERIFIED" ? "AUTO_VERIFIED" : "PENDING_VERIFICATION";
   $("finalStatus").innerHTML=`<h3>Registration received</h3><p>Your permanent GFT system ID is <b>${esc(r.systemId)}</b>.</p><span class="badge ${review==="AUTO_VERIFIED"?"ok":"pending"}">${esc(review)}</span><p style="margin-bottom:0">Registration does <b>not</b> authorize payout. Wallet and payout eligibility remain false until the required Founder approval process is completed.</p>`;
+  if (state.lineage.reservationConfirmed) {
+    $("finalStatus").querySelector("p").textContent = "Your reserved GFT ID " + r.systemId + " is attached to this application for Founder review.";
+  }
   const rows=[
     ["GFT ID",r.systemId],["Lineage status",r.lineageStatus],["Identity status",r.identityStatus],
     ["Founder verification","PENDING"],["Beneficiary status",r.beneficiaryStatus],
@@ -947,14 +976,22 @@ $("sendOtpBtn").addEventListener("click",sendOtp);
 $("verifyOtpBtn").addEventListener("click",verifyOtp);
 $("restartBtn").addEventListener("click",resetForm);
 $("structureBack").addEventListener("click",()=>{if(!state.lockedLineage)showStep(2)});
-$("documentsBack").addEventListener("click",()=>{if(!state.wifeFrozen)showStep(3)});
+$("documentsBack").addEventListener("click",()=>{
+  if (state.lineage?.reservationConfirmed) {
+    state.lockedLineage = false;
+    showStep(2);
+  } else if (!state.wifeFrozen) {
+    showStep(3);
+  }
+});
 $("reviewBack").addEventListener("click",()=>showStep(4));
 document.querySelectorAll("[data-back]").forEach(b=>b.addEventListener("click",()=>{if(!state.lockedLineage)showStep(Math.max(1,state.step-1))}));
 
 // Prevent progress buttons from bypassing validation/locks.
 document.querySelectorAll("#progress button").forEach(b=>b.addEventListener("click",()=>{
   const target=Number(b.dataset.step);
-  if(target===state.step || target>state.step || (state.wifeFrozen && target<3)) return;
+  if(target===state.step || target>state.step || (state.wifeFrozen && target<3) || (state.lineage?.reservationConfirmed && target===3)) return;
+  if(target<=2 && state.lineage?.reservationConfirmed) state.lockedLineage = false;
   showStep(target);
 }));
 

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FOUNDER - SITE SETTINGS CMS - 12 COMPANIES BANNER + GALLERY + CARDS + FAMILY + ADMIN</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="typography.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="config.js"></script>
 <script>
@@ -35,7 +35,7 @@ if(CFG.homepage.cards){
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--border:#334155;--exp:#10b981;--ben:#3b82f6;--fun:#f59e0b;--sch:#8b5cf6;--fpb:#ec4899;--text:#e2e8f0;--muted:#94a3b8}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui;margin:0;display:flex;min-height:100vh}
+body{background:var(--bg);color:var(--text);font-family:Montserrat, Arial, sans-serif;margin:0;display:flex;min-height:100vh}
 .mi{font-family:'Material Icons Round';font-size:20px;line-height:1;vertical-align:middle;margin-right:6px}
 .mi.lg{font-size:28px}
 .sidebar{width:300px;background:#020617;border-right:1px solid var(--border);padding:16px;position:sticky;top:0;height:100vh;overflow-y:auto}
@@ -113,7 +113,7 @@ header{flex-shrink:0;}
 h1{font-size:20px;display:flex;align-items:center}.amt{font-size:30px;font-weight:800;margin:8px 0;word-break:break-all}
 button{background:#fff;color:#000;border:0;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;margin:4px;display:inline-flex;align-items:center}
 button.primary{background:var(--exp);color:#fff} button.danger{background:#ef4444;color:#fff} button.blue{background:var(--ben);color:#fff} button.orange{background:var(--fun);color:#fff} button.purple{background:var(--sch);color:#fff}
-.log{background:#020617;padding:12px;border-radius:10px;font-family:monospace;font-size:11px;max-height:250px;overflow:auto;border:1px solid var(--border)}
+.log{background:#020617;padding:12px;border-radius:10px;font-family:Montserrat, Arial, sans-serif;font-size:11px;max-height:250px;overflow:auto;border:1px solid var(--border)}
 input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#fff;padding:10px;border-radius:8px;width:100%;margin:4px 0}
 .badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;flex-wrap:wrap}
 .badge.ok{background:#10b98122;color:#10b981;border:1px solid #10b98144}.badge.wait{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44}.badge.blue{background:#3b82f622;color:#3b82f6;border:1px solid #3b82f644}.badge.red{background:#ef444422;color:#ef4444;border:1px solid #ef444444}.badge.purple{background:#8b5cf622;color:#8b5cf6;border:1px solid #8b5cf644}
@@ -198,7 +198,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 
 <div class="card" style="border-left:3px solid #10b981; background:#064e3b22; margin-top:16px">
 <h2><span class="mi">settings</span> <span class="title-main">CONFIG.JS STATUS - MASTER CONTROL</span></h2>
-<div id="configDisplay" style="font-family:monospace;font-size:11px;background:#020617;padding:10px;border-radius:8px;margin-top:8px"></div>
+<div id="configDisplay" style="font-family:Montserrat, Arial, sans-serif;font-size:11px;background:#020617;padding:10px;border-radius:8px;margin-top:8px"></div>
 </div>
 <div class="card" style="border-left:3px solid #ef4444; margin-top:12px">
 <h2><span class="mi">security</span> <span class="title-main">Founder Security - Password + 2FA ON/OFF</span></h2>

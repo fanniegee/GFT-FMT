@@ -479,8 +479,86 @@ app.put('/api/admin/config/public', requireAdmin, async (req, res) => {
 // Both parent and grandparent must be verified.
 // ------------------------------------------------------------
 
+let descendantRegistrationSchema;
+
+function ensureDescendantRegistrationSchema() {
+  descendantRegistrationSchema ??= withTransaction(async client => {
+    await client.query(`ALTER TABLE beneficiary_family_members
+      ADD COLUMN IF NOT EXISTS registration_code_hash TEXT,
+      ADD COLUMN IF NOT EXISTS registration_code_expires_at TIMESTAMPTZ`);
+    await client.query(`ALTER TABLE registrations
+      ADD COLUMN IF NOT EXISTS uses_descendant_reservation BOOLEAN NOT NULL DEFAULT FALSE`);
+  }).catch(error => {
+    descendantRegistrationSchema = undefined;
+    throw error;
+  });
+  return descendantRegistrationSchema;
+}
+
+async function matchDescendantReservation(record, runQuery, lock = false) {
+  const systemId = String(record.reservedSystemId || '').trim().toUpperCase();
+  const code = String(record.registrationCode || '').trim();
+  const normalize = value => String(value || '').trim().replace(/\s+/g, ' ').toUpperCase();
+  if (!/^GFT-GEN\d+-\d+$/.test(systemId) || !/^[A-Za-z0-9_-]{32}$/.test(code)) return null;
+
+  const result = await runQuery(
+    `SELECT child.member_id, child.system_id, child.full_name, child.generation,
+            parent.system_id AS parent_system_id, parent.full_name AS parent_name,
+            parent.generation AS parent_generation, parent.branch_code, parent.gender,
+            grandparent.system_id AS grandparent_system_id, grandparent.full_name AS grandparent_name
+     FROM beneficiary_family_members child
+     JOIN beneficiaries owner ON owner.beneficiary_id = child.beneficiary_id
+       AND owner.system_id = child.parent_system_id AND UPPER(owner.status) = 'ACTIVE'
+     JOIN family_people parent ON parent.system_id = owner.system_id
+       AND parent.profile->>'isPlaceholder' IS DISTINCT FROM 'true'
+     LEFT JOIN family_people grandparent ON grandparent.system_id = parent.parent_system_id
+     WHERE child.system_id = $1 AND child.member_type = 'DESCENDANT'
+       AND child.parent_member_id IS NULL AND child.registration_code_hash = $2
+       AND child.registration_code_expires_at > NOW()
+       AND NOT EXISTS (
+         SELECT 1 FROM family_people existing
+         WHERE existing.system_id = child.system_id
+            OR (existing.parent_system_id = parent.system_id
+              AND REGEXP_REPLACE(UPPER(TRIM(existing.full_name)), '[[:space:]]+', ' ', 'g') = $3)
+       )
+     LIMIT 2 ${lock ? 'FOR UPDATE OF child' : ''}`,
+    [systemId, sha256(code), normalize(record.fullName)]
+  );
+  if (result.rows.length !== 1) return null;
+  const child = result.rows[0];
+  const relationship = normalize(record.parentRelationship);
+  const gender = normalize(child.gender);
+  const relationshipMatches = relationship === 'FATHER' && ['M', 'MALE'].includes(gender)
+    || relationship === 'MOTHER' && ['F', 'FEMALE'].includes(gender);
+  if (!relationshipMatches || normalize(child.full_name) !== normalize(record.fullName)
+      || normalize(child.parent_name) !== normalize(record.parentName)
+      || normalize(child.grandparent_name) !== normalize(record.grandparentName)
+      || (record.parentId && child.parent_system_id !== record.parentId)
+      || !Number.isInteger(child.parent_generation) || child.parent_generation < 1
+      || child.generation !== child.parent_generation + 1
+      || !systemId.startsWith(`GFT-GEN${child.generation}-`)) return null;
+  return child;
+}
+
+const invalidReservationMessage = 'The reserved GFT ID, private code, or family details could not be verified. Ask your parent to check the details or issue a new code.';
+
 app.post('/api/registration/verify-lineage', async (req, res) => {
   try {
+    if (req.body?.reservedSystemId || req.body?.registrationCode) {
+      await ensureDescendantRegistrationSchema();
+      const child = await matchDescendantReservation(req.body, query);
+      if (!child) return res.status(400).json({ ok: false, error: invalidReservationMessage });
+      return res.json({
+        ok: true,
+        status: 'LINEAGE_CONFIRMED',
+        reservationConfirmed: true,
+        parent: { systemId: child.parent_system_id, fullName: child.parent_name, generation: child.parent_generation, branch: child.branch_code },
+        grandparent: child.grandparent_system_id
+          ? { systemId: child.grandparent_system_id, fullName: child.grandparent_name }
+          : null
+      });
+    }
+
     const parentName = String(req.body?.parentName || '').trim();
     const grandparentName = String(req.body?.grandparentName || '').trim();
     const relationship = String(
@@ -1274,7 +1352,8 @@ if (verifiedEmailResult.rows.length === 0) {
 // A second confirmed wife mismatch may proceed only with a valid server-frozen attempt.
 const submittedParentId = String(record.parentId || '').trim();
 const submittedWifeAttemptId = String(record.wifeAttemptId || '').trim();
-const wifeMismatchFrozen = record.wifeMismatchFrozen === true;
+const usesReservation = Boolean(record.reservedSystemId || record.registrationCode);
+const wifeMismatchFrozen = !usesReservation && record.wifeMismatchFrozen === true;
 let verifiedStructure = null;
 let verifiedWifeNo = null;
 let verifiedGeneration = null;
@@ -1305,7 +1384,7 @@ if (wifeMismatchFrozen) {
   }
 }
 
-if (submittedParentId) {
+if (submittedParentId && !usesReservation) {
   const structureResult = await query(
     `SELECT
        child.system_id,
@@ -1349,7 +1428,7 @@ if (submittedParentId) {
 
 // A person already present in the authoritative family tree MUST keep
 // their permanent existing System ID. Never mint a second ID for them.
-const serverSystemId = structureConfirmed
+let serverSystemId = structureConfirmed
   ? String(verifiedStructure.system_id)
   : null;
 
@@ -1364,7 +1443,7 @@ const serverSystemId = structureConfirmed
       walletEligible: false,
       payoutEligible: false
     };
-    const registrationReviewNote = wifeMismatchFrozen
+    let registrationReviewNote = wifeMismatchFrozen
       ? 'WIFE_NUMBER_MISMATCH: Two server-confirmed incorrect wife-number selections. Wife selection is frozen. Founder correction is required; no wife number has been verified.'
       : null;
 
@@ -1373,6 +1452,8 @@ const serverSystemId = structureConfirmed
       { field: 'parentDocument', type: 'PARENT_DOCUMENT' },
       { field: 'additionalDocument', type: 'ADDITIONAL_DOCUMENT' }
     ];
+
+    if (usesReservation) await ensureDescendantRegistrationSchema();
 
     // Save the application, its documents, and OTP consumption atomically.
     await withTransaction(async (client) => {
@@ -1392,6 +1473,23 @@ const serverSystemId = structureConfirmed
         const otpError = new Error('Email verification is required or has already been used');
         otpError.code = 'REGISTRATION_OTP_REQUIRED';
         throw otpError;
+      }
+
+      let reservation;
+      if (usesReservation) {
+        reservation = await matchDescendantReservation(record, client.query.bind(client), true);
+        if (!reservation) {
+          const error = new Error(invalidReservationMessage);
+          error.code = 'REGISTRATION_RESERVATION_INVALID';
+          throw error;
+        }
+        serverSystemId = reservation.system_id;
+        verifiedParentId = reservation.parent_system_id;
+        verifiedGrandparentId = reservation.grandparent_system_id;
+        verifiedGeneration = reservation.generation;
+        verifiedBranch = reservation.branch_code;
+        serverVerification.familyStructureStatus = 'PENDING_FOUNDER_REVIEW';
+        registrationReviewNote = 'Reserved GFT ID claimed using a private code issued by the verified parent. Review the applicant’s identity documents, parentage and family structure before approval.';
       }
 
       // Prevent repeat submissions for the same identity or permanent GFT ID.
@@ -1468,6 +1566,16 @@ const serverSystemId = structureConfirmed
 
       saved = result.rows[0];
 
+      if (reservation) {
+        await client.query('UPDATE registrations SET uses_descendant_reservation = TRUE WHERE registration_id = $1', [saved.registration_id]);
+        await client.query(
+          `UPDATE beneficiary_family_members
+           SET registration_code_hash = NULL, registration_code_expires_at = NULL
+           WHERE member_id = $1`,
+          [reservation.member_id]
+        );
+      }
+
       for (const document of uploadedDocuments) {
         const file = req.files?.[document.field]?.[0];
         if (!file) continue;
@@ -1542,6 +1650,10 @@ const serverSystemId = structureConfirmed
         existingRegistrationId: error.registrationId,
         systemId: error.systemId || null
       });
+    }
+
+    if (error?.code === 'REGISTRATION_RESERVATION_INVALID') {
+      return res.status(400).json({ ok: false, error: error.message });
     }
 
     if (error?.code === 'REGISTRATION_OTP_REQUIRED') {
@@ -2144,7 +2256,8 @@ app.post(
           `SELECT registration_id, applicant_system_id, full_name, username, phone, id_number,
                   email, date_of_birth, gender, current_surname, generation, branch_code,
                   wife_no, parent_system_id, grandparent_system_id, parent_full_name,
-                  grandparent_full_name, status
+                  grandparent_full_name, status,
+                  (to_jsonb(registrations)->>'uses_descendant_reservation')::boolean AS uses_descendant_reservation
            FROM registrations WHERE registration_id = $1 LIMIT 1 FOR UPDATE`,
           [registrationId]
         );
@@ -2165,6 +2278,39 @@ app.post(
         );
         if (existing.rows.length) {
           const err = new Error('This registration already has a beneficiary record'); err.httpStatus = 409; throw err;
+        }
+
+        if (registration.uses_descendant_reservation) {
+          await client.query(
+            'SELECT system_id FROM family_people WHERE system_id = $1 FOR UPDATE',
+            [registration.parent_system_id]
+          );
+          const official = await client.query(
+            `INSERT INTO family_people (system_id, parent_system_id, full_name, gender,
+                                       generation, branch_code, date_of_birth)
+             SELECT $1, parent.system_id, $2, $3, $4, $5, $6
+             FROM family_people parent
+             JOIN beneficiaries owner ON owner.system_id = parent.system_id AND UPPER(owner.status) = 'ACTIVE'
+             WHERE parent.system_id = $7 AND parent.generation = $4::integer - 1
+               AND parent.profile->>'isPlaceholder' IS DISTINCT FROM 'true'
+               AND parent.parent_system_id IS NOT DISTINCT FROM $8
+               AND NOT EXISTS (
+                 SELECT 1 FROM family_people existing
+                 WHERE existing.parent_system_id = parent.system_id
+                   AND REGEXP_REPLACE(UPPER(TRIM(existing.full_name)), '[[:space:]]+', ' ', 'g')
+                     = REGEXP_REPLACE(UPPER(TRIM($2)), '[[:space:]]+', ' ', 'g')
+               )
+             ON CONFLICT (system_id) DO NOTHING
+             RETURNING system_id`,
+            [systemId, registration.full_name, registration.gender, registration.generation,
+             registration.branch_code, registration.date_of_birth, registration.parent_system_id,
+             registration.grandparent_system_id]
+          );
+          if (!official.rows.length) {
+            const error = new Error('The reserved ID or parent link conflicts with the official Family Lineage. Review the family record before approving.');
+            error.httpStatus = 409;
+            throw error;
+          }
         }
 
         const membership = `GFT-MEM-${systemId}`;
@@ -3481,6 +3627,45 @@ app.get(
 // The beneficiary identity always comes from the session.
 // ------------------------------------------------------------
 
+app.post('/api/beneficiary/family-extension/:memberId/registration-code', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+    if (!beneficiary) return res.status(401).json({ ok: false, error: 'Beneficiary authentication required' });
+
+    await ensureDescendantRegistrationSchema();
+    const code = randomBytes(24).toString('base64url');
+    const result = await withTransaction(async client => {
+      const member = await client.query(
+        'SELECT member_id FROM beneficiary_family_members WHERE member_id::text = $1 AND beneficiary_id = $2 FOR UPDATE',
+        [req.params.memberId, beneficiary.beneficiary_id]
+      );
+      if (!member.rows.length) return member;
+      return client.query(
+      `UPDATE beneficiary_family_members child
+       SET registration_code_hash = $1, registration_code_expires_at = NOW() + INTERVAL '30 days'
+       FROM family_people parent
+       WHERE child.member_id::text = $2 AND child.beneficiary_id = $3
+         AND child.member_type = 'DESCENDANT' AND child.parent_member_id IS NULL
+         AND child.parent_system_id = $4 AND parent.system_id = $4
+         AND child.generation = parent.generation + 1
+         AND parent.profile->>'isPlaceholder' IS DISTINCT FROM 'true'
+         AND NOT EXISTS (SELECT 1 FROM family_people WHERE system_id = child.system_id)
+         AND NOT EXISTS (SELECT 1 FROM registrations WHERE applicant_system_id = child.system_id
+                         AND UPPER(status) <> 'REJECTED')
+       RETURNING child.system_id`,
+        [sha256(code), req.params.memberId, beneficiary.beneficiary_id, beneficiary.system_id]
+      );
+    });
+    if (!result.rows.length) return res.status(409).json({
+      ok: false, error: 'A code can only be issued by the verified parent for an unclaimed descendant reservation.'
+    });
+    return res.set('Cache-Control', 'no-store').json({ ok: true, systemId: result.rows[0].system_id, code });
+  } catch (error) {
+    console.error('Descendant registration code error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to issue the registration code' });
+  }
+});
+
 app.post('/api/beneficiary/family-extension', async (req, res) => {
   try {
     const beneficiary = await getAuthenticatedBeneficiary(req);
@@ -3516,7 +3701,7 @@ app.post('/api/beneficiary/family-extension', async (req, res) => {
     const cardColour =
       String(req.body?.cardColour || '#e8f4ec').trim();
 
-    const generation =
+    let generation =
       req.body?.generation == null
         ? null
         : Number(req.body.generation);
@@ -3613,7 +3798,7 @@ let systemId =
       // An official parent must exist in the official family register.
       if (parentSystemId) {
         const parent = await client.query(
-          `SELECT system_id
+          `SELECT system_id, generation
            FROM family_people
            WHERE system_id = $1
            LIMIT 1`,
@@ -3624,6 +3809,10 @@ let systemId =
           const error = new Error('The selected official parent was not found');
           error.statusCode = 400;
           throw error;
+        }
+        const parentGeneration = parent.rows[0].generation;
+        if (memberType === 'DESCENDANT' && !parentMemberId && Number.isInteger(parentGeneration) && parentGeneration >= 1) {
+          generation = parentGeneration + 1;
         }
       }
 

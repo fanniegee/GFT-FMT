@@ -56,7 +56,7 @@
       --ggc-text: #DCE8EF;
       background: var(--ggc-navy);
       color: var(--ggc-text);
-      font-family: Inter, Arial, sans-serif;
+      font-family: Montserrat, Arial, sans-serif;
       margin-top: 48px;
       border-top: 4px solid var(--ggc-green);
     }
