@@ -75,13 +75,57 @@ const PORT = Number(process.env.PORT || 3000);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// GFT-FMT is the public website root
 const publicRoot = path.resolve(__dirname, '..', '..');
-console.log("GFT PUBLIC ROOT:", publicRoot);
 
-app.use(express.static(publicRoot));
-app.get('/register.html', (req, res) => {
-  res.sendFile(path.join(publicRoot, 'register.html'));
+// Only website entry points, client scripts and styles are served from the repository root.
+const publicFiles = [
+  '/about.html',
+  '/admin.html',
+  '/assets/gftggc.html',
+  '/assets/ggc.html',
+  '/beneficiary-gen-drilldown.html',
+  '/beneficiary-login.html',
+  '/beneficiary-portal.html',
+  '/clinic-footer.js',
+  '/clinic-registration.html',
+  '/clinic-staff.html',
+  '/clinic.html',
+  '/companies.html',
+  '/company.html',
+  '/config.js',
+  '/contact.html',
+  '/founder.html',
+  '/gft-api.js',
+  '/gft-library-login.html',
+  '/gft-library-member-dashboard.html',
+  '/gft-spotlight-dashboard.html',
+  '/gft-spotlight-membership.html',
+  '/gft-spotlight-profile-editor.html',
+  '/guvazaMainTree.js',
+  '/guvazaTree.js',
+  '/guvazaTree.json',
+  '/index.html',
+  '/library.html',
+  '/my-direct-lineage.html',
+  '/patient-portal.html',
+  '/portalData.js',
+  '/public-footer.css',
+  '/public-footer.js',
+  '/register.html',
+  '/script.js',
+  '/staff-admin.html',
+  '/staff-admin.js',
+  '/styles.css',
+  '/trustRules.js',
+  '/typography.css',
+];
+app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
+app.get(publicFiles, (req, res) => res.sendFile(req.path.slice(1), { root: publicRoot, dotfiles: 'deny' }));
+
+const publicImages = express.static(path.join(publicRoot, 'assets'), { dotfiles: 'deny', index: false, redirect: false });
+app.use('/assets', (req, res, next) => {
+  if (!/\.(?:avif|gif|jpe?g|png|svg|webp)$/i.test(req.path)) return next();
+  return publicImages(req, res, next);
 });
 
 const allowedOrigins = String(
