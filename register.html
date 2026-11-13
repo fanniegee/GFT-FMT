@@ -824,7 +824,6 @@ function createCanonicalRecord(){
   const gen=state.structure?.generation || ((getGeneration(state.lineage?.parent)||0)+1);
   const parent=state.lineage?.parent,gp=state.lineage?.grandparent;
   const femaleGrace=state.structure?.femaleGrace || {eligible:false};
-  const structureNeedsReview=state.wifeFrozen || !state.wifeVerified || state.lineage?.status!=="LINEAGE_CONFIRMED";
   return {
   fullName:fieldValue("fullName"),
   dateOfBirth:fieldValue("dateOfBirth"),
@@ -849,7 +848,7 @@ function createCanonicalRecord(){
     identityStatus:state.identity?.status||"PENDING_DOCUMENT_VERIFICATION",
     lineageStatus:state.lineage?.status||"PENDING_VERIFICATION",
     founderVerificationStatus:"PENDING",
-    beneficiaryStatus:structureNeedsReview ? "PENDING_VERIFICATION" : "AUTO_VERIFIED",
+    beneficiaryStatus:"PENDING_VERIFICATION",
     walletEligible:false,
     payoutEligible:false,
     femaleGraceEligible:Boolean(femaleGrace.eligible),
@@ -946,7 +945,7 @@ if (result.verification) {
 function renderFinal(){
   const r=state.application;
   const review = r.beneficiaryStatus==="AUTO_VERIFIED" ? "AUTO_VERIFIED" : "PENDING_VERIFICATION";
-  $("finalStatus").innerHTML=`<h3>Registration received</h3><p>Your permanent GFT system ID is <b>${esc(r.systemId)}</b>.</p><span class="badge ${review==="AUTO_VERIFIED"?"ok":"pending"}">${esc(review)}</span><p style="margin-bottom:0">Registration does <b>not</b> authorize payout. Wallet and payout eligibility remain false until the required Founder approval process is completed.</p>`;
+  $("finalStatus").innerHTML=`<h3>Registration received</h3><p>Your permanent GFT system ID is <b>${esc(r.systemId)}</b>.</p><span class="badge ${review==="AUTO_VERIFIED"?"ok":"pending"}">${esc(review)}</span><p style="margin-bottom:0">Registration does <b>not</b> authorize payout. Wallet and payout eligibility remain disabled while registration verification is pending.</p>`;
   if (state.lineage.reservationConfirmed) {
     $("finalStatus").querySelector("p").textContent = "Your reserved GFT ID " + r.systemId + " is attached to this application for Founder review.";
   }

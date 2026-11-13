@@ -1486,6 +1486,24 @@ function validateGuvazaTree() {
 
 
 // ------------------------------------------------------------
+// BENEFICIARY GENERATION VIEW
+// Keep registration-only records out of the canonical tree and its eligibility helpers.
+// ------------------------------------------------------------
+
+async function loadBeneficiaryGenerationTree() {
+  const response = await fetch("/api/beneficiary/generation-tree", { credentials: "same-origin" });
+  if (response.status === 401) return guvazaTree.slice();
+  if (!response.ok) throw new Error("Unable to load the latest family records");
+  const { members } = await response.json();
+
+  const people = new Map(guvazaTree.map(person => [person.systemId, person]));
+  for (const member of members) {
+    if (!people.has(member.systemId)) people.set(member.systemId, member);
+  }
+  return [...people.values()];
+}
+
+// ------------------------------------------------------------
 // CANONICAL EXPORT
 // ------------------------------------------------------------
 

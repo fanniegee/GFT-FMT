@@ -265,7 +265,7 @@ body{
 
 <script>
 
-(function(){
+(async function(){
 
   "use strict";
 
@@ -327,13 +327,18 @@ body{
   // ==========================================================
   // CANONICAL DATA
   //
-  // guvazaTree is the source of identity and lineage.
-  // No localStorage family-tree reconstruction is performed.
   // ==========================================================
 
-  const allRegs = Array.isArray(guvazaTree)
-    ? guvazaTree.slice()
-    : [];
+  let allRegs;
+  try {
+    allRegs = await loadBeneficiaryGenerationTree();
+  } catch (error) {
+    allRegs = guvazaTree.slice();
+    const message = document.createElement("p");
+    message.className = "statusNote";
+    message.textContent = "The latest family records are temporarily unavailable. Refresh to try again.";
+    document.body.prepend(message);
+  }
 
 
   // ==========================================================
@@ -600,7 +605,8 @@ body{
       return "Unknown";
     }
 
-    return member.fullName || "Unnamed Beneficiary";
+    const name = member.fullName || "Unnamed Beneficiary";
+    return member.pendingRegistration ? name + " · Awaiting registration" : name;
 
   }
 

@@ -2789,6 +2789,50 @@ app.get('/api/beneficiary/me', async (req, res) => {
 // Returns only that person's ancestors and descendants.
 // ------------------------------------------------------------
 
+app.get('/api/beneficiary/generation-tree', async (req, res) => {
+  try {
+    const beneficiary = await getAuthenticatedBeneficiary(req);
+    if (!beneficiary) return res.status(401).json({ ok: false, error: 'Beneficiary authentication required' });
+
+    const result = await query(`
+      SELECT child.system_id, parent.system_id AS parent_id, child.full_name,
+             parent.generation + 1 AS generation, parent.branch_code, TRUE AS pending_registration
+      FROM beneficiary_family_members child
+      JOIN beneficiaries owner ON owner.beneficiary_id = child.beneficiary_id
+        AND owner.system_id = child.parent_system_id AND UPPER(owner.status) = 'ACTIVE'
+      JOIN family_people parent ON parent.system_id = owner.system_id
+      WHERE child.member_type = 'DESCENDANT' AND child.parent_member_id IS NULL
+        AND parent.profile->>'isPlaceholder' IS DISTINCT FROM 'true'
+        AND NOT EXISTS (SELECT 1 FROM family_people official WHERE official.system_id = child.system_id)
+
+      UNION ALL
+
+      SELECT official.system_id, official.parent_system_id, official.full_name,
+             official.generation, official.branch_code, FALSE
+      FROM family_people official
+      WHERE EXISTS (
+        SELECT 1 FROM registrations registration
+        WHERE registration.applicant_system_id = official.system_id
+          AND UPPER(registration.status) = 'APPROVED'
+          AND to_jsonb(registration)->>'uses_descendant_reservation' = 'true'
+      )
+    `);
+
+    const members = result.rows.map(row => ({
+      systemId: row.system_id,
+      parentId: row.parent_id,
+      fullName: row.full_name,
+      generation: row.generation,
+      branch: row.branch_code,
+      pendingRegistration: row.pending_registration
+    }));
+    return res.set('Cache-Control', 'no-store').json({ ok: true, members });
+  } catch (error) {
+    console.error('Beneficiary generation tree error:', error);
+    return res.status(500).json({ ok: false, error: 'Unable to load the latest family records' });
+  }
+});
+
 app.get('/api/beneficiary/lineage', async (req, res) => {
   try {
     const beneficiary = await getAuthenticatedBeneficiary(req);
