@@ -110,9 +110,8 @@
     <div class="continue-content">
         <small>Reading Room</small>
         <h2>Continue Your Journey</h2>
-        <p>Your personal reading space will eventually remember where you stopped, your notes, bookmarks, favourites and reading history.</p>
-        <div class="progress-bar"><div class="progress-value"></div></div>
-        <div class="continue-meta">Demo reading progress • Account integration coming later</div>
+        <p>Save titles to your reading list and record your progress in your reader account.</p>
+        <div class="continue-meta">Reading progress is saved in your reader account</div>
     </div>
     <button class="continue-button" id="continueBtn" type="button"><span class="material-icons-round">play_arrow</span> Continue Reading</button>
 </section>
@@ -174,6 +173,8 @@
     <form class="newsletter-form" id="newsletterForm">
         <input type="email" id="newsletterEmail" placeholder="Your email address" required>
         <button type="submit">Subscribe</button>
+    <label><input id="newsletterConsent" type="checkbox" required> I agree to receive the GFT Library newsletter.</label>
+    <p id="newsletterStatus" role="status"></p>
     </form>
 </section>
 
@@ -231,7 +232,15 @@ function render(list){
         const preview=document.createElement("button");preview.className="book-action";preview.type="button";preview.innerHTML='<span class="material-icons-round" style="font-size:15px">visibility</span> Preview';
         const save=document.createElement("button");save.className="book-action primary";save.type="button";save.innerHTML='<span class="material-icons-round" style="font-size:15px">favorite_border</span> Save';
         preview.onclick=()=>openModal(book);
-        save.onclick=()=>alert("Wishlist functionality will be connected to Library accounts later.");
+                save.onclick=async()=>{
+            save.disabled=true;
+            try{
+                const response=await fetch('/api/library/reading/'+encodeURIComponent(book.id),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save'})});
+                if(response.status===401){location.assign('gft-library-login.html');return;}
+                if(!response.ok) throw Error('Unable to save the title.');
+                save.textContent='Saved';
+            }catch(error){alert(error.message);save.disabled=false;}
+        };
         actions.append(preview,save);info.append(title,author,meta,actions);card.append(cover,info);grid.appendChild(card);
     });
 }
@@ -262,7 +271,7 @@ function openModal(book){
     const a=document.createElement("p");a.textContent="Author: "+book.author;
     const c=document.createElement("p");c.textContent="Category: "+book.category;
     const d=document.createElement("p");d.textContent=book.description;
-    const n=document.createElement("p");n.style.cssText="padding:15px;background:#f0e4cb;border-radius:10px";n.textContent="This publication is currently part of the Library demonstration interface. Full reading, purchasing and download services will be connected later.";
+    const n=document.createElement("p");n.style.cssText="padding:15px;background:#f0e4cb;border-radius:10px";n.textContent="Catalogue preview. Full text is currently unavailable.";
     modalContent.append(h,a,c,d,n);modal.classList.add("open");
 }
 function closeModal(){modal.classList.remove("open")}
@@ -271,8 +280,8 @@ modal.onclick=e=>{if(e.target===modal)closeModal()};
 document.onkeydown=e=>{if(e.key==="Escape")closeModal()};
 
 function future(msg){alert(msg)}
-document.getElementById("wishlistBtn").onclick=()=>future("Your Library wishlist will be available when Library accounts are connected.");
-document.getElementById("continueBtn").onclick=()=>future("Your personal reading room will open here once Library accounts and reading progress are connected.");
+document.getElementById("wishlistBtn").onclick=()=>location.assign("gft-library-member-dashboard.html");
+document.getElementById("continueBtn").onclick=()=>location.assign("gft-library-member-dashboard.html");
 
 document.getElementById("libraryAccountBtn").onclick=()=>window.location.href="gft-library-login.html";
 document.getElementById("membershipBtn").onclick=()=>window.location.href="gft-library-login.html";
@@ -280,10 +289,18 @@ document.getElementById("membershipBtn").onclick=()=>window.location.href="gft-l
 document.getElementById("authorsBtn").onclick=e=>{e.preventDefault();future("Author profiles will be available when the publishing system is connected.")};
 document.getElementById("viewAllBtn").onclick=e=>{e.preventDefault();search.focus()};
 
-document.getElementById("newsletterForm").onsubmit=e=>{
-    e.preventDefault();
-    alert("Thank you. Newsletter subscriptions will be connected to the Library service later.");
-    e.target.reset();
+document.getElementById('newsletterForm').onsubmit=async event=>{
+    event.preventDefault();
+    const form=event.currentTarget,status=document.getElementById('newsletterStatus');
+    const submit=form.querySelector('button');submit.disabled=true;
+    try{
+        const response=await fetch('/api/library/newsletter',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({email:document.getElementById('newsletterEmail').value,consent:document.getElementById('newsletterConsent').checked})});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok) throw Error(data.error || 'Unable to save your subscription.');
+        form.reset();status.textContent='Your subscription has been recorded.';
+    }catch(error){status.textContent=error.message;}
+    finally{submit.disabled=false;}
 };
 })();
 </script>

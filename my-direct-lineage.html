@@ -137,48 +137,6 @@ function showLineageError(message) {
 let EK = '';
 let SK = '';
 const PK="guvaza_profile_";
-const CK="guvaza_personal_color_";
-const WK="guvaza_personal_spouse_color_";
-
-// ------------------------------------------------------------
-// PERSONAL LINEAGE PANEL BACKGROUND COLOUR
-// ------------------------------------------------------------
-
-const lineagePanelColorKey = () =>
-  "guvaza_lineage_panel_color_" + ACTIVE_ID;
-
-function applyLineagePanelColor() {
-  const panel = document.getElementById("lineagePanel");
-  if (!panel) return;
-
-  const savedColour =
-    localStorage.getItem(lineagePanelColorKey()) || "#ffffff";
-
-  panel.style.backgroundColor = savedColour;
-}
-
-function openLineagePanelColor() {
-  const savedColour =
-    localStorage.getItem(lineagePanelColorKey()) || "#ffffff";
-
-  document.getElementById("lineagePanelColorPicker").value = savedColour;
-  document.getElementById("lineagePanelColorModal").classList.add("show");
-}
-
-function saveLineagePanelColor() {
-  const colour =
-    document.getElementById("lineagePanelColorPicker").value;
-
-  if (!ACTIVE_ID) {
-    return alert("Your beneficiary account could not be identified.");
-  }
-
-  localStorage.setItem(lineagePanelColorKey(), colour);
-
-  applyLineagePanelColor();
-  closeModals();
-}
-
 let editId=null,editSpouse=null,editParentId=ACTIVE_ID,photoTarget=null,photoKind="person";
 
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
@@ -248,7 +206,6 @@ const personalColor = id => {
 
   return record?.cardColour ||
          record?.card_colour ||
-         localStorage.getItem(CK + id) ||
          "#e8f4ec";
 };
 

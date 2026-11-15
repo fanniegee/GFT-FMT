@@ -1584,34 +1584,14 @@
        Founder-managed public configuration
        ------------------------------------
        config.js remains the public fallback.
-       Founder saves are stored in guvaza_custom_config.
+       Founder saves are read from the public configuration endpoint.
        When both exist, the saved Founder homepage values
        take precedence for this public page.
     */
     const baseCfg =
         window.TRUST_CONFIG || {};
 
-    let founderCfg = {};
-    try {
-        founderCfg = JSON.parse(
-            localStorage.getItem("guvaza_custom_config") || "{}"
-        ) || {};
-    } catch (e) {
-        founderCfg = {};
-    }
-
-    let cfg = Object.assign(
-        {},
-        baseCfg,
-        founderCfg,
-        {
-            homepage: Object.assign(
-                {},
-                baseCfg.homepage || {},
-                founderCfg.homepage || {}
-            )
-        }
-    );
+    let cfg = baseCfg;
 
 try {
     const response = await fetch('/api/config/public');

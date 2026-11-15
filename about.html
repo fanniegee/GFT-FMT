@@ -1009,56 +1009,15 @@
            -------------------------------------------------
            config.js remains the public fallback.
            Founder/Admin saved configuration in
-           guvaza_custom_config is applied on top of it.
+           The server configuration replaces the static fallback when available.
 
            This keeps the public page read-only while allowing
            Founder/Admin changes to appear without exporting a
            new config.js after every edit.
         ================================================= */
 
-        function readStoredPublicConfig() {
-            try {
-                const raw = localStorage.getItem("guvaza_custom_config");
-                if (!raw) return null;
-                const parsed = JSON.parse(raw);
-                return parsed && typeof parsed === "object" ? parsed : null;
-            } catch (error) {
-                return null;
-            }
-        }
-
-        function mergePublicConfig(base, stored) {
-            const safeBase = base && typeof base === "object" ? base : {};
-            const safeStored = stored && typeof stored === "object" ? stored : {};
-
-            const merged = { ...safeBase, ...safeStored };
-            merged.about = {
-                ...(safeBase.about || {}),
-                ...(safeStored.about || {})
-            };
-
-            return merged;
-        }
-
         function getAboutPageConfig() {
-            const base = window.TRUST_CONFIG || {};
-            const stored = readStoredPublicConfig();
-            const config = mergePublicConfig(base, stored);
-
-            /* Compatibility with the older Admin About keys. */
-            if (stored) {
-                if (!config.about.title) {
-                    config.about.title = localStorage.getItem("guvaza_about_title") || "";
-                }
-                if (!config.about.story) {
-                    config.about.story =
-                        localStorage.getItem("guvaza_about_text") ||
-                        localStorage.getItem("aboutText") ||
-                        "";
-                }
-            }
-
-            return config;
+            return window.TRUST_CONFIG || {};
         }
 
         function renderAboutPage() {
@@ -1163,21 +1122,6 @@
                     renderLegacyAbout(aboutData, container);
                 }
         }
-
-        /*
-         * IMPORTANT: config changes are saved by Founder/Admin in
-         * localStorage. If this About page is already open in another
-         * tab, refresh it automatically when that storage changes.
-         */
-        window.addEventListener("storage", function (event) {
-            if (event.key === "guvaza_custom_config" ||
-                event.key === "guvaza_about_title" ||
-                event.key === "guvaza_about_text" ||
-                event.key === "aboutTitle" ||
-                event.key === "aboutText") {
-                renderAboutPage();
-            }
-        });
 
         /* Also expose a safe manual refresh for testing/debugging. */
         window.refreshGFTAboutPage = renderAboutPage;

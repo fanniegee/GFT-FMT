@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import { installLibrary } from './library-readers.js';
+import { installVirtualCardRequests } from './virtual-card-requests.js';
 import { installDepartmentAdmin } from './department-admin.js';
 import { installCompanyContributions } from './company-contributions.js';
 import { installFamilyCorrections } from './family-corrections.js';
@@ -7876,6 +7878,8 @@ app.use('/api', (_req, res) => {
 // ------------------------------------------------------------
 // ERROR HANDLING
 installCompanyContributions(app, {query,withTransaction,requireAdmin});
+installLibrary(app,{query,withTransaction,getCookie,sha256,createPasswordHash,verifyPassword,rateLimit});
+installVirtualCardRequests(app,{query,withTransaction,getAuthenticatedBeneficiary,requireAdmin});
 installFamilyCorrections(app, {query,withTransaction,requireAdmin});
 installPayoutAccounting(app, {withTransaction,requireAdmin});
 

@@ -15,141 +15,52 @@
 <header class="brand"><div class="brand-mark"><span class="material-icons-round">menu_book</span></div><h1>Guvaza Library</h1><p>Knowledge · Heritage · Imagination</p></header>
 <section class="card" aria-labelledby="heading">
 <div class="tabs" role="tablist" aria-label="Account action"><button class="tab" id="createTab" type="button" role="tab" aria-selected="false">Create account</button><button class="tab active" id="signinTab" type="button" role="tab" aria-selected="true">Sign in</button></div>
-<h2 id="heading">Welcome back</h2><p class="intro" id="intro">Sign in to continue to your Library or creative membership space.</p>
+<h2 id="heading">Welcome back</h2><p class="intro" id="intro">Sign in to your Library reader account.</p>
 <form id="loginForm">
 <label class="field-label" for="email">Email address</label><div class="field"><span class="material-icons-round">mail_outline</span><input id="email" name="email" type="email" autocomplete="email" placeholder="Your registered email" required></div>
 <label class="field-label" for="password">Password</label><div class="field"><span class="material-icons-round">lock</span><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Your password" required></div>
-<div class="field-label">What brings you to the Library?</div>
-<div class="options">
-<label class="option selected"><input type="radio" name="accountType" value="reader" checked hidden><span class="option-icon"><span class="material-icons-round">menu_book</span></span><span class="option-copy"><strong>Reader / Library Member</strong><small>Explore knowledge, books and publications.</small></span><span class="radio" aria-hidden="true"></span></label>
-<label class="option"><input type="radio" name="accountType" value="professional" hidden><span class="option-icon"><span class="material-icons-round">auto_awesome</span></span><span class="option-copy"><strong>Creative Professional</strong><small>Showcase your work and manage your professional profile.</small></span><span class="radio" aria-hidden="true"></span></label>
-</div>
+<div id="readerNameField" hidden><label class="field-label" for="readerName">Full name</label><div class="field"><input id="readerName" autocomplete="name" maxlength="180"></div></div>
 <button class="submit" type="submit" id="submitButton">Sign In</button><div class="notice" id="notice" role="status" aria-live="polite"></div>
 </form></section>
-<p class="note">Secure sign-in and account creation are not connected yet. This page will not authenticate or redirect users until server-side verification is implemented.</p><a class="back" href="library.html"> Back to Guvaza Library</a>
+<p class="note">Creative professional accounts sign in through <a href="gft-spotlight-membership.html">Spotlight Studio</a>.</p><a class="back" href="library.html"> Back to Guvaza Library</a>
 </main>
 
 
 <script>
 (() => {
-  const createTab = document.getElementById('createTab');
-  const signinTab = document.getElementById('signinTab');
-  const heading = document.getElementById('heading');
-  const intro = document.getElementById('intro');
-  const submitButton = document.getElementById('submitButton');
-  const notice = document.getElementById('notice');
-  const form = document.getElementById('loginForm');
-
-  let mode = 'signin';
-
-  function showNotice(message) {
-    notice.textContent = message;
-    notice.classList.add('show');
+  const get=id=>document.getElementById(id);
+  const form=get('loginForm'),notice=get('notice'),submit=get('submitButton');
+  let creating=false;
+  function mode(next){
+    creating=next;
+    get('createTab').classList.toggle('active',creating);
+    get('signinTab').classList.toggle('active',!creating);
+    get('createTab').setAttribute('aria-selected',String(creating));
+    get('signinTab').setAttribute('aria-selected',String(!creating));
+    get('readerNameField').hidden=!creating;
+    get('readerName').required=creating;
+    get('password').autocomplete=creating?'new-password':'current-password';
+    get('password').minLength=creating?12:0;
+    get('heading').textContent=creating?'Create a reader account':'Welcome back';
+    get('intro').textContent=creating?'Choose a password with at least 12 characters.':'Sign in to your Library reader account.';
+    submit.textContent=creating?'Create account':'Sign in';
   }
-
-  function setMode(next) {
-    mode = next;
-    const creating = mode === 'create';
-
-    createTab.classList.toggle('active', creating);
-    signinTab.classList.toggle('active', !creating);
-    createTab.setAttribute('aria-selected', String(creating));
-    signinTab.setAttribute('aria-selected', String(!creating));
-
-    heading.textContent = creating
-      ? 'Create your membership'
-      : 'Welcome back';
-
-    intro.textContent = creating
-      ? 'Choose the type of account you want to create.'
-      : 'Sign in to continue to your Library or creative membership space.';
-
-    submitButton.textContent = creating
-      ? 'Continue Registration'
-      : 'Sign In';
-
-    document.getElementById('password').autocomplete =
-      creating ? 'new-password' : 'current-password';
-
-    notice.classList.remove('show');
-  }
-
-  createTab.addEventListener('click', () => {
-  window.location.href = './gft-spotlight-membership.html';
-});
-  signinTab.addEventListener('click', () => setMode('signin'));
-
-  document.querySelectorAll('.option').forEach(option => {
-    option.addEventListener('click', () => {
-      document.querySelectorAll('.option').forEach(item =>
-        item.classList.remove('selected')
-      );
-
-      option.classList.add('selected');
-      option.querySelector('input').checked = true;
-      notice.classList.remove('show');
-    });
-  });
-
-  form.addEventListener('submit', async event => {
-    event.preventDefault();
-
-    const kind = form.querySelector(
-      'input[name="accountType"]:checked'
-    )?.value;
-
-   if (mode === 'create') {
-  window.location.href = 'gft-spotlight-membership.html';
-  return;
-}
-
-    if (kind === 'reader') {
-      showNotice(
-        'Reader / Library Member sign-in is not connected yet. ' +
-        'Please use the Creative Professional option only if you ' +
-        'already have a Spotlight account.'
-      );
-      return;
-    }
-
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-
-    submitButton.disabled = true;
-    submitButton.textContent = 'Signing in…';
-    notice.classList.remove('show');
-
-    try {
-      const response = await fetch('/api/spotlight/auth/login', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
+  get('createTab').onclick=()=>mode(true);
+  get('signinTab').onclick=()=>mode(false);
+  mode(new URLSearchParams(location.search).get('mode')==='create');
+  form.onsubmit=async event=>{
+    event.preventDefault();submit.disabled=true;notice.classList.remove('show');
+    try{
+      const response=await fetch('/api/library/'+(creating?'register':'login'),{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name:get('readerName').value,email:get('email').value,password:get('password').value})
       });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.ok || !result.authenticated) {
-        showNotice(
-          result.error || 'Sign-in failed. Please check your details.'
-        );
-        return;
-      }
-
-      window.location.assign('gft-spotlight-dashboard.html');
-    } catch (error) {
-      showNotice(
-        'Unable to reach the sign-in service. Please try again.'
-      );
-    } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = mode === 'create'
-        ? 'Continue Registration'
-        : 'Sign In';
-    }
-  });
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok) throw Error(data.error || 'Unable to sign in. Please try again.');
+      location.assign('gft-library-member-dashboard.html');
+    }catch(error){notice.textContent=error.message;notice.classList.add('show');}
+    finally{submit.disabled=false;}
+  };
 })();
 </script>
 
