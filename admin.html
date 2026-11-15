@@ -111,7 +111,7 @@ Roles: Trustees, Family Council, Lawyer, Witness, Exec Assistant, Accountant, Se
 <div class="card" style="border-left-color:#8b5cf6"><p><a href="staff-admin.html" style="color:inherit">TV, Spotlight &amp; Library Admin</a></p><h2><span class="mi">task_alt</span> My Assigned Tasks</h2><p style="font-size:11px;color:var(--muted)">Tasks describe your responsibilities. A task does not automatically grant permissions beyond your deployed authority.</p><div id="tasksContent"></div></div>
 </div>
 
-<div id="sec-dashboard" class="section active">
+<div id="sec-dashboard" class="section active"><div class="card" id="companyContributions"><h2>Monthly company contributions</h2><button type="button" id="refreshCompanyContributions">Open reports</button><div id="companyContributionContent" aria-live="polite"></div></div>
 <div class="manual-callout" style="border-color:#10b98155"><b>Start here:</b> Open <b>My Role & Control Manual</b> whenever you need to confirm your role, responsibilities, permissions, tasks or escalation path.</div>
 <div class="card fin"><h2>Your Permissions</h2><div id="permList" style="font-size:12px"></div></div>
 <div class="card mem"><h2><span class="mi">group</span> Pending Approvals - Failed Auto Register</h2><p style="font-size:11px;color:var(--muted)">Registrations that failed auto-approve need manual approve here</p><div id="dashPendingRegs"></div><button class="blue" onclick="showSec('pending')">Go to Pending</button></div>
@@ -294,10 +294,7 @@ Founded on Guvaza. Carried by Rutambo. Built for the rising generations.</textar
 </div>
 </div>
 
-<div id="sec-approval" class="section">
-<div class="card"><h2><span class="mi">verified_user</span> 5-Man Approval - Trustees + Family Council + Witness</h2>
-<div class="log" id="adminApprovalLog">No logs</div>
-</div>
+<div id="sec-approval" class="section"><div class="card"><h2>Distribution requests</h2><button type="button" onclick="loadDistributionApprovals()">Refresh requests</button><div id="distributionRequests" aria-live="polite"></div></div>
 </div>
 
 <div id="sec-lawyer" class="section">
@@ -427,7 +424,7 @@ function refreshAuthorityGuards(){
     const title=t.title||t.name||'Assigned task '+(i+1);
     const status=String(t.status||'ASSIGNED').toUpperCase();
     const due=t.dueDate||t.deadline||'No due date';
-    return '<div class="admin-task-rail-item" onclick="showSec(\'tasks\')" title="Open My Assigned Tasks"><b>'+title+'</b><small>'+status+' • '+due+'</small></div>';
+    return '<div class="admin-task-rail-item" onclick="showSec(\'tasks\')" title="Open My Assigned Tasks"><b>'+taskText(title)+'</b><small>'+taskText(status)+' • '+taskText(due)+'</small></div>';
   }).join('');
 }
 
@@ -450,11 +447,16 @@ function renderAuthority(){
   const overrides=x.overrides.length?x.overrides.map(o=>`<div class="ben-item"><div><b>${o.permission||o.module||'Override'}</b><br><small>${o.reason||'No reason recorded'} ${o.expiresAt?'• Expires '+o.expiresAt:''}</small></div><span class="status-pill ${o.active===false?'danger':''}">${o.active===false?'INACTIVE':'ACTIVE'}</span></div>`).join(''):'<p style="font-size:11px;color:var(--muted)">No temporary overrides are currently recorded.</p>';
   el.innerHTML=`<div class="control-grid"><div class="control-card"><h3>Deployment status</h3><p><span class="status-pill ${a.status==='SUSPENDED'?'danger':a.status==='PENDING'?'warn':''}">${a.status||'ACTIVE'}</span></p><p>Version: <b>${a.version||'Legacy'}</b><br>Deployed by: <b>${a.deployedBy||'Founder role template / legacy system'}</b><br>Deployed: <b>${a.deployedAt||'Not recorded'}</b></p></div><div class="control-card"><h3>Role</h3><p><b>${currentAdmin.role||'Admin'}</b><br>${x.roleDef.label||''}</p></div></div><div class="control-card"><h3>Modules</h3><div>${chips}</div></div><div class="control-card"><h3>Action permissions</h3><div>${perms}</div></div><div class="control-card"><h3>Temporary overrides</h3>${overrides}</div>`;
 }
+function taskText(value){
+  const span=document.createElement('span');
+  span.textContent=String(value);
+  return span.innerHTML;
+}
 function renderTasks(){
   const el=document.getElementById('tasksContent'); if(!el) return;
   const tasks=getEffectiveAccess().tasks;
   if(!tasks.length){el.innerHTML='<p style="font-size:11px;color:var(--muted)">No assigned tasks are currently recorded. Your role manual still explains your standing responsibilities.</p>';return;}
-  el.innerHTML=tasks.map((t,i)=>`<div class="ben-item"><div><b>${t.title||t.name||'Assigned task '+(i+1)}</b><br><small>${t.description||t.instructions||''}</small><br><small>Due: ${t.dueDate||t.deadline||'Not specified'} • Priority: ${t.priority||'Normal'}</small></div><span class="status-pill ${String(t.status||'ASSIGNED').toUpperCase()==='OVERDUE'?'danger':''}">${t.status||'ASSIGNED'}</span></div>`).join('');
+  el.innerHTML=tasks.map((t,i)=>`<div class="ben-item"><div><b>${taskText(t.title||t.name||'Assigned task '+(i+1))}</b><br><small>${taskText(t.description||t.instructions||'')}</small><br><small>Due: ${taskText(t.dueDate||t.deadline||'Not specified')} • Priority: ${taskText(t.priority||'Normal')}</small></div><span class="status-pill ${String(t.status||'ASSIGNED').toUpperCase()==='OVERDUE'?'danger':''}">${taskText(t.status||'ASSIGNED')}</span></div>`).join('');
 }
 function logAdminControlEvent(action,details){
   const logs=safeParseJSON(localStorage.getItem('gft_admin_audit_events')||'[]',[]);
@@ -626,6 +628,7 @@ function showSec(id){
   if(id==='aboutEdit'){renderAboutEdit();renderAboutSectionsAdmin();}
   if(id==='familyRoot') renderAboutRoot();
   if(id==='secondEmail') renderSecondEmailAdmin();
+  if(id==='approval') loadDistributionApprovals();
   if(id==='funeral') renderFuneralAdmin();
   if(id==='school') renderSchoolAdmin();
   if(id==='companies') renderCompaniesAdmin();
@@ -1240,6 +1243,36 @@ renderAboutSectionsAdmin();
 alert('Converted! Now about.html will show About → Gallery with both-side edging + hover');
 }
 
+async function loadDistributionApprovals(){
+  const list=document.getElementById('distributionRequests');
+  try {
+    const response=await fetch('/api/admin/distribution-approvals',{cache:'no-store'});
+    if(!response.ok) throw Error('Distribution approvals unavailable.');
+    const {requests}=await response.json();
+    list.textContent=requests.length?'':'No distribution requests recorded.';
+    for(const row of requests){
+      const item=document.createElement('p');
+      item.textContent=[row.purpose,'USD '+row.amount,row.status,row.votes+' approvals'].join(' · ');
+      if(row.canVote){
+        const button=document.createElement('button');
+        button.type='button';
+        button.textContent='Record my approval';
+        button.onclick=async()=>{
+          if(!confirm('Approve this distribution request?')) return;
+          button.disabled=true;
+          try {
+            const result=await fetch('/api/admin/distribution-approvals/'+encodeURIComponent(row.id)+'/vote',{method:'POST'});
+            if(!result.ok) throw Error('Approval could not be recorded ('+result.status+').');
+            await loadDistributionApprovals();
+          } catch(error){alert(error.message);}
+          finally{button.disabled=false;}
+        };
+        item.append(' ',button);
+      }
+      list.append(item);
+    }
+  } catch(error){list.textContent=error.message;}
+}
 async function renderPending(){
  const badge=document.getElementById('pendingCountBadge');
  const list=document.getElementById('pendingList');
@@ -1308,6 +1341,30 @@ async function renderPending(){
    });
 
    actions.appendChild(approve);
+   for(const [decision,label] of [['NEEDS_INFORMATION','Request information'],['REFERRED','Refer'],['REJECTED','Reject']]){
+    const button=document.createElement('button');
+    button.type='button';
+    button.textContent=label;
+    button.addEventListener('click',async()=>{
+     const reason=prompt('Enter the reason for this decision:')?.trim();
+     if(reason===undefined) return;
+     if(reason.length<5){alert('Enter a reason of at least five characters.');return;}
+     const controls=Array.from(actions.querySelectorAll('button'));
+     controls.forEach(control=>{control.disabled=true;});
+     try{
+      const response=await fetch('/api/registrations/'+encodeURIComponent(r.registration_id)+'/decision',{
+       method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+       body:JSON.stringify({decision,reason})
+      });
+      const result=await response.json();
+      if(!response.ok||!result.ok) throw new Error(result.error||'Unable to save decision.');
+      alert('Decision recorded: '+label);
+      await renderPending();
+     }catch(error){alert(error.message||'Unable to save decision.');}
+     finally{controls.forEach(control=>{control.disabled=false;});}
+    });
+    actions.appendChild(button);
+   }
    item.appendChild(info);
    item.appendChild(actions);
    list.appendChild(item);
@@ -1320,10 +1377,6 @@ async function renderPending(){
 
 async function approvePendingAdmin(i){
  await renderPending();
-}
-
-async function rejectPendingAdmin(i){
- alert('Rejection is not available yet because the server has no registration rejection endpoint. The application remains pending.');
 }
 
 function renderMembers(){
@@ -1676,5 +1729,6 @@ renderMembers=function(){
 }
 </script>
 
+<script src="company-contribution-panel.js"></script>
 </body>
 </html>

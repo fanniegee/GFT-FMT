@@ -72,7 +72,7 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 <span style="background:#dcfce7;color:#166534;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:800">Approved</span>
 </div>
 
-<div class="balance" id="balanceTxt" style="color:#fff">USD$ 0.00</div>
+<div class="balance" id="balanceTxt" style="color:#fff">Loading balance…</div>
 <div style="font-size:11px;opacity:0.85" id="memberId">GFT-2026-0014</div>
 </div>
 
@@ -363,9 +363,7 @@ async function refreshBenWallet() {
     }
 
     const wallet = data.wallet;
-    const balance = wallet ? Number(wallet.balance) : 0;
-    const currency = wallet?.currency || 'USD';
-    const display = currency + ' ' + balance.toFixed(2);
+    const display = wallet ? wallet.currency + ' ' + Number(wallet.balance).toFixed(2) : 'Wallet not yet assigned';
     const accountNumberEl = document.getElementById('benAccountNumber');
 
     if (balanceEl) balanceEl.innerText = display;

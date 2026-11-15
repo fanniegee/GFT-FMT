@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { installDepartmentAdmin } from './department-admin.js';
+import { installCompanyContributions } from './company-contributions.js';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -91,6 +92,7 @@ const publicFiles = [
   '/clinic-staff.html',
   '/clinic.html',
   '/companies.html',
+  '/company-contribution-panel.js',
   '/company.html',
   '/config.js',
   '/contact.html',
@@ -2174,12 +2176,35 @@ app.post('/api/registrations/:registrationId/decision', requireRegistrationRevie
 // FOUNDER APPROVED BENEFICIARY POOL — SERVER SOURCE OF TRUTH
 // Does not modify the legacy browser-stored pool or payout records.
 // ------------------------------------------------------------
+const payoutLineage = `WITH RECURSIVE people AS (
+  SELECT system_id, parent_system_id, CASE
+    WHEN UPPER(TRIM(gender)) IN ('F','FEMALE') THEN 'FEMALE'
+    WHEN UPPER(TRIM(gender)) IN ('M','MALE') THEN 'MALE'
+    WHEN profile->>'canonicalSource'='guvazaTree.js' AND profile->'isFemaleChild'='true'::jsonb THEN 'FEMALE'
+    WHEN profile->>'canonicalSource'='guvazaTree.js' AND profile->'isFemaleChild'='false'::jsonb THEN 'MALE'
+  END AS lineage_gender
+  FROM family_people WHERE profile->>'isPlaceholder' IS DISTINCT FROM 'true'
+), eligible_lineage AS (
+  SELECT system_id,lineage_gender,0 AS female_depth,ARRAY[system_id] AS path
+  FROM people WHERE system_id='GFT-GEN1-01' AND parent_system_id IS NULL
+  UNION ALL
+  SELECT child.system_id,child.lineage_gender,
+    CASE WHEN parent.lineage_gender='FEMALE' THEN 1 ELSE 0 END, parent.path || child.system_id
+  FROM eligible_lineage parent JOIN people child ON child.parent_system_id=parent.system_id
+  WHERE parent.female_depth=0 AND parent.lineage_gender IS NOT NULL
+    AND NOT(child.system_id=ANY(parent.path))
+)`;
+const verifiedBeneficiary = `UPPER(b.status)='ACTIVE' AND UPPER(b.identity_status)='VERIFIED' AND UPPER(b.lineage_status)='VERIFIED'`;
+
 app.get('/api/beneficiaries/admin/pool', requireRegistrationReviewer, async (_req, res) => {
   try {
     const result = await query(
-      `SELECT beneficiary_id, system_id, membership, full_name, username,
-              phone, identity_status, lineage_status, status, created_at
-       FROM beneficiaries ORDER BY created_at DESC, full_name ASC`
+      `${payoutLineage}
+       SELECT b.beneficiary_id,b.system_id,b.membership,b.full_name,b.username,b.phone,
+              b.identity_status,b.lineage_status,b.status,b.created_at,
+              COALESCE((${verifiedBeneficiary}) AND EXISTS
+                (SELECT 1 FROM eligible_lineage e WHERE e.system_id=b.system_id),false) AS payout_eligible
+       FROM beneficiaries b ORDER BY b.created_at DESC,b.full_name ASC`
     );
     return res.json({ ok: true, count: result.rows.length, beneficiaries: result.rows, serverAuthoritative: true });
   } catch (error) {
@@ -5567,6 +5592,121 @@ app.post('/api/founder/service-requests/:service/:requestId/settlement', require
   }
 });
 
+app.post('/api/founder/payout-requests/:id/decision', requireAdmin, async (req, res) => {
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
+  const { id } = req.params;
+  const decision = req.body?.decision;
+  const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+  if (!/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id) ||
+      !['REVIEWED','REJECTED'].includes(decision) || reason.length < 5 || reason.length > 2000) {
+    return res.status(400).json({ error: 'Choose a decision and enter a reason of 5 to 2,000 characters.' });
+  }
+  try {
+    const changed = await withTransaction(async client => {
+      const result = await client.query(
+        "UPDATE payout_requests SET status=$1, decided_at=NOW() WHERE payout_id=$2 AND status='PENDING_REVIEW' RETURNING payout_id",
+        [decision, id]
+      );
+      if (!result.rows.length) return false;
+      await client.query(
+        'INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,$4,$5::jsonb)',
+        ['AUD-' + randomBytes(16).toString('hex'), req.admin.admin_id, req.admin.email,
+          'PAYOUT_REQUEST_' + decision, JSON.stringify({ payoutId: id, reason })]
+      );
+      return true;
+    });
+    if (!changed) return res.status(409).json({ error: 'This payout request is no longer pending or does not exist.' });
+    return res.json({ ok: true, status: decision });
+  } catch (error) {
+    console.error('Payout review failed', error.code || error.name);
+    return res.status(500).json({ error: 'Unable to record the payout decision.' });
+  }
+});
+
+function distributionApprovalSeat(admin) {
+  const role = String(admin.role || '').trim().toUpperCase();
+  const permissions = admin.deployment?.permissions;
+  if (!Array.isArray(permissions) || !permissions.includes('approval:approve')) return null;
+  if (role === 'TRUSTEES') return 'TRUSTEE';
+  if (role === 'FAMILY COUNCIL') return 'ELDER';
+  return null;
+}
+
+function canUseFounderTrusteeOverride(admin){
+  const trusteeId=String(process.env.GFT_FOUNDER_TRUSTEE_ADMIN_ID || '').trim();
+  return Boolean(trusteeId && admin.admin_id===trusteeId && String(admin.role).toUpperCase()===FOUNDER_ROLE);
+}
+
+function hasDistributionQuorum(votes, override){
+  if (!Array.isArray(votes) || votes.some(vote=>!vote?.adminId || !['TRUSTEE','ELDER'].includes(vote.seat))) return false;
+  const voters=new Set(votes.map(vote=>vote.adminId));
+  if (voters.size!==votes.length) return false;
+  const trustees=votes.filter(vote=>vote.seat==='TRUSTEE').length;
+  const elders=votes.length-trustees;
+  const configuredId=String(process.env.GFT_FOUNDER_TRUSTEE_ADMIN_ID || '').trim();
+  return (trustees>=3 && elders>=2) || Boolean(configuredId && override?.adminId===configuredId
+    && !voters.has(configuredId) && votes.length>=3);
+}
+
+app.get('/api/admin/distribution-approvals', requireAdmin, async (req,res) => {
+  res.set('Cache-Control','no-store');
+  const canVote = Boolean(distributionApprovalSeat(req.admin));
+  if (!canVote && String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
+  try {
+    const {rows} = await query("SELECT workflow_id, status, subject->>'purpose' AS purpose, subject->>'amount' AS amount, COALESCE(subject->'votes','[]'::jsonb) AS votes FROM workflows WHERE workflow_type='TRUST_DISTRIBUTION' ORDER BY created_at DESC LIMIT 100");
+    return res.json({requests:rows.map(row=>({id:row.workflow_id,status:row.status,purpose:row.purpose,amount:row.amount,
+      votes:row.votes.length, canOverride:row.status==='OPEN' && row.votes.length>=3 && canUseFounderTrusteeOverride(req.admin), canVote:canVote && row.status==='OPEN' && !row.votes.some(vote=>vote.adminId===req.admin.admin_id)}))});
+  } catch(error) {
+    console.error('Distribution approvals unavailable',error.code || error.name);
+    return res.status(500).json({error:'Unable to load distribution requests.'});
+  }
+});
+
+app.post('/api/admin/distribution-approvals', requireAdmin, async (req,res) => {
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
+  const purpose = typeof req.body?.purpose === 'string' ? req.body.purpose.trim() : '';
+  const amount = req.body?.amount;
+  if (purpose.length < 5 || purpose.length > 500 || typeof amount !== 'string' ||
+      !/^\d{1,16}(?:\.\d{1,2})?$/.test(amount) || Number(amount) <= 0) {
+    return res.status(400).json({error:'Enter a purpose and a positive USD amount.'});
+  }
+  try {
+    const {rows} = await query("INSERT INTO workflows (workflow_type,subject) VALUES ('TRUST_DISTRIBUTION',$1::jsonb) RETURNING workflow_id",
+      [JSON.stringify({purpose,amount,requestedBy:req.admin.admin_id,votes:[]})]);
+    return res.status(201).json({id:rows[0].workflow_id});
+  } catch(error) {
+    console.error('Distribution request failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to create the distribution request.'});
+  }
+});
+
+app.post('/api/admin/distribution-approvals/:id/vote', requireAdmin, async (req,res) => {
+  const seat=distributionApprovalSeat(req.admin);
+  if (!seat) return res.sendStatus(403);
+  const {id}=req.params;
+  if (!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(id)) return res.sendStatus(400);
+  try {
+    const status=await withTransaction(async client=>{
+      const {rows}=await client.query("SELECT status,subject FROM workflows WHERE workflow_id=$1 AND workflow_type='TRUST_DISTRIBUTION' FOR UPDATE",[id]);
+      if (!rows.length || rows[0].status!=='OPEN') return null;
+      const subject=rows[0].subject;
+      const votes=subject.votes || [];
+      if (votes.some(vote=>vote.adminId===req.admin.admin_id)) return null;
+      votes.push({adminId:req.admin.admin_id,seat,at:new Date().toISOString()});
+      const quorum=hasDistributionQuorum(votes);
+      const next=quorum?'APPROVED':'OPEN';
+      await client.query('UPDATE workflows SET subject=$1::jsonb,status=$2,updated_at=NOW() WHERE workflow_id=$3',[JSON.stringify({...subject,votes}),next,id]);
+      await client.query('INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,$4,$5::jsonb)',
+        ['AUD-'+randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,'DISTRIBUTION_APPROVAL_RECORDED',JSON.stringify({workflowId:id,seat,status:next})]);
+      return next;
+    });
+    return status ? res.json({status}) : res.status(409).json({error:'This request is closed or you already approved it.'});
+  } catch(error) {
+    console.error('Distribution approval failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to record approval.'});
+  }
+});
+
 app.get('/api/founder/payout-requests', requireAdmin, async (req, res) => {
   res.set('Cache-Control', 'no-store');
   if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
@@ -5579,6 +5719,224 @@ app.get('/api/founder/payout-requests', requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Payout request list unavailable', error.code || error.name);
     return res.status(500).json({ error: 'Payout requests unavailable.' });
+  }
+});
+
+app.post('/api/founder/distribution-approvals/:id/override', requireAdmin, async(req,res)=>{
+  if (!canUseFounderTrusteeOverride(req.admin)) return res.sendStatus(403);
+  const {id}=req.params;
+  const reason=typeof req.body?.reason==='string' ? req.body.reason.trim() : '';
+  if (!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(id) || reason.length<5 || reason.length>2000) {
+    return res.status(400).json({error:'Enter a reason of 5 to 2,000 characters.'});
+  }
+  try {
+    const updated=await withTransaction(async client=>{
+      const {rows}=await client.query("SELECT subject,status FROM workflows WHERE workflow_id=$1 AND workflow_type='TRUST_DISTRIBUTION' FOR UPDATE",[id]);
+      const workflow=rows[0];
+      if (workflow?.status!=='OPEN') return false;
+      const override={adminId:req.admin.admin_id,reason,recordedAt:new Date().toISOString()};
+      if (!hasDistributionQuorum(workflow.subject.votes,override)) return false;
+      await client.query("UPDATE workflows SET subject=$1::jsonb,status='APPROVED',updated_at=NOW() WHERE workflow_id=$2",[JSON.stringify({...workflow.subject,override}),id]);
+      await client.query('INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,$4,$5::jsonb)',
+        ['AUD-'+randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,'DISTRIBUTION_FOUNDER_TRUSTEE_OVERRIDE',JSON.stringify({workflowId:id,reason})]);
+      return true;
+    });
+    return updated ? res.json({status:'APPROVED'}) : res.status(409).json({error:'An open request with three distinct approvals is required.'});
+  } catch(error) {
+    console.error('Distribution override failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to record the Founder override.'});
+  }
+});
+
+app.get('/api/founder/company-wallets', requireAdmin, async(req,res)=>{
+  res.set('Cache-Control','no-store');
+  if (String(req.admin.role).toUpperCase()!==FOUNDER_ROLE) return res.sendStatus(403);
+  try {
+    const {rows}=await query("WITH balances AS (SELECT c.company_id,c.name,w.wallet_id,TRIM(w.currency) AS currency,SUM(CASE WHEN UPPER(TRIM(le.entry_type)) IN ('CREDIT','DEPOSIT') THEN le.amount WHEN UPPER(TRIM(le.entry_type)) IN ('DEBIT','WITHDRAWAL') THEN -le.amount END) AS balance FROM companies c LEFT JOIN wallets w ON c.system_id=w.owner_system_id AND UPPER(w.status)='ACTIVE' AND NOT EXISTS (SELECT 1 FROM beneficiaries b WHERE b.system_id=w.owner_system_id) LEFT JOIN ledger_entries le ON le.wallet_id=w.wallet_id AND le.currency=w.currency WHERE UPPER(c.status)='ACTIVE' GROUP BY c.company_id,c.name,w.wallet_id,w.currency  ) SELECT *,SUM(balance) OVER (PARTITION BY currency) AS currency_total FROM balances ORDER BY name,company_id,currency,wallet_id");
+    return res.json({wallets:rows});
+  } catch(error) {
+    console.error('Company wallets unavailable',error.code || error.name);
+    return res.status(500).json({error:'Unable to load company wallets.'});
+  }
+});
+
+function fundCents(value) {
+  const match = /^(\d{1,18})(?:\.(\d{1,2}))?$/.exec(String(value ?? ''));
+  return match ? BigInt(match[1])*100n + BigInt((match[2] || '').padEnd(2,'0')) : null;
+}
+
+function fundAmount(cents) {
+  return String(cents/100n)+'.'+String(cents%100n).padStart(2,'0');
+}
+
+function distributionCredits(amount, schoolBalance, funeralBalance, schoolCap, funeralCap) {
+  const limited = (share, balance, cap) => {
+    const room = cap > balance ? cap-balance : 0n;
+    return share < room ? share : room;
+  };
+  const ben = amount*60n/100n;
+  const sch = limited(amount*15n/100n,schoolBalance,schoolCap);
+  const fun = limited(amount*10n/100n,funeralBalance,funeralCap);
+  return {BEN:ben,SCH:sch,FUN:fun,RESERVE:amount-ben-sch-fun};
+}
+
+app.post('/api/founder/fund-transfers/:operation', requireAdmin, async (req,res) => {
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
+  const operation=req.params.operation;
+  if (!['distribution','sweep','income'].includes(operation)) return res.sendStatus(404);
+  const distribution=operation==='distribution';
+  const income=operation==='income';
+  const id=income?req.body?.depositId:req.body?.workflowId;
+  const uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
+  if ((distribution || income) && (typeof id !== 'string' || !uuid.test(id))) return res.sendStatus(400);
+  const keys=distribution?['EXP','BEN','SCH','FUN','RESERVE']:income?['MAIN','EXP']:['SCH','FUN','FPB'];
+  const ids=keys.map(key=>String(process.env['GFT_WALLET_'+key+'_ID'] || '').trim().toLowerCase());
+  const configured=['MAIN','BEN','FUN','SCH','EXP','FPB','RESERVE'].map(key=>String(process.env['GFT_WALLET_'+key+'_ID'] || '').trim().toLowerCase()).filter(Boolean);
+  if (!ids.every(value=>uuid.test(value)) || new Set(configured).size!==configured.length) {
+    return res.status(409).json({error:'Configure a distinct wallet for each required Trust fund.'});
+  }
+  const conflict=message=>Object.assign(new Error(message),{transferConflict:true});
+  try {
+    const result=await withTransaction(async client=>{
+      let reference, approvedAmount, caps;
+      if (distribution) {
+        const {rows}=await client.query("SELECT status,subject FROM workflows WHERE workflow_id=$1 AND workflow_type='TRUST_DISTRIBUTION' FOR UPDATE",[id]);
+        const workflow=rows[0];
+        const votes=Array.isArray(workflow?.subject?.votes)?workflow.subject.votes:[];
+        if (workflow?.status!=='APPROVED' || !hasDistributionQuorum(votes,workflow.subject.override)) {
+          throw conflict('A pending execution with the recorded Trust approval quorum is required.');
+        }
+        approvedAmount=fundCents(workflow.subject.amount);
+        if (!approvedAmount) throw conflict('The approved amount is invalid.');
+        const config=await client.query("SELECT config_value->'caps' AS caps FROM configuration WHERE config_key='public_site'");
+        caps=config.rows[0]?.caps;
+        if (fundCents(caps?.school)===null || fundCents(caps?.funeral)===null) throw conflict('Record the school and funeral caps in server configuration before distribution.');
+        reference='trust-distribution:'+id.toLowerCase();
+      } else if (income) {
+        reference='trust-income-allocation:'+id.toLowerCase();
+      } else {
+        const {rows}=await client.query("SELECT to_char(NOW() AT TIME ZONE 'Africa/Johannesburg','YYYY-MM-DD') AS today");
+        const today=rows[0].today;
+        if (!today.endsWith('-08')) throw conflict('The FBP sweep is available on the eighth day of the month.');
+        reference='trust-fbp-sweep:'+today.slice(0,7);
+      }
+      const wallets=await client.query("SELECT wallet_id FROM wallets w WHERE wallet_id=ANY($1::uuid[]) AND UPPER(status)='ACTIVE' AND TRIM(currency)='USD' AND NOT EXISTS (SELECT 1 FROM beneficiaries b WHERE b.system_id=w.owner_system_id) ORDER BY wallet_id FOR UPDATE",[ids]);
+      if (wallets.rows.length!==ids.length) throw conflict('The mapped Trust wallets must be active USD accounts.');
+      const existing=await client.query('SELECT 1 FROM ledger_entries WHERE reference=$1 LIMIT 1',[reference]);
+      if (existing.rows.length) throw conflict('This transfer is already recorded.');
+      const {rows}=await client.query("SELECT wallet_id,SUM(CASE WHEN UPPER(TRIM(entry_type)) IN ('CREDIT','DEPOSIT') THEN amount WHEN UPPER(TRIM(entry_type)) IN ('DEBIT','WITHDRAWAL') THEN -amount END) AS balance FROM ledger_entries WHERE wallet_id=ANY($1::uuid[]) AND TRIM(currency)='USD' GROUP BY wallet_id",[ids]);
+      const balances=Object.fromEntries(keys.map((key,i)=>[key,fundCents(rows.find(row=>row.wallet_id===ids[i])?.balance)]));
+      const postings=[];
+      if (distribution) {
+        if (balances.EXP===null || balances.EXP<approvedAmount) throw conflict('The distribution fund lacks sufficient recorded balance.');
+        if (balances.SCH===null || balances.FUN===null) throw conflict('School and funeral opening balances must be recorded to apply their caps.');
+        postings.push(['EXP','DEBIT',approvedAmount]);
+        for (const [key,value] of Object.entries(distributionCredits(approvedAmount,balances.SCH,balances.FUN,fundCents(caps.school),fundCents(caps.funeral)))) postings.push([key,'CREDIT',value]);
+      } else if (income) {
+        const deposit=await client.query("SELECT amount FROM ledger_entries WHERE entry_id=$1 AND wallet_id=$2 AND UPPER(TRIM(entry_type)) IN ('CREDIT','DEPOSIT') AND TRIM(currency)='USD' AND COALESCE(reference,'') NOT LIKE 'trust-%'",[id,ids[0]]);
+        const deposited=fundCents(deposit.rows[0]?.amount);
+        if (!deposited) throw conflict('Select a recorded external USD deposit into the main Trust wallet.');
+        const share=deposited*30n/100n;
+        if (!share || balances.MAIN===null || balances.MAIN<share) throw conflict('The main Trust wallet lacks sufficient allocatable balance.');
+        postings.push(['MAIN','DEBIT',share],['EXP','CREDIT',share]);
+      } else {
+        if (balances.SCH===null || balances.FUN===null) throw conflict('School and funeral balances must be recorded before the sweep.');
+        const total=balances.SCH+balances.FUN;
+        if (total<=0n) throw conflict('There is no recorded balance to sweep.');
+        postings.push(['SCH','DEBIT',balances.SCH],['FUN','DEBIT',balances.FUN],['FPB','CREDIT',total]);
+      }
+      for (const [key,type,value] of postings) {
+        if (value===0n) continue;
+        await client.query("INSERT INTO ledger_entries (wallet_id,entry_type,amount,currency,reference) VALUES ($1,$2,$3,'USD',$4)",[ids[keys.indexOf(key)],type,fundAmount(value),reference]);
+      }
+      if (distribution) await client.query("UPDATE workflows SET status='EXECUTED',updated_at=NOW(),subject=jsonb_set(subject,'{poolAuthorizedBy}',$2::jsonb) WHERE workflow_id=$1",
+        [id,JSON.stringify({admin_id:req.admin.admin_id,email:req.admin.email})]);
+      await client.query('INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,$4,$5::jsonb)',
+        ['AUD-'+randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,'TRUST_FUND_TRANSFER_RECORDED',JSON.stringify({operation,reference})]);
+      return {reference};
+    });
+    return res.json({ok:true,...result});
+  } catch(error) {
+    if (error.transferConflict) return res.status(409).json({error:error.message});
+    console.error('Trust fund transfer failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to record the fund transfer.'});
+  }
+});
+
+function equalBeneficiaryCredits(amount, count) {
+  const share=amount/BigInt(count), remainder=amount%BigInt(count);
+  return Array.from({length:count},(_,index)=>share+(BigInt(index)<remainder?1n:0n));
+}
+
+async function creditAuthorizedBeneficiaryPool(id,pool,administrator=null){
+  const reference='trust-beneficiary-pool:'+id;
+  return withTransaction(async client=>{
+      const execution=await client.query("SELECT subject->'poolAuthorizedBy' AS authorization FROM workflows WHERE workflow_id=$1 AND workflow_type='TRUST_DISTRIBUTION' AND status='EXECUTED' FOR UPDATE",[id]);
+      if(!execution.rows.length) return 0;
+      const authority=execution.rows[0].authorization || administrator;
+      if(!authority?.admin_id) return 0;
+      const funding=await client.query("SELECT amount FROM ledger_entries WHERE wallet_id=$1 AND reference=$2 AND entry_type='CREDIT' AND TRIM(currency)='USD' AND created_at <= NOW()-INTERVAL '24 hours'",[pool,'trust-distribution:'+id]);
+      const amount=funding.rows.length===1 ? fundCents(funding.rows[0].amount) : null;
+      if(!amount) return 0;
+      const recipients=await client.query(`${payoutLineage}
+        SELECT b.system_id,w.wallet_id FROM beneficiaries b
+        JOIN eligible_lineage e ON e.system_id=b.system_id
+        LEFT JOIN wallets w ON w.owner_system_id=b.system_id AND UPPER(w.status)='ACTIVE' AND TRIM(w.currency)='USD'
+        WHERE ${verifiedBeneficiary} ORDER BY b.system_id,w.wallet_id`);
+      const rows=recipients.rows;
+      if(!rows.length || rows.some(row=>!row.wallet_id || row.wallet_id===pool) || new Set(rows.map(row=>row.system_id)).size!==rows.length) return 0;
+      const ids=[pool,...rows.map(row=>row.wallet_id)];
+      const locked=await client.query("SELECT wallet_id,owner_system_id FROM wallets WHERE wallet_id=ANY($1::uuid[]) AND UPPER(status)='ACTIVE' AND TRIM(currency)='USD' ORDER BY wallet_id FOR UPDATE",[ids]);
+      if(locked.rows.length!==ids.length || !rows.every(row=>locked.rows.some(wallet=>wallet.wallet_id===row.wallet_id && wallet.owner_system_id===row.system_id))) return 0;
+      const owner=locked.rows.find(row=>row.wallet_id===pool).owner_system_id;
+      if((await client.query('SELECT 1 FROM beneficiaries WHERE system_id=$1',[owner])).rows.length) return 0;
+      if((await client.query('SELECT 1 FROM ledger_entries WHERE reference=$1 LIMIT 1',[reference])).rows.length) return 0;
+      const balance=await client.query("SELECT SUM(CASE WHEN UPPER(TRIM(entry_type)) IN ('CREDIT','DEPOSIT') THEN amount WHEN UPPER(TRIM(entry_type)) IN ('DEBIT','WITHDRAWAL') THEN -amount END) AS balance FROM ledger_entries WHERE wallet_id=$1 AND TRIM(currency)='USD'",[pool]);
+      const available=fundCents(balance.rows[0]?.balance);
+      if(available===null || available<amount || amount<BigInt(rows.length)) return 0;
+      const shares=equalBeneficiaryCredits(amount,rows.length);
+      const postings=[[pool,'DEBIT',amount],...rows.map((row,i)=>[row.wallet_id,'CREDIT',shares[i]])];
+      for(const [wallet,type,value] of postings) await client.query("INSERT INTO ledger_entries (wallet_id,entry_type,amount,currency,reference) VALUES ($1,$2,$3,'USD',$4)",[wallet,type,fundAmount(value),reference]);
+      await client.query('INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,$4,$5::jsonb)',
+        ['AUD-'+randomBytes(16).toString('hex'),authority.admin_id,authority.email,'BENEFICIARY_POOL_CREDIT_RECORDED',JSON.stringify({reference,recipientCount:rows.length})]);
+      return rows.length;
+    });
+}
+
+let beneficiaryBatchRunning=false;
+async function processMatureBeneficiaryBatches(){
+  const pool=String(process.env.GFT_WALLET_BEN_ID || '').trim().toLowerCase();
+  if(beneficiaryBatchRunning || !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(pool)) return;
+  beneficiaryBatchRunning=true;
+  try {
+    const {rows}=await query(
+      "SELECT workflow_id FROM workflows w WHERE workflow_type='TRUST_DISTRIBUTION' AND status='EXECUTED' "+
+      "AND subject ? 'poolAuthorizedBy' AND updated_at <= NOW()-INTERVAL '24 hours' "+
+      "AND NOT EXISTS(SELECT 1 FROM ledger_entries le WHERE le.reference='trust-beneficiary-pool:'||w.workflow_id::text) "+
+      "ORDER BY updated_at,workflow_id LIMIT 20"
+    );
+    for(const row of rows){
+      try { await creditAuthorizedBeneficiaryPool(row.workflow_id,pool); }
+      catch(error) { console.error('Automatic beneficiary pool credit failed',error.code || error.name); }
+    }
+  } catch(error){console.error('Beneficiary pool batch check failed',error.code || error.name);}
+  finally{beneficiaryBatchRunning=false;}
+}
+
+app.post('/api/founder/beneficiary-pool/:id/credit', requireAdmin, async(req,res)=>{
+  if(String(req.admin.role).toUpperCase()!==FOUNDER_ROLE) return res.sendStatus(403);
+  const id=req.params.id.toLowerCase();
+  const pool=String(process.env.GFT_WALLET_BEN_ID || '').trim().toLowerCase();
+  const uuid=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
+  if(!uuid.test(id)) return res.sendStatus(400);
+  if(!uuid.test(pool)) return res.status(409).json({error:'Configure the Trust beneficiary pool wallet.'});
+  const reference='trust-beneficiary-pool:'+id;
+  try {
+    const count=await creditAuthorizedBeneficiaryPool(id,pool,req.admin);
+    return count ? res.json({reference,recipientCount:count}) : res.status(409).json({error:'The batch is already credited, is within its 24-hour waiting period, or its funding or recipient wallets are incomplete.'});
+  } catch(error) {
+    console.error('Beneficiary pool credit failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to credit beneficiary wallets.'});
   }
 });
 
@@ -5642,6 +6000,54 @@ app.put('/api/founder/admins/:adminId/deployment', requireAdmin, async (req, res
   } catch (error) {
     console.error('Admin deployment update failed',error.code || error.name);
     return res.status(500).json({error:'Unable to save Admin authority.'});
+  }
+});
+
+app.post('/api/founder/admins/:adminId/tasks', requireAdmin, async (req, res) => {
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
+  const { title, description, dueDate, priority, status, removeId } = req.body || {};
+  const removing = typeof removeId === 'string';
+  if (removing ? !/^[a-f0-9]{32}$/.test(removeId) :
+      typeof title !== 'string' || !title.trim() || title.length > 180 ||
+      typeof description !== 'string' || description.length > 3000 ||
+      typeof dueDate !== 'string' || (dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) ||
+      !['Normal','Low','High','Critical'].includes(priority) ||
+      !['ASSIGNED','IN_PROGRESS','COMPLETED','OVERDUE'].includes(status)) {
+    return res.status(400).json({error:'Invalid task details.'});
+  }
+  try {
+    const saved = await withTransaction(async client => {
+      const {rows} = await client.query("SELECT deployment FROM gft_admin_accounts WHERE admin_id=$1 AND UPPER(role)<>'FOUNDER' FOR UPDATE",[req.params.adminId]);
+      if (!rows.length) return false;
+      const deployment = rows[0].deployment || {};
+      const tasks = Array.isArray(deployment.tasks) ? deployment.tasks : [];
+      if (removing && !tasks.some(task => task?.id === removeId)) return false;
+      const id = removing ? removeId : randomBytes(16).toString('hex');
+      const next = removing ? tasks.filter(task => task?.id !== id) :
+        [...tasks, {id,title:title.trim(),description:description.trim(),dueDate,priority,status}];
+      await client.query('UPDATE gft_admin_accounts SET deployment=$1::jsonb,updated_at=NOW() WHERE admin_id=$2',
+        [JSON.stringify({...deployment,tasks:next}),req.params.adminId]);
+      await client.query('INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,$4,$5::jsonb)',
+        ['AUD-'+randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,
+         removing ? 'ADMIN_TASK_REMOVED' : 'ADMIN_TASK_ASSIGNED', JSON.stringify({targetAdminId:req.params.adminId,taskId:id})]);
+      return true;
+    });
+    return saved ? res.json({ok:true}) : res.sendStatus(404);
+  } catch(error) {
+    console.error('Admin task update failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to save the task change.'});
+  }
+});
+
+app.get('/api/founder/audit-events', requireAdmin, async (req,res) => {
+  res.set('Cache-Control','no-store');
+  if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
+  try {
+    const {rows}=await query('SELECT created_at, admin_email, action, details FROM gft_admin_audit_events ORDER BY created_at DESC, event_id DESC LIMIT 100');
+    return res.json({events:rows});
+  } catch(error) {
+    console.error('Founder audit unavailable',error.code || error.name);
+    return res.status(500).json({error:'Audit history is unavailable.'});
   }
 });
 
@@ -7168,6 +7574,8 @@ app.use('/api', (_req, res) => {
 
 // ------------------------------------------------------------
 // ERROR HANDLING
+installCompanyContributions(app, {query,withTransaction,requireAdmin});
+
 installDepartmentAdmin(app, {
   query, withTransaction, getAuthenticatedAdmin, getCookie, sha256,
   createPasswordHash, verifyPassword
@@ -7197,6 +7605,7 @@ app.use((error, _req, res, _next) => {
 ensureFounderAccount()
   .then(() => {
     app.listen(PORT, () => {
+      setInterval(processMatureBeneficiaryBatches,60_000).unref();
       console.log(
         `GFT server listening on http://localhost:${PORT}`
       );

@@ -374,7 +374,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <div id="exportLogSite" class="log" style="margin-top:12px">No exports yet...</div>
 </div>
 </div>
-<div id="sec-wallets" class="section"><h1><span class="mi lg">account_balance_wallet</span> Company Wallets (12)</h1><div class="grid" style="margin-top:16px" id="walletGrid"></div><div class="card" style="margin-top:16px"><h2><span class="mi">pie_chart</span> Live Preview</h2><div class="amt" id="totalProfit">$0</div><div id="livePreview"></div></div></div>
+<div id="sec-wallets" class="section"><div class="card" id="companyContributions"><h2>Monthly company contributions</h2><button type="button" id="refreshCompanyContributions">Open reports</button><div id="companyContributionContent" aria-live="polite"></div></div><h1><span class="mi lg">account_balance_wallet</span> Company Wallets (12)</h1><div class="grid" style="margin-top:16px" id="walletGrid"></div></div>
 <div id="sec-ben" class="section"><div class="card"><h2>Recent payout requests</h2><button type="button" onclick="loadFounderPayoutRequests()">Refresh requests</button><ul id="founderPayoutRequests"></ul></div><div class="card ben"><h2><span class="mi">group</span> Beneficiary Pool</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0"><input id="newBenName" placeholder="Full Name *"><input id="newBenID" placeholder="ID Number *"><input id="newBenPhone" placeholder="Phone for WhatsApp" style="grid-column:span 2"></div><button class="primary" onclick="addBen()"><span class="mi">person_add</span> Add with ID</button><button class="blue" onclick="exportBenPDF()"><span class="mi">picture_as_pdf</span> Export PDF</button><button class="blue" onclick="previewRegistrationReconciliation()"><span class="mi">fact_check</span> Preview Family Reconciliation</button><div id="registrationReconciliationPreview" style="display:none;margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:10px"><h3 style="margin:0 0 8px">Read-only Family Reconciliation Preview</h3><p id="registrationReconciliationSummary" style="color:var(--muted)"></p><div id="registrationReconciliationRows"></div></div><div class="tabs"><div class="tab active" id="tab-approved" onclick="switchBenTab('approved')">Approved (<span id="countApproved">0</span>)</div><div class="tab" id="tab-pending" onclick="switchBenTab('pending')">Pending Auto (<span id="countPending">0</span>)</div></div><div id="benListApproved"></div><div id="benListPending" style="display:none"></div></div><div class="card" style="margin-top:12px"><h2><span class="mi">history</span> Deletion Log</h2><div class="log" id="delLog">No deletions yet...</div></div></div>
 <div id="sec-fun" class="section"><h1><span class="mi lg">church</span> Funeral</h1><div class="grid"><div class="card fun"><h2><span class="title-main">BALANCE</span></h2><div class="amt" id="funAmt2">Unavailable</div><div id="funStatus2" class="badge wait"></div><div class="log" id="funPayLog2" style="margin-top:10px">No payments</div></div><div class="card"><h2>Test Simulate Claim</h2><input id="testDeceasedName" placeholder="Deceased Name"><input id="testDeceasedID" placeholder="Deceased ID"><select id="testPayTo"><option value="Parlour">Parlour</option><option value="Church">Church</option></select><input type="file" id="testCertFile" accept="image/*,.pdf"><button class="orange" onclick="simulateFuneralClaim()">Submit Cert</button></div></div><div class="card" style="margin-top:16px"><div class="tabs"><div class="tab funTab active" id="funTab-pending" onclick="switchFunTab('pending')">Pending (<span id="countFunPending">0</span>)</div><div class="tab funTab" id="funTab-paid" onclick="switchFunTab('paid')">Paid (<span id="countFunPaid">0</span>)</div></div><div id="funListPending"></div><div id="funListPaid" style="display:none"></div><button class="orange" onclick="exportFuneralPDF()" style="margin-top:12px"><span class="mi">picture_as_pdf</span> Export Funeral PDF</button></div></div>
 <div id="sec-sch" class="section"><h1><span class="mi lg">school</span> School Fees</h1><div class="grid"><div class="card sch"><h2><span class="title-main">BALANCE</span></h2><div class="amt" id="schAmt2">Unavailable</div><div id="schStatus2" class="badge wait"></div><div class="log" id="schPayLog2" style="margin-top:10px">No payments</div></div><div class="card"><h2>Test Simulate Invoice</h2><input id="testStudentName" placeholder="Student Name *"><input id="testStudentID" placeholder="Student ID"><input id="testSchoolName" placeholder="School Name *"><input id="testSchoolAccount" placeholder="School Account *"><input id="testSchoolAmount" type="number" placeholder="Amount *"><input type="file" id="testInvoiceFile" accept="image/*,.pdf"><button class="purple" onclick="simulateSchoolClaim()">Submit Invoice</button></div></div><div class="card" style="margin-top:16px"><h2><span class="mi">verified</span> Verified Schools List</h2><div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0"><input id="newVerifiedSchool" placeholder="School Name"><input id="newVerifiedAccountPrefix" placeholder="Prefix"><button class="purple" onclick="addVerifiedSchool()">Add Verified School</button></div><div id="verifiedSchoolsList" class="log" style="max-height:120px"></div></div><div class="card" style="margin-top:16px"><div class="tabs"><div class="tab schTab active" id="schTab-pending" onclick="switchSchTab('pending')">Pending (<span id="countSchPending">0</span>)</div><div class="tab schTab" id="schTab-paid" onclick="switchSchTab('paid')">Paid Ledger (<span id="countSchPaid">0</span>)</div></div><div id="schListPending"></div><div id="schListPaid" style="display:none"></div><button class="purple" onclick="exportSchoolPDF()" style="margin-top:12px"><span class="mi">picture_as_pdf</span> Export School PDF</button></div></div>
@@ -521,12 +521,12 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 </div>
 </div>
 
-<div id="sec-approval" class="section"><h1><span class="mi lg">verified_user</span> 5-Man Approval</h1><div class="grid" style="margin-top:16px"><div class="card"><h2><span class="mi">how_to_reg</span> Trustees + Elders</h2><div class="row"><input type="checkbox" id="t1" onchange="checkApproval()" style="width:auto"> Trustee 1</div><div class="row" style="background:#10b98111;padding:8px;border-radius:8px;border:1px solid #10b98144"><input type="checkbox" id="founderIsTrustee" checked onchange="checkApproval()" style="width:auto"> <b>Founder IS Trustee (3/5 = PASS)</b></div><div class="row"><input type="checkbox" id="t2" onchange="checkApproval()" style="width:auto"> Trustee 2</div><div class="row"><input type="checkbox" id="t3" onchange="checkApproval()" style="width:auto"> Trustee 3</div><div class="row"><input type="checkbox" id="e1" onchange="checkApproval()" style="width:auto"> Elder 1</div><div class="row"><input type="checkbox" id="e2" onchange="checkApproval()" style="width:auto"> Elder 2</div><div style="margin-top:16px;background:#020617;padding:12px;border-radius:10px"><div>Count: <b id="approveCount" style="font-size:18px">0/5</b></div><div id="overrideMsg" style="font-size:13px;margin-top:8px;color:#10b981;font-weight:700"></div><div style="margin-top:8px">Distribution Status: <b id="expApprove2">0/5</b></div></div><button class="primary" style="margin-top:12px" onclick="approveWithdrawal()"><span class="mi">check_circle</span> Approve Withdrawal</button></div><div class="card"><h2><span class="mi">lock_open</span> Withdrawal Log</h2><div class="log" id="approvalLog">No withdrawals yet...</div></div></div></div>
+<div id="sec-approval" class="section"><h1>Trust distribution approvals</h1><p>Three Trustees and two Family Council members must each approve from their own account.</p><button type="button" onclick="requestExpansion()">Request approval</button><div class="card"><h2>Distribution requests</h2><button type="button" onclick="loadDistributionApprovals()">Refresh requests</button><div id="distributionRequests" aria-live="polite"></div></div></div>
 <div id="sec-sweep" class="section"><h1><span class="mi lg">autorenew</span> 8th Day Sweep → FBP</h1><div class="grid" style="margin-top:16px"><div class="card"><h2><span class="mi">calendar_today</span> 8th Day Rule - NOW TO FBP</h2><p>Today: <b id="todayDate"></b></p><p id="windowMsg" style="color:var(--muted);font-size:13px"></p><div style="background:#020617;padding:12px;border-radius:10px;margin:12px 0"><div>Funeral: <b id="sweepFunAmt">Unavailable</b></div><div>School: <b id="sweepSchAmt">Unavailable</b></div><div>Total to FBP: <b id="sweepExpAmt">Unavailable</b> (NEW - not Trust)</div><div>FBP Balance: <b id="sweepFpbAmt">Unavailable</b></div></div><button class="primary" onclick="runEighthSweep()"><span class="mi">sync</span> Run Sweep Now → FBP Account</button><button class="orange" onclick="autoCheckSweepDate()" style="margin-top:8px"><span class="mi">schedule</span> Check if 8th</button><div class="log" style="margin-top:10px;font-size:10px">NEW RULE: 100% sweep to FBP Account - Founder Patent Benefit - NOT Trust. Funeral + School reset to $0.00</div></div><div class="card"><h2><span class="mi">receipt</span> Sweep History</h2><div class="log" id="sweepLog">No sweeps yet...</div><div class="log" id="sweepLog2" style="margin-top:8px"></div></div></div></div>
-<div id="sec-daughter" class="section"><h1><span class="mi lg">family_restroom</span> Daughter Rule</h1><div class="grid" style="margin-top:16px"><div class="card"><h2><span class="mi">female</span> Daughter Inheritance</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0"><input id="daughterCount" type="number" placeholder="Number of Daughters" value="2"><input id="sonCount" type="number" placeholder="Number of Sons" value="3"><input id="daughterSharePct" type="number" placeholder="Daughter share % each" value="20"></div><button class="primary" onclick="calculateDaughterRule()"><span class="mi">calculate</span> Calculate</button><div style="background:#020617;padding:12px;border-radius:10px;margin-top:12px"><div id="daughterResult">Enter counts...</div><div id="daughterResult2" class="log" style="margin-top:8px"></div></div></div><div class="card"><h2><span class="mi">balance</span> Equal Share Check</h2><div id="daughterFairness" class="log">Run calculation...</div><button class="blue" onclick="applyDaughterRule()" style="margin-top:12px"><span class="mi">verified</span> Apply Rule</button></div></div></div>
+<div id="sec-daughter" class="section"><div class="card"><h1>Lineage and equal shares</h1><p>Eligible beneficiaries receive the same share. A Guvaza daughter and her biological children qualify. Her grandchildren are outside that branch’s eligibility. Eligibility uses approved beneficiary status and the official family tree.</p><button type="button" onclick="showSec('ben')">View the beneficiary pool</button></div></div>
 <div id="sec-notif" class="section"><h1><span class="mi lg">notifications</span> Push + Email + WhatsApp</h1><div class="grid" style="margin-top:16px"><div class="card notif"><h2><span class="mi">notifications_active</span> Push Notifications</h2><button class="primary" onclick="requestPushPermission()"><span class="mi">notifications</span> Enable Push</button><div id="pushStatus" class="badge wait" style="margin-top:8px">Not enabled</div><div style="margin-top:12px"><input id="testPushMsg" placeholder="Test push"><button class="blue" onclick="testPush()">Send Test Push</button></div></div><div class="card"><h2><span class="mi">email</span> Email Alerts</h2><input id="founderEmail" placeholder="Founder Email"><div style="display:flex;gap:8px;align-items:center;margin:8px 0"><span style="font-size:12px">Enable Email</span><div id="emailSwitch" class="switch on" onclick="toggleEmail()"></div><span id="emailLabel" style="font-size:11px;color:#10b981">ON</span></div><button class="blue" onclick="testEmail()"><span class="mi">send</span> Test Email</button><div class="log" id="emailLog" style="margin-top:8px">No emails yet...</div></div><div class="card"><h2><span class="mi">chat</span> WhatsApp Notifications</h2><input id="whatsappNumber" placeholder="WhatsApp"><div style="display:flex;gap:8px;align-items:center;margin:8px 0"><span style="font-size:12px">Enable WhatsApp</span><div id="waSwitch" class="switch on" onclick="toggleWhatsApp()"></div><span id="waLabel" style="font-size:11px;color:#10b981">ON</span></div><button class="primary" style="background:#25D366" onclick="testWhatsApp()"><span class="mi">chat</span> Test WhatsApp</button><div class="log" id="whatsappLog" style="margin-top:8px">No WhatsApp yet...</div></div></div><div class="card" style="margin-top:16px"><h2><span class="mi">history</span> All Alerts History</h2><div class="log" id="allAlertsLog" style="max-height:300px">No alerts yet...</div></div></div>
 <div id="sec-export" class="section"><h1><span class="mi lg">picture_as_pdf</span> Export to PDF</h1><div class="grid" style="margin-top:16px"><div class="card export"><h2><span class="mi">group</span> Beneficiaries Export</h2><button class="blue" onclick="exportBenPDF()"><span class="mi">picture_as_pdf</span> Export Beneficiaries PDF</button><button class="primary" onclick="exportBenCSV()"><span class="mi">table_view</span> Export CSV</button></div><div class="card export"><h2><span class="mi">church</span> Funeral Export</h2><button class="orange" onclick="exportFuneralPDF()"><span class="mi">picture_as_pdf</span> Export Funeral PDF</button><button class="primary" onclick="exportFuneralCSV()"><span class="mi">table_view</span> Export CSV</button></div><div class="card export"><h2><span class="mi">school</span> School Fees Export</h2><button class="purple" onclick="exportSchoolPDF()"><span class="mi">picture_as_pdf</span> Export School PDF</button><button class="primary" onclick="exportSchoolCSV()"><span class="mi">table_view</span> Export CSV</button></div><div class="card export"><h2><span class="mi">receipt_long</span> Full Trust Report PDF</h2><button class="primary" onclick="exportFullReportPDF()"><span class="mi">picture_as_pdf</span> Export FULL Report PDF</button></div></div><div class="card" style="margin-top:16px"><h2><span class="mi">history</span> Export Log</h2><div class="log" id="exportLog">No exports yet...</div></div></div>
-<div id="sec-audit" class="section"><div class="card"><h2><span class="mi">receipt_long</span> Audit Trail</h2><div class="log" id="audit">Session started - 12 COMPANIES BANNER + GALLERY + CARDS + FAMILY + ADMIN INVITE + FBP NEW...</div></div></div>
+<div id="sec-audit" class="section"><div class="card"><h2><span class="mi">receipt_long</span> Audit Trail</h2><button type="button" onclick="loadFounderAudit()">Refresh audit history</button><div class="log" id="audit" aria-live="polite"></div></div></div>
 </div>
 </div>
 <div id="deleteModal" class="modal"><div class="modal-box"><h2>Delete Beneficiary</h2><p id="deleteName"></p><p id="deleteID" style="font-size:12px"></p><select id="deleteReason"><option value="Death">Death</option><option value="False">False</option><option value="Custom">Custom</option></select><input id="customReason" placeholder="Custom" style="display:none"><div style="display:flex;gap:8px;margin-top:16px"><button class="danger" onclick="confirmDelete()">Delete</button><button onclick="closeDeleteModal()">Cancel</button></div></div></div>
@@ -1323,12 +1323,76 @@ function updateFounderHeader(id){
  const x=map[id]||['Founder Control Centre','The Guvaza Family Trust Founder administration panel.'];
  const h=document.getElementById('founderHeaderTitle'),p=document.getElementById('founderHeaderSubtitle');if(h)h.innerHTML='<span class="mi lg">admin_panel_settings</span> FOUNDER — '+x[0];if(p){p.innerHTML='';p.appendChild(document.createTextNode(x[1]+' | '));const badge=document.createElement('span');badge.id='configLoadedBadge';badge.textContent='Loading config...';p.appendChild(badge);}if(typeof refreshConfigDisplay==='function')refreshConfigDisplay();
 }
-function showSec(id, el){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));let t=document.getElementById('sec-'+id);if(t)t.classList.add('active');document.querySelectorAll('.menu').forEach(m=>m.classList.remove('active'));if(el)el.classList.add('active');updateFounderHeader(id);if(id==='ben'){renderBens();loadFounderPayoutRequests();}if(id==='fun')renderFuneral();if(id==='sch')renderSchool();if(id==='adminRoles')renderAdmins();if(id==='adminControl')refreshAdminControlCentre();if(id==='approval')checkApproval();if(id==='sweep')updateSweepUI();if(id==='daughter')calculateDaughterRule();if(id==='notif')renderNotif();if(id==='export')renderExport();if(id==='siteSettings')renderSiteSettings();if(id==='wallets'){let wg=document.getElementById('walletGrid');if(wg&&customConfig.companies){wg.innerHTML='';customConfig.companies.forEach((comp)=>{wg.innerHTML+=`<div class="card" style="border-left-color:${comp.color||'#10b981'}"><h2><span class="mi">business</span> Co ${comp.id} - ${comp.name}</h2><p style="font-size:11px;color:var(--muted)">${comp.info||''}<br>Banner: ${(comp.banner||'').substring(0,40)}<br>Gallery: ${(comp.gallery||[]).length} pics</p><div style="margin-top:8px;display:flex;gap:8px"><img src="${comp.logo}" onerror="this.style.display='none'" style="max-width:60px;max-height:40px;border-radius:6px"><img src="${comp.banner}" onerror="this.style.display='none'" style="max-width:90px;max-height:40px;border-radius:6px"></div><input type="number" id="c${comp.id}" placeholder="Profit $" value="${comp.profit||0}" oninput="saveCompanyWallets()"></div>`;});}}}
+function showSec(id, el){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));let t=document.getElementById('sec-'+id);if(t)t.classList.add('active');document.querySelectorAll('.menu').forEach(m=>m.classList.remove('active'));if(el)el.classList.add('active');updateFounderHeader(id);if(id==='ben'){renderBens();loadFounderPayoutRequests();}if(id==='fun')renderFuneral();if(id==='sch')renderSchool();if(id==='adminRoles')renderAdmins();if(id==='adminControl')refreshAdminControlCentre();if(id==='approval')checkApproval();if(id==='sweep')updateSweepUI();if(id==='notif')renderNotif();if(id==='export')renderExport();if(id==='audit')loadFounderAudit();if(id==='siteSettings')renderSiteSettings();if(id==='wallets')loadCompanyWallets();}
 
 // === ENGINE WITH FBP + BEN 24H EQUAL + PAY NOW BUTTON AUTO-INJECT ===
 let wallets = {};
 
 const benPoolPayouts = [];
+async function loadDistributionApprovals(){
+  const list=document.getElementById('distributionRequests');
+  try {
+    const response=await fetch('/api/admin/distribution-approvals',{cache:'no-store'});
+    if(!response.ok) throw Error('Distribution approvals unavailable.');
+    const {requests}=await response.json();
+    list.textContent=requests.length?'':'No distribution requests recorded.';
+    for(const row of requests){
+      const item=document.createElement('p');
+      item.textContent=[row.purpose,'USD '+row.amount,row.status,row.votes+' approvals'].join(' · ');
+      if(row.canVote){
+        const button=document.createElement('button');
+        button.type='button';
+        button.textContent='Record my approval';
+        button.onclick=async()=>{
+          if(!confirm('Approve this distribution request?')) return;
+          button.disabled=true;
+          try {
+            const result=await fetch('/api/admin/distribution-approvals/'+encodeURIComponent(row.id)+'/vote',{method:'POST'});
+            if(!result.ok) throw Error('Approval could not be recorded ('+result.status+').');
+            await loadDistributionApprovals();
+          } catch(error){alert(error.message);}
+          finally{button.disabled=false;}
+        };
+        item.append(' ',button);
+      }
+      if(row.canOverride){
+        const button=document.createElement('button');
+        button.type='button';
+        button.textContent='Record Founder trustee override';
+        button.onclick=async()=>{
+          const reason=prompt('Why is the Founder trustee override being used?')?.trim();
+          if(!reason) return;
+          button.disabled=true;
+          try {
+            const response=await fetch('/api/founder/distribution-approvals/'+encodeURIComponent(row.id)+'/override',{
+              method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reason})
+            });
+            const result=await response.json().catch(()=>({}));
+            if(!response.ok) throw Error(result.error || 'Unable to record the Founder trustee override.');
+            await loadDistributionApprovals();
+          } catch(error){alert(error.message);}
+          finally{button.disabled=false;}
+        };
+        item.append(' ',button);
+      }
+      if(row.status==="APPROVED"){
+        const button=document.createElement("button");
+        button.type="button";
+        button.textContent="Post distribution to ledger";
+        button.onclick=()=>recordFundTransfer("distribution",{workflowId:row.id},button);
+        item.append(" ",button);
+      }
+      if(row.status==="EXECUTED"){
+        const button=document.createElement("button");
+        button.type="button";
+        button.textContent="Credit beneficiary wallets";
+        button.onclick=()=>creditBeneficiaryPool(row.id,button);
+        item.append(" ",button);
+      }
+      list.append(item);
+    }
+  } catch(error){list.textContent=error.message;}
+}
 async function loadFounderPayoutRequests(){
   const list = document.getElementById("founderPayoutRequests");
   list.textContent = "Loading payout requests…";
@@ -1341,6 +1405,31 @@ async function loadFounderPayoutRequests(){
     for (const row of requests) {
       const item = document.createElement("li");
       item.textContent = [row.payout_id, row.currency + " " + row.amount, row.status, new Date(row.created_at).toLocaleDateString()].join(" · ");
+      if (row.status === "PENDING_REVIEW") {
+        const buttons = [];
+        for (const [decision, label] of [["REVIEWED", "Record review"], ["REJECTED", "Reject request"]]) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = label;
+          button.onclick = async () => {
+            const reason = prompt("Enter the reason for this decision:")?.trim();
+            if (reason === undefined) return;
+            if (reason.length < 5 || reason.length > 2000) return alert("Enter a reason of 5 to 2,000 characters.");
+            buttons.forEach(control => { control.disabled = true; });
+            try {
+              const response = await fetch("/api/founder/payout-requests/" + encodeURIComponent(row.payout_id) + "/decision", {
+                method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({decision,reason})
+              });
+              const data = await response.json().catch(() => ({}));
+              if (!response.ok) throw new Error(data.error || "Unable to record the payout decision.");
+              await loadFounderPayoutRequests();
+            } catch (error) { alert(error.message); }
+            finally { buttons.forEach(control => { control.disabled = false; }); }
+          };
+          buttons.push(button);
+          item.append(" ", button);
+        }
+      }
       list.append(item);
     }
   } catch { list.textContent = "Payout requests unavailable."; }
@@ -1358,14 +1447,47 @@ function walletDisplay(key){
   return wallet?.balance == null ? "Unavailable" : wallet.currency + " " + wallet.balance;
 }
 let benCount=0;
-function log(msg){let a=document.getElementById('audit');if(!a)return;a.innerHTML=`[${new Date().toLocaleTimeString()}] ${msg}<br>`+a.innerHTML; addAlertLog(msg);}
+function log(msg){addAlertLog(msg);}
+async function loadFounderAudit(){
+  const panel=document.getElementById('audit');
+  panel.textContent='Loading audit history…';
+  try {
+    const response=await fetch('/api/founder/audit-events',{cache:'no-store'});
+    if(!response.ok) throw Error('Audit history is unavailable.');
+    const {events}=await response.json();
+    panel.textContent=events.length?'':'No server audit events recorded.';
+    for(const event of events){
+      const entry=document.createElement('div');
+      entry.textContent=[new Date(event.created_at).toLocaleString(),event.admin_email,event.action].filter(Boolean).join(' · ');
+      const details=document.createElement('pre');
+      details.style.whiteSpace='pre-wrap';
+      details.textContent=JSON.stringify(event.details,null,2);
+      entry.append(details);
+      panel.append(entry);
+    }
+  } catch(error){panel.textContent=error.message;}
+}
 document.getElementById('todayDate').innerText=new Date().toLocaleDateString();
 let day=new Date().getDate();
 document.getElementById('windowMsg').innerText=day===8?`TODAY IS 8TH - SWEEP TO FBP ENABLED (Day ${day})`:`Day ${day} - Sweep only on 8th`;
 
-function allocate(){alert("This action requires the server payment workflow.");}
-function allocateDistribution(){alert("This action requires the server payment workflow.");}
-function manualBenPayoutNow(){alert("This action requires the server payment workflow.");}
+function allocate(){
+  const depositId=prompt('Enter the ledger entry ID for an external deposit already recorded in the main Trust wallet:')?.trim();
+  if(depositId) recordFundTransfer('income',{depositId});
+}
+function allocateDistribution(){showSec('approval');}
+function manualBenPayoutNow(){showSec('approval');}
+async function creditBeneficiaryPool(id,button){
+  if(!confirm('Credit this distribution batch to verified beneficiary wallets after its 24-hour waiting period?')) return;
+  button.disabled=true;
+  try {
+    const response=await fetch('/api/founder/beneficiary-pool/'+encodeURIComponent(id)+'/credit',{method:'POST'});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw Error(result.error || 'Unable to credit beneficiary wallets.');
+    button.textContent='Credited '+result.recipientCount+' wallets';
+    await loadFounderWalletBalances();
+  } catch(error){alert(error.message);button.disabled=false;}
+}
 function updateUI(){
   const fields = {mainAmt:"main",benAmt:"ben",funAmt:"fun",funAmt2:"fun",schAmt:"sch",schAmt2:"sch",
     expAmt:"exp",fpbAmt:"fpb",sweepFunAmt:"fun",sweepSchAmt:"sch",sweepFpbAmt:"fpb"};
@@ -1381,18 +1503,67 @@ function updateUI(){
 }
 function updateBenLabel(){document.getElementById('benLabel').innerText=document.getElementById('benSlider').value+'%';}updateUI();
 
-function checkApproval(){let c=['t1','t2','t3','e1','e2'].filter(id=>document.getElementById(id)?.checked).length;let isT=document.getElementById('founderIsTrustee')?.checked;document.getElementById('approveCount').innerText=c+'/5';document.getElementById('expApprove').innerText=c+'/5';if(document.getElementById('expApprove2'))document.getElementById('expApprove2').innerText=c+'/5';let msg=document.getElementById('overrideMsg');if(isT&&c>=3&&c<5){msg.innerText='FOUNDER OVERRIDE: 3/5 = PASS';}else if(c>=5){msg.innerText='5/5 APPROVED';}else{msg.innerText=`Need ${isT?'3/5':'5/5'} Have ${c}/5`;}}
-function requestExpansion(){alert("Withdrawal requests require the server payment workflow.");}
+function checkApproval(){loadDistributionApprovals();}
+async function requestExpansion(){
+  const amount=prompt('Enter the proposed amount in USD:')?.trim();
+  if(!amount) return;
+  const purpose=prompt('Enter the purpose of the distribution:')?.trim();
+  if(!purpose) return;
+  try {
+    const response=await fetch('/api/admin/distribution-approvals',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount,purpose})});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw Error(result.error || 'Unable to submit the request.');
+    showSec('approval');
+  } catch(error){alert(error.message);}
+}
 function approveWithdrawal(){alert("Approval requires a server-recorded decision.");}
 function updateSweepUI(){}
-function runEighthSweep(){alert("This action requires the server payment workflow.");}
-function autoCheckSweepDate(){alert("This action requires the server payment workflow.");}
-function calculateDaughterRule(){alert("This action requires the server payment workflow.");}
-function applyDaughterRule(){alert("This action requires the server payment workflow.");}
+async function recordFundTransfer(operation,body,button){
+  if(!confirm("Record this internal transfer in the Trust ledger?")) return;
+  if(button) button.disabled=true;
+  try {
+    const response=await fetch("/api/founder/fund-transfers/"+operation,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw Error(result.error || "The transfer could not be recorded.");
+    document.getElementById("sweepLog").textContent=operation==="sweep" ? result.reference : document.getElementById("sweepLog").textContent;
+    await loadFounderWalletBalances();
+    if(operation==="distribution") await loadDistributionApprovals();
+    if(operation==="income") alert("Income allocation recorded: "+result.reference);
+  } catch(error){alert(error.message);}
+  finally{if(button)button.disabled=false;}
+}
+function runEighthSweep(){recordFundTransfer("sweep",{});}
+function autoCheckSweepDate(){alert("The server checks the Trust calendar when you run the sweep.");}
 const companies=['Transport','Mining','Property','Logistics','Agric','Retail','Tech','Energy','Construction','Import/Export','Finance','Education'];
-const grid=document.getElementById('walletGrid');
-if(grid){ companies.forEach((name,i)=>{let id=i+1;grid.innerHTML+=`<div class="card"><h2><span class="mi">business</span> Co ${id} - ${name}</h2><input type="number" id="c${id}" placeholder="Profit $" oninput="saveCompanyWallets()" placeholder="Unavailable" disabled></div>`;});}
-function saveCompanyWallets(){alert("This action requires the server payment workflow.");}
+async function loadCompanyWallets(){
+  const grid=document.getElementById('walletGrid');
+  grid.textContent='Loading company wallets…';
+  try {
+    const response=await fetch('/api/founder/company-wallets',{cache:'no-store'});
+    if(!response.ok) throw Error('Company wallets unavailable.');
+    const {wallets}=await response.json();
+    grid.textContent=wallets.length?'':'No company records are registered in PostgreSQL.';
+    const totals=new Map();
+    for(const wallet of wallets){
+      if(wallet.currency_total!=null) totals.set(wallet.currency,wallet.currency_total);
+    }
+    if(totals.size){
+      const summary=document.createElement('p');
+      summary.textContent='Recorded balances by currency · '+Array.from(totals,([currency,balance])=>currency+' '+balance).join(' · ');
+      grid.append(summary);
+    }
+    for(const wallet of wallets){
+      const card=document.createElement('div');
+      card.className='card';
+      const heading=document.createElement('h2');
+      heading.textContent=wallet.name;
+      const balance=document.createElement('p');
+      balance.textContent=!wallet.wallet_id?'Wallet not assigned':wallet.balance==null?'No ledger balance recorded':wallet.currency+' '+wallet.balance;
+      card.append(heading,balance);
+      grid.append(card);
+    }
+  } catch(error){grid.textContent=error.message;}
+}
 
 let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');let pendingRegs=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');let delLogs=JSON.parse(localStorage.getItem('guvaza_del_log')||'[]');let deleteIndex=-1,editIndex=-1;
 function switchBenTab(tab){document.getElementById('tab-approved').classList.toggle('active', tab==='approved');document.getElementById('tab-pending').classList.toggle('active', tab==='pending');document.getElementById('benListApproved').style.display=tab==='approved'?'block':'none';document.getElementById('benListPending').style.display=tab==='pending'?'block':'none';renderBens();}
@@ -1446,7 +1617,7 @@ async function renderBens(){
           const item=document.createElement('div'); item.className='ben-item'; item.style.borderLeft='3px solid #10b981';
           const info=document.createElement('div'); info.className='ben-info';
           const name=document.createElement('b'); name.textContent=b.full_name||'Unnamed beneficiary'; info.appendChild(name);
-          const badge=document.createElement('span'); badge.className='badge ok'; badge.style.marginLeft='8px'; badge.textContent='SERVER APPROVED'; info.appendChild(badge);
+          const badge=document.createElement('span'); badge.className='badge ok'; badge.style.marginLeft='8px'; badge.textContent=b.payout_eligible?'PAYOUT ELIGIBLE':'APPROVED · PAYOUT INELIGIBLE'; info.appendChild(badge);
           const details=document.createElement('small'); details.style.display='block';
           details.textContent=`System ID: ${b.system_id||'—'} | Membership: ${b.membership||'—'} | Phone: ${b.phone||'—'} | Identity: ${b.identity_status||'—'} | Lineage: ${b.lineage_status||'—'} | Status: ${b.status||'—'}`;
           info.appendChild(details); item.appendChild(info); listA.appendChild(item);
@@ -2577,16 +2748,20 @@ function renderAdminDeploymentTasks(admin){
 
   const tasks = admin?.deployment?.tasks || [];
 
-  element.innerHTML = tasks.length
-    ? tasks.map((task, index) => `
-        <div class="ben-item">
-          <div class="ben-info">
-            <b>${task.title || 'Task ' + (index + 1)}</b><br>
-            <small>${task.description || ''}</small><br>
-            <small>Due: ${task.dueDate || 'Not specified'} • Priority: ${task.priority || 'Normal'} • ${task.status || 'ASSIGNED'}</small>
-          </div>
-        </div>`).join('')
-    : '<p style="font-size:11px;color:var(--muted)">No deployment tasks recorded.</p>';
+  element.replaceChildren();
+  if (!tasks.length) element.textContent = 'No deployment tasks recorded.';
+  for (const task of tasks) {
+    const row = document.createElement('p');
+    row.textContent = [task?.title,task?.description,task?.dueDate,task?.priority,task?.status].filter(Boolean).join(' · ');
+    if (task?.id) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Remove task';
+      button.onclick = () => removeAdminDeploymentTask(task.id);
+      row.append(' ',button);
+    }
+    element.append(row);
+  }
 }
 
 // ------------------------------------------------------------
@@ -2638,8 +2813,30 @@ function delAdmin(){ adminServerWritePending(); }
 function resetAdminPw(){ adminServerWritePending(); }
 function changeAdminRole(){ adminServerWritePending(); }
 function clearAllAdmins(){ adminServerWritePending(); }
-function addAdminDeploymentTask(){ adminServerWritePending(); }
-function removeAdminDeploymentTask(){ adminServerWritePending(); }
+async function updateAdminDeploymentTasks(body){
+  const select = document.getElementById('controlAdminSelect');
+  const admin = admins[select.value];
+  if (!admin) return;
+  const id = admin.admin_id || admin.adminId;
+  try {
+    const response = await fetch('/api/founder/admins/'+encodeURIComponent(id)+'/tasks',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)
+    });
+    const result = await response.json().catch(()=>({}));
+    if (!response.ok) throw new Error(result.error || 'Unable to save the task change.');
+    await loadFounderAdmins();
+    const index = admins.findIndex(account => (account.admin_id || account.adminId) === id);
+    if (index >= 0) { select.value = String(index); loadAdminControlCentre(); }
+  } catch(error) { alert(error.message); }
+}
+function addAdminDeploymentTask(){
+  const value = id => document.getElementById(id).value;
+  updateAdminDeploymentTasks({title:value('adminTaskTitle'),description:value('adminTaskDescription'),
+    dueDate:value('adminTaskDue'),priority:value('adminTaskPriority'),status:value('adminTaskStatus')});
+}
+function removeAdminDeploymentTask(id){
+  if (confirm('Remove this task?')) updateAdminDeploymentTasks({removeId:id});
+}
 function addAdminDeploymentOverride(){ adminServerWritePending(); }
 function removeAdminDeploymentOverride(){ adminServerWritePending(); }
 async function deploySelectedAdmin(statusOverride){
@@ -2740,6 +2937,7 @@ document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(updateHeskiaCard,
 </script>
 
 
+<script src="company-contribution-panel.js"></script>
 </body>
 </html>
 
