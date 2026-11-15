@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { installSpotlightStudioBridge } from './spotlight-studio-bridge.js';
 import { installSpotlightWorkrooms } from './spotlight-workrooms.js';
 import { installLibrary } from './library-readers.js';
 import { installVirtualCardRequests } from './virtual-card-requests.js';
@@ -7821,6 +7822,13 @@ const ensureSpotlightWorkroomSchema = installSpotlightWorkrooms(app, {
   withTransaction,
   getMember: getAuthenticatedSpotlightMember,
   ensureProfiles: ensureSpotlightProfileTable
+});
+
+installSpotlightStudioBridge(app, {
+  query,
+  getMember: getAuthenticatedSpotlightMember,
+  ensureProfiles: ensureSpotlightProfileTable,
+  ensureWorkrooms: ensureSpotlightWorkroomSchema
 });
 
 app.get('/api/spotlight/profiles', async (req, res) => {

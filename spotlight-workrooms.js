@@ -208,6 +208,12 @@
     return result.status;
   }
 
+  function studioEntrance(tab, collaboration) {
+    const params = new URLSearchParams({ department: tab.dataset.department });
+    if (collaboration) params.set('collaboration', collaboration);
+    return '/api/spotlight/studio/launch?' + params;
+  }
+
   function collaborationCard(tab, item) {
     const endpoint = '/collaborations/' + encodeURIComponent(item.collaboration_id);
     const element = node('details', '', 'room-thread');
@@ -235,6 +241,11 @@
           for (const control of actions.children) control.disabled = false;
         }
       }));
+    }
+    if (item.status === 'accepted') {
+      const studio = node('a', 'Continue in Production Studio', 'room-button room-primary');
+      studio.href = studioEntrance(tab, item.collaboration_id);
+      actions.append(studio);
     }
     element.append(actions);
 
@@ -290,6 +301,7 @@
       active = tab;
       tab.setAttribute('aria-expanded', 'true');
       room.hidden = false;
+      room.querySelector('[data-studio-entrance]').href = studioEntrance(tab);
       heading.textContent = labels[tab.dataset.department] + ' Workroom';
       heading.focus();
       search.reset();
