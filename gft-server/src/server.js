@@ -121,6 +121,8 @@ const publicFiles = [
   '/register.html',
   '/script.js',
   '/staff-admin.html',
+  '/spotlight-profile-card.css',
+  '/spotlight-profile-card.js',
   '/staff-admin.js',
   '/styles.css',
   '/trustRules.js',

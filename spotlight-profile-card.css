@@ -1,0 +1,56 @@
+.spotlight-profile-card {
+  --red: #d52235;
+  --blue: #0878e8;
+  --bright: #55adff;
+  min-width: 0;
+  background: white;
+  color: #111b2a;
+  border: 1px solid #dfe7f1;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 6px 22px #112e5008;
+}
+.spotlight-profile-card .preview-label { padding:19px 20px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px }
+.spotlight-profile-card .preview-label h3 { margin:0;font-size:17px }
+.spotlight-profile-card .live-tag { font-size:10px;color:#087044;background:#e7f8ef;border-radius:999px;padding:6px 9px;font-weight:800 }
+.spotlight-profile-card .cover { height:165px;position:relative;background:linear-gradient(90deg,#07152acc,#07152a44),url('https://images.unsplash.com/photo-1455390582262-044c099f7d0a?auto=format&fit=crop&w=1200&q=80') center/cover;overflow:hidden }
+.spotlight-profile-card .cover:after { content:"";position:absolute;inset:auto 0 0;height:4px;background:linear-gradient(90deg,var(--red),var(--blue),var(--bright)) }
+.spotlight-profile-card .cover-action { position:absolute;right:12px;top:12px;border:1px solid #ffffff88;background:#07152a99;color:#fff;border-radius:9px;padding:8px 10px;font-size:10px;font-weight:800;z-index:1 }
+.spotlight-profile-card .profile-body { padding:0 21px 22px }
+.spotlight-profile-card .portrait { width:82px;height:82px;border:4px solid #fff;border-radius:23px;background:linear-gradient(140deg,var(--blue),#62b5ff);color:white;display:grid;place-items:center;font-size:30px;margin-top:-41px;position:relative;box-shadow:0 5px 18px #0a2b501f;overflow:hidden }
+.spotlight-profile-card .portrait img { width:100%;height:100%;object-fit:cover;display:none }
+.spotlight-profile-card .profile-name { font:800 22px Montserrat, Arial, sans-serif;margin:13px 0 4px;overflow-wrap:anywhere }
+.spotlight-profile-card .profile-role { font-size:12px;font-weight:700;color:#0966c4;margin-bottom:10px }
+.spotlight-profile-card .profile-bio { font-size:12px;color:#68778c;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere }
+.spotlight-profile-card .chips { display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 }
+.spotlight-profile-card .chip { font-size:10px;font-weight:700;background:#edf4fc;color:#23527f;border:1px solid #d9e9fa;padding:6px 9px;border-radius:999px }
+.spotlight-profile-card .portfolio-head { display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px;font:800 13px Montserrat, Arial, sans-serif }
+.spotlight-profile-card .portfolio { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px }
+.spotlight-profile-card .work-card { min-height:105px;border-radius:13px;overflow:hidden;position:relative;background:linear-gradient(145deg,#0b2341,#07152a);color:white;padding:12px;display:flex;flex-direction:column;justify-content:end }
+.spotlight-profile-card .work-card:before { content:"";position:absolute;inset:0;background:linear-gradient(0deg,#061329e8,transparent 95%) }
+.spotlight-profile-card .work-card .work-icon, .spotlight-profile-card .work-card strong { position:relative }
+.spotlight-profile-card .work-card .work-icon { font-size:17px;color:#83c1ff;margin-bottom:15px }
+.spotlight-profile-card .work-card strong { font-size:11px;line-height:1.45 }
+.spotlight-profile-card .work-card:nth-child(2) { background:linear-gradient(145deg,#b92032,#172c4b) }
+.spotlight-profile-card .work-card:nth-child(3) { background:linear-gradient(145deg,#123b66,#07152a) }
+.spotlight-profile-card .work-card:nth-child(4) { background:linear-gradient(145deg,#2b3342,#0878e8) }
+.spotlight-profile-card .preview-foot { padding:13px 21px;background:#f6f9fd;border-top:1px solid #e4ebf4;color:#7a8799;font-size:10px;line-height:1.6 }
+.spotlight-profile-card .preview-label h3 { font: 800 17px Montserrat, Arial, sans-serif; }
+.spotlight-profile-card .preview-label i { color: #0878e8; margin-right: 7px; }
+.spotlight-profile-card .live-tag { white-space: nowrap; }
+.spotlight-profile-card .profile-role,
+.spotlight-profile-card .chip,
+.spotlight-profile-card .work-card strong { overflow-wrap: anywhere; }
+.spotlight-profile-card .portrait img { display: block; }
+.spotlight-profile-card [hidden] { display: none; }
+.spotlight-profile-card .preview-foot a { color: #075fbd; font-size: 12px; font-weight: 800; }
+.spotlight-profile-card .preview-foot a:hover { text-decoration: underline; }
+@media (max-width: 900px) {
+  .spotlight-profile-card .cover { height: 190px; }
+}
+@media (max-width: 600px) {
+  .spotlight-profile-card { border-radius: 17px; }
+  .spotlight-profile-card .preview-label { padding: 16px; }
+  .spotlight-profile-card .cover { height: 155px; }
+  .spotlight-profile-card .profile-body { padding: 0 17px 19px; }
+}

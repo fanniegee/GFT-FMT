@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="typography.css">
+<link rel="stylesheet" href="spotlight-profile-card.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
   <style>
     :root {
@@ -189,7 +190,7 @@
         <h2>My Spotlight Profiles</h2>
         <p class="panel-intro">Your private saved profiles and drafts. Only you can see your drafts here; publication remains under Founder control.</p>
         <p id="myProfilesStatus" role="status" aria-live="polite">Loading your saved profiles…</p>
-        <div id="myProfilesGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px"></div>
+        <div id="myProfilesGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%, 320px),1fr));gap:14px"></div>
         <a class="btn btn-primary" href="gft-spotlight-profile-editor.html?new=1" style="display:inline-flex;margin-top:14px"><i class="fa-solid fa-plus"></i> Create another profile</a>
       </section>
       <section class="panel" id="departments">
@@ -297,13 +298,13 @@
         safeName.split(/\s+/).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join('');
     }
   </script>
+<script src="spotlight-profile-card.js"></script>
 <script>
 (function(){
  const status=document.getElementById('myProfilesStatus');
  const grid=document.getElementById('myProfilesGrid');
  if(!status||!grid)return;
  const labels={author:'Author',artist:'Artist',music:'Music Production',film:'Film Production'};
- const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  async function loadMyProfiles(){
   status.textContent='Loading your saved profiles…';grid.replaceChildren();
   try{
@@ -319,14 +320,17 @@
    document.querySelectorAll('[data-department]').forEach(card=>{const dep=card.dataset.department;const exists=profiles.some(p=>p.department===dep);card.classList.toggle('has-profile',exists);card.setAttribute('aria-label',(labels[dep]||dep)+(exists?' workroom, saved profile available':' workroom, create a profile'));});
    if(!profiles.length){status.textContent='You have no saved profiles yet. Use a department card or Create another profile to get started.';return;}
    status.textContent=profiles.length+' saved profile'+(profiles.length===1?'':'s')+' · '+drafts.length+' draft'+(drafts.length===1?'':'s');
-   profiles.forEach(p=>{
-    const card=document.createElement('article');card.style.cssText='padding:16px;border:1px solid #dbe4ef;border-radius:15px;background:#fff;display:flex;flex-direction:column;gap:8px';
-    const dept=document.createElement('p');dept.style.cssText='margin:0;color:#2876bf;font-size:12px;font-weight:700';dept.textContent=labels[p.department]||p.department;
-    const h=document.createElement('h3');h.style.margin='0';h.textContent=p.display_name||'Untitled profile';
-    const meta=document.createElement('p');meta.style.cssText='margin:0;color:#65758b;font-size:13px';meta.textContent=(p.headline||'Professional profile')+' · '+(p.status||'draft');
-    if(p.status==='draft'){const open=document.createElement('a');open.className='btn btn-primary';open.style.cssText='display:inline-flex;align-self:flex-start;margin-top:auto';open.href='gft-spotlight-profile-editor.html?profile_id='+encodeURIComponent(p.profile_id);open.textContent='Open / Edit Draft';card.append(dept,h,meta,open);}else{card.append(dept,h,meta);}
-    grid.append(card);
-   });
+   for (const profile of profiles) {
+    const card = SpotlightProfileCard.createCard(profile);
+    card.update({
+     department: profile.department,
+     displayName: profile.display_name,
+     headline: profile.headline,
+     biography: profile.biography,
+     details: profile.details
+    });
+    grid.append(card.element);
+   }
   }catch(e){status.textContent=e.message||'Unable to load your profiles. Please refresh and try again.';}
  }
  loadMyProfiles();
