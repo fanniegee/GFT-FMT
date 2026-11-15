@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import { installDepartmentAdmin } from './department-admin.js';
 import { installCompanyContributions } from './company-contributions.js';
+import { installFamilyCorrections } from './family-corrections.js';
+import { installPayoutAccounting } from './payout-accounting.js';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -93,6 +95,7 @@ const publicFiles = [
   '/clinic.html',
   '/companies.html',
   '/company-contribution-panel.js',
+  '/family-correction-panel.js',
   '/company.html',
   '/config.js',
   '/contact.html',
@@ -2196,7 +2199,57 @@ const payoutLineage = `WITH RECURSIVE people AS (
 )`;
 const verifiedBeneficiary = `UPPER(b.status)='ACTIVE' AND UPPER(b.identity_status)='VERIFIED' AND UPPER(b.lineage_status)='VERIFIED'`;
 
-app.get('/api/beneficiaries/admin/pool', requireRegistrationReviewer, async (_req, res) => {
+function canEditBeneficiary(admin) {
+  return String(admin.role).toUpperCase()===FOUNDER_ROLE ||
+    (Array.isArray(admin.deployment?.permissions) && admin.deployment.permissions.includes('members:edit'));
+}
+
+function requireBeneficiaryReader(req,res,next){
+  return requireAdmin(req,res,()=>{
+    const permissions=req.admin.deployment?.permissions;
+    if(hasRegistrationReviewAuthority(req.admin) || canEditBeneficiary(req.admin) ||
+       (Array.isArray(permissions) && permissions.includes('members:view'))) return next();
+    return res.sendStatus(403);
+  });
+}
+
+app.patch('/api/beneficiaries/admin/pool/:id',requireAdmin,async(req,res)=>{
+  if(!canEditBeneficiary(req.admin)) return res.sendStatus(403);
+  if(!req.is('application/json')) return res.sendStatus(415);
+  const {id}=req.params;
+  const {fullName,phone,reason}=req.body || {};
+  if(!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(id) ||
+    typeof fullName!=='string' || fullName.trim().length<2 || fullName.length>180 ||
+    typeof phone!=='string' || (phone && !/^\+?[0-9 ()-]{7,30}$/.test(phone)) ||
+    typeof reason!=='string' || reason.trim().length<5 || reason.length>500){
+    return res.status(400).json({error:'Enter a name, a valid phone number or blank, and the reason for the correction.'});
+  }
+  try {
+    const found=await withTransaction(async client=>{
+      const {rows:[record]}=await client.query('SELECT system_id,full_name,phone FROM beneficiaries WHERE beneficiary_id=$1 FOR UPDATE',[id]);
+      if(!record) return false;
+      const name=fullName.trim(), contact=phone.trim() || null;
+      if(record.full_name===name && record.phone===contact) return true;
+      if(record.full_name!==name){
+        const official=await client.query('UPDATE family_people SET full_name=$1,updated_at=NOW() WHERE system_id=$2 RETURNING system_id',[name,record.system_id]);
+        if(!official.rows.length) throw Object.assign(new Error('The official family record is missing. Reconcile the GFT ID before changing the name.'),{status:409});
+      }
+      await client.query('UPDATE beneficiaries SET full_name=$1,phone=$2,updated_at=NOW() WHERE beneficiary_id=$3',[name,contact,id]);
+      await client.query('INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,$4,$5::jsonb)',
+        ['AUD-'+randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,'BENEFICIARY_DETAILS_CORRECTED',
+         JSON.stringify({systemId:record.system_id,nameChanged:record.full_name!==name,phoneChanged:record.phone!==contact,reason:reason.trim()})]);
+      return true;
+    });
+    return found?res.json({ok:true}):res.sendStatus(404);
+  } catch(error) {
+    if(error.status===409) return res.status(409).json({error:error.message});
+    console.error('Beneficiary correction failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to save the beneficiary correction.'});
+  }
+});
+
+app.get('/api/beneficiaries/admin/pool', requireBeneficiaryReader, async (req, res) => {
+  res.set('Cache-Control','no-store');
   try {
     const result = await query(
       `${payoutLineage}
@@ -2206,7 +2259,7 @@ app.get('/api/beneficiaries/admin/pool', requireRegistrationReviewer, async (_re
                 (SELECT 1 FROM eligible_lineage e WHERE e.system_id=b.system_id),false) AS payout_eligible
        FROM beneficiaries b ORDER BY b.created_at DESC,b.full_name ASC`
     );
-    return res.json({ ok: true, count: result.rows.length, beneficiaries: result.rows, serverAuthoritative: true });
+    return res.json({ ok: true, count: result.rows.length, beneficiaries: result.rows, canEdit: canEditBeneficiary(req.admin), serverAuthoritative: true });
   } catch (error) {
     console.error('Founder approved beneficiary pool error:', error);
     return res.status(500).json({ ok: false, error: 'Unable to load approved beneficiaries' });
@@ -4386,6 +4439,42 @@ app.get('/api/beneficiary/wallet', async (req, res) => {
  // BENEFICIARY — PAYOUT REQUEST
  // ------------------------------------------------------------
 
+app.post('/api/beneficiary/cashout', async(req,res)=>{
+  res.set('Cache-Control','no-store');
+  if(!req.is('application/json')) return res.sendStatus(415);
+  try {
+    const beneficiary=await getAuthenticatedBeneficiary(req);
+    if(!beneficiary) return res.sendStatus(401);
+    const method=req.body?.method;
+    const field=key=>typeof req.body?.destination?.[key]==='string'?req.body.destination[key].trim():'';
+    let destination;
+    if(method==='Bank' && /^[A-Za-z0-9-]{4,40}$/.test(field('accountNumber')) && field('bankName').length>=2 && field('bankName').length<=100){
+      destination={accountNumber:field('accountNumber'),bankName:field('bankName')};
+    } else if(method==='Ecocash' && /^\+?[0-9]{8,15}$/.test(field('number')) && field('name').length>=2 && field('name').length<=100){
+      destination={number:field('number'),name:field('name')};
+    } else return res.status(400).json({error:'Enter a valid bank account or EcoCash destination.'});
+    const {rows}=await query("INSERT INTO cashout_requests (beneficiary_system_id,method,destination) VALUES ($1,$2,$3::jsonb) RETURNING cashout_id,status",
+      [beneficiary.system_id,method,JSON.stringify(destination)]);
+    return res.status(201).json({ok:true,cashout:{id:rows[0].cashout_id,status:rows[0].status}});
+  } catch(error){
+    console.error('Saving payout destination failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to save the payout destination.'});
+  }
+});
+
+app.get('/api/founder/payout-requests/:id/destination',requireAdmin,async(req,res)=>{
+  res.set('Cache-Control','no-store');
+  if(String(req.admin.role).toUpperCase()!==FOUNDER_ROLE) return res.sendStatus(403);
+  if(!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(req.params.id)) return res.sendStatus(400);
+  try {
+    const {rows}=await query('SELECT destination FROM payout_requests WHERE payout_id=$1',[req.params.id]);
+    return rows.length ? res.json({destination:rows[0].destination}) : res.sendStatus(404);
+  } catch(error){
+    console.error('Payout destination lookup failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to load payment destination.'});
+  }
+});
+
 app.post('/api/beneficiary/payouts', async (req, res) => {
   try {
     const beneficiary = await getAuthenticatedBeneficiary(req);
@@ -4399,12 +4488,10 @@ app.post('/api/beneficiary/payouts', async (req, res) => {
 
     const amount = Number(req.body?.amount);
     const reason = String(req.body?.reason || '').trim();
-    const destination =
-      req.body?.destination &&
-      typeof req.body.destination === 'object' &&
-      !Array.isArray(req.body.destination)
-        ? req.body.destination
-        : {};
+    const cashout=await query("SELECT cashout_id,method,destination FROM cashout_requests WHERE beneficiary_system_id=$1 AND method IN ('Bank','Ecocash') ORDER BY created_at DESC,cashout_id DESC LIMIT 1",[beneficiary.system_id]);
+    const selected=cashout.rows[0];
+    if(!selected) return res.status(409).json({error:'Save a payment destination before requesting a payout.'});
+    const destination={...selected.destination,method:selected.method,cashoutId:selected.cashout_id};
 
     if (
       !Number.isFinite(amount) ||
@@ -4826,6 +4913,27 @@ async function createAdminSession(req, res, adminId) {
   setAdminCookie(res, rawToken);
 }
 
+const deploymentModules = ['dashboard','pending','members','aboutEdit','familyRoot','homeEdit','secondEmail',
+  'finances','bookkeeping','funeral','school','companies','approval','lawyer','library','communications','audit'];
+const deploymentActions = ['view','create','edit','delete','approve','export','manage','configure','review','verify','recommend'];
+
+function validDeploymentPermission(permission){
+  if(typeof permission!=='string') return false;
+  const parts=permission.split(':');
+  return parts.length===2 && deploymentModules.includes(parts[0]) && deploymentActions.includes(parts[1]);
+}
+
+function activeAdminDeployment(deployment,now=Date.now()){
+  if(!deployment || !Array.isArray(deployment.overrides)) return deployment;
+  const overrides=deployment.overrides.filter(item=>item?.active===true && typeof item.expiresAt==='string'
+    && Date.parse(item.expiresAt)>now && validDeploymentPermission(item.permission));
+  if(!overrides.length) return {...deployment,overrides:[]};
+  const permissions=Array.isArray(deployment.permissions)?deployment.permissions:[];
+  const modules=Array.isArray(deployment.modules)?deployment.modules:[];
+  return {...deployment,overrides,permissions:[...new Set([...permissions,...overrides.map(item=>item.permission)])],
+    modules:[...new Set([...modules,...overrides.map(item=>item.permission.split(':')[0])])]};
+}
+
 async function getAuthenticatedAdmin(req) {
   const rawToken = getCookie(
     req,
@@ -4875,7 +4983,8 @@ async function getAuthenticatedAdmin(req) {
     [tokenHash]
   );
 
-  return result.rows[0];
+  const admin=result.rows[0];
+  return {...admin,deployment:activeAdminDeployment(admin.deployment)};
 }
 
 // ------------------------------------------------------------
@@ -5317,7 +5426,7 @@ app.post('/api/admin/login', async (req, res) => {
         role: admin.role,
         permissions: admin.permissions,
         tasks: admin.tasks,
-        deployment: admin.deployment,
+        deployment: activeAdminDeployment(admin.deployment),
         status: admin.status,
         active: admin.active
       }
@@ -5748,9 +5857,11 @@ app.post('/api/founder/distribution-approvals/:id/override', requireAdmin, async
   }
 });
 
-app.get('/api/founder/company-wallets', requireAdmin, async(req,res)=>{
+app.get('/api/admin/company-wallets', requireAdmin, async(req,res)=>{
   res.set('Cache-Control','no-store');
-  if (String(req.admin.role).toUpperCase()!==FOUNDER_ROLE) return res.sendStatus(403);
+  const permissions=req.admin.deployment?.permissions;
+  if (String(req.admin.role).toUpperCase()!==FOUNDER_ROLE &&
+      !(Array.isArray(permissions) && permissions.includes('finances:view'))) return res.sendStatus(403);
   try {
     const {rows}=await query("WITH balances AS (SELECT c.company_id,c.name,w.wallet_id,TRIM(w.currency) AS currency,SUM(CASE WHEN UPPER(TRIM(le.entry_type)) IN ('CREDIT','DEPOSIT') THEN le.amount WHEN UPPER(TRIM(le.entry_type)) IN ('DEBIT','WITHDRAWAL') THEN -le.amount END) AS balance FROM companies c LEFT JOIN wallets w ON c.system_id=w.owner_system_id AND UPPER(w.status)='ACTIVE' AND NOT EXISTS (SELECT 1 FROM beneficiaries b WHERE b.system_id=w.owner_system_id) LEFT JOIN ledger_entries le ON le.wallet_id=w.wallet_id AND le.currency=w.currency WHERE UPPER(c.status)='ACTIVE' GROUP BY c.company_id,c.name,w.wallet_id,w.currency  ) SELECT *,SUM(balance) OVER (PARTITION BY currency) AS currency_total FROM balances ORDER BY name,company_id,currency,wallet_id");
     return res.json({wallets:rows});
@@ -5964,19 +6075,49 @@ app.get('/api/founder/wallet-balances', requireAdmin, async (req, res) => {
   }
 });
 
+app.post('/api/founder/admins/:adminId/overrides',requireAdmin,async(req,res)=>{
+  if(String(req.admin.role).toUpperCase()!==FOUNDER_ROLE) return res.sendStatus(403);
+  if(!req.is('application/json')) return res.sendStatus(415);
+  const {permission,expiresAt,reason,removeId}=req.body || {};
+  const revoke=typeof removeId==='string';
+  if(revoke ? !/^[a-f0-9]{32}$/.test(removeId) :
+    !validDeploymentPermission(permission) || typeof expiresAt!=='string' || !Number.isFinite(Date.parse(expiresAt)) ||
+    Date.parse(expiresAt)<=Date.now() || typeof reason!=='string' || reason.trim().length<5 || reason.length>500){
+    return res.status(400).json({error:'Enter an existing module permission, a future expiry and a reason of 5 to 500 characters.'});
+  }
+  try {
+    const updated=await withTransaction(async client=>{
+      const {rows:[admin]}=await client.query("SELECT deployment FROM gft_admin_accounts WHERE admin_id=$1 AND UPPER(role)<>'FOUNDER' FOR UPDATE",[req.params.adminId]);
+      if(!admin) return false;
+      const current=admin.deployment || {};
+      const overrides=Array.isArray(current.overrides)?current.overrides:[];
+      const prior=overrides.find(item=>item?.id===removeId);
+      if(revoke && !prior) return false;
+      const id=revoke?removeId:randomBytes(16).toString('hex');
+      const item=revoke?prior:{id,permission,expiresAt:new Date(expiresAt).toISOString(),reason:reason.trim(),active:true};
+      const next=revoke?overrides.filter(entry=>entry?.id!==id):[...overrides,item];
+      await client.query('UPDATE gft_admin_accounts SET deployment=$1::jsonb,updated_at=NOW() WHERE admin_id=$2',[JSON.stringify({...current,overrides:next}),req.params.adminId]);
+      await client.query('INSERT INTO gft_admin_audit_events (event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,$4,$5::jsonb)',
+        ['AUD-'+randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,
+         revoke?'ADMIN_OVERRIDE_REVOKED':'ADMIN_OVERRIDE_GRANTED',JSON.stringify({targetAdminId:req.params.adminId,...item})]);
+      return true;
+    });
+    return updated?res.json({ok:true}):res.sendStatus(404);
+  } catch(error){
+    console.error('Admin override update failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to save temporary permission.'});
+  }
+});
+
 app.put('/api/founder/admins/:adminId/deployment', requireAdmin, async (req, res) => {
   if (String(req.admin.role).toUpperCase() !== FOUNDER_ROLE) return res.sendStatus(403);
   const { role, status, modules, permissions } = req.body || {};
   const roles = ['Trustees','Family Council','Lawyer','Witness',"Founder's Executive Assistant",
     'Accountant','Secretary','Employee','Super Admin','Finance Admin','Companies Admin','Support'];
-  const allowedModules = ['dashboard','pending','members','aboutEdit','familyRoot','homeEdit','secondEmail',
-    'finances','bookkeeping','funeral','school','companies','approval','lawyer','library','communications','audit'];
-  const allowedActions = ['view','create','edit','delete','approve','export','manage','configure','review','verify','recommend'];
   if (!roles.includes(role) || !['ACTIVE','PENDING','SUSPENDED','REVOKED','ARCHIVED'].includes(status)
-      || !Array.isArray(modules) || modules.length > allowedModules.length || !modules.every(item => allowedModules.includes(item))
-      || !Array.isArray(permissions) || permissions.length > allowedModules.length * allowedActions.length
-      || !permissions.every(item => typeof item === 'string' && allowedModules.some(module =>
-        allowedActions.some(action => item === module + ':' + action)))) return res.sendStatus(400);
+      || !Array.isArray(modules) || modules.length > deploymentModules.length || !modules.every(item => deploymentModules.includes(item))
+      || !Array.isArray(permissions) || permissions.length > deploymentModules.length * deploymentActions.length
+      || !permissions.every(validDeploymentPermission)) return res.sendStatus(400);
   try {
     const updated = await withTransaction(async client => {
       const target = await client.query(
@@ -6037,6 +6178,166 @@ app.post('/api/founder/admins/:adminId/tasks', requireAdmin, async (req, res) =>
     console.error('Admin task update failed',error.code || error.name);
     return res.status(500).json({error:'Unable to save the task change.'});
   }
+});
+
+function notificationSettingAccess(admin,action){
+  const permissions=admin.deployment?.permissions;
+  return String(admin.role).toUpperCase()===FOUNDER_ROLE || (Array.isArray(permissions) &&
+    (permissions.includes('secondEmail:configure') || (action==='read' && permissions.includes('secondEmail:view'))));
+}
+
+const notificationDefaults={primaryEmail:'',backupEmail:'',whatsappNumber:'',emailEnabled:false,whatsappEnabled:false};
+async function readNotificationSettings(runQuery=query){
+  const {rows}=await runQuery("SELECT config_value FROM configuration WHERE config_key='private_notifications'");
+  return {...notificationDefaults,...rows[0]?.config_value};
+}
+
+app.get('/api/admin/notifications',requireAdmin,async(req,res)=>{
+  res.set('Cache-Control','no-store');
+  if(!notificationSettingAccess(req.admin,'read')) return res.sendStatus(403);
+  try{
+    const settings=await readNotificationSettings();
+    const history=await query("SELECT action,created_at,details FROM gft_admin_audit_events WHERE action IN ('NOTIFICATION_SETTINGS_UPDATED','NOTIFICATION_TEST_EMAIL_ACCEPTED','NOTIFICATION_TEST_EMAIL_FAILED') ORDER BY created_at DESC,event_id DESC LIMIT 30");
+    return res.json({settings,events:history.rows});
+  }catch(error){
+    console.error('Notification settings unavailable',error.code || error.name);
+    return res.status(500).json({error:'Notification settings unavailable.'});
+  }
+});
+
+app.patch('/api/admin/notifications',requireAdmin,async(req,res)=>{
+  if(!notificationSettingAccess(req.admin,'write')) return res.sendStatus(403);
+  if(!req.is('application/json')) return res.sendStatus(415);
+  const input=req.body;
+  const email=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!input || !Object.keys(input).length || Object.keys(input).some(key=>!Object.hasOwn(notificationDefaults,key))) return res.sendStatus(400);
+  const patch={};
+  for(const [key,value] of Object.entries(input)){
+    if(typeof notificationDefaults[key]==='boolean'){
+      if(typeof value!=='boolean') return res.sendStatus(400);
+      patch[key]=value;
+    }else{
+      if(typeof value!=='string') return res.sendStatus(400);
+      const text=value.trim();
+      if(text && (key==='whatsappNumber' ? !/^\+[1-9]\d{7,14}$/.test(text) : text.length>254 || !email.test(text)))
+        return res.status(400).json({error:'Enter valid email addresses and an international WhatsApp number.'});
+      patch[key]=text;
+    }
+  }
+  try{
+    await withTransaction(async client=>{
+      await client.query("INSERT INTO configuration(config_key,config_value,version) VALUES('private_notifications',$1::jsonb,1) ON CONFLICT(config_key) DO UPDATE SET config_value=configuration.config_value || EXCLUDED.config_value,version=configuration.version+1,updated_at=NOW()",
+        [JSON.stringify(patch)]);
+      await client.query("INSERT INTO gft_admin_audit_events(event_id,admin_id,admin_email,action,details) VALUES($1,$2,$3,'NOTIFICATION_SETTINGS_UPDATED',$4::jsonb)",
+        ['AUD-'+randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,JSON.stringify({fields:Object.keys(patch)})]);
+    });
+    return res.json({settings:await readNotificationSettings()});
+  }catch(error){
+    console.error('Notification settings update failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to save notification settings.'});
+  }
+});
+
+app.post('/api/admin/notifications/test-email',requireAdmin,registrationOtpSendLimiter,async(req,res)=>{
+  if(!notificationSettingAccess(req.admin,'write')) return res.sendStatus(403);
+  if(!req.is('application/json')) return res.sendStatus(415);
+  try{
+    const settings=await readNotificationSettings();
+    const recipients=[...new Set([settings.primaryEmail,settings.backupEmail].filter(Boolean))];
+    if(!settings.emailEnabled || !recipients.length || !process.env.RESEND_FROM_EMAIL)
+      return res.status(409).json({error:'Enable email and configure a recipient and sender first.'});
+    let providerResult;
+    try { providerResult=await resend.emails.send({from:process.env.RESEND_FROM_EMAIL,to:recipients,subject:'GFT notification test',text:'This message confirms your Guvaza Family Trust notification settings.'}); }
+    catch { providerResult={error:true}; }
+    const accepted=Boolean(providerResult.data?.id && !providerResult.error);
+    await query('INSERT INTO gft_admin_audit_events(event_id,admin_id,admin_email,action,details) VALUES($1,$2,$3,$4,$5::jsonb)',
+      ['AUD-'+randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,accepted?'NOTIFICATION_TEST_EMAIL_ACCEPTED':'NOTIFICATION_TEST_EMAIL_FAILED',
+       JSON.stringify({recipientCount:recipients.length,providerId:accepted?providerResult.data.id:null})]);
+    return accepted?res.json({ok:true,message:'Email provider accepted the test.'}):res.status(502).json({error:'The email provider did not accept the test.'});
+  }catch(error){
+    console.error('Test email action failed',error.code || error.name);
+    return res.status(500).json({error:'Unable to confirm the test email result.'});
+  }
+});
+
+async function readVerifiedSchools(runQuery=query){
+  const {rows}=await runQuery("SELECT config_value FROM configuration WHERE config_key='verified_schools'");
+  return Array.isArray(rows[0]?.config_value)?rows[0].config_value:[];
+}
+
+app.get('/api/founder/verified-schools',requireAdmin,async(req,res)=>{
+  if(String(req.admin.role).toUpperCase()!==FOUNDER_ROLE) return res.sendStatus(403);
+  res.set('Cache-Control','no-store');
+  try{return res.json({schools:await readVerifiedSchools()});}
+  catch(error){console.error('School directory lookup failed',error.code || error.name);return res.status(500).json({error:'School directory unavailable.'});}
+});
+
+app.post('/api/founder/verified-schools',requireAdmin,async(req,res)=>{
+  if(String(req.admin.role).toUpperCase()!==FOUNDER_ROLE) return res.sendStatus(403);
+  if(!req.is('application/json')) return res.sendStatus(415);
+  const {name,prefix,removeId}=req.body || {};
+  const remove=typeof removeId==='string';
+  if(remove ? !/^[a-f0-9]{32}$/.test(removeId) : typeof name!=='string'||name.trim().length<2||name.length>180||
+     typeof prefix!=='string'||!/^[a-z0-9-]{2,40}$/i.test(prefix.trim())) return res.status(400).json({error:'Enter a school name and valid account prefix.'});
+  try{
+    const updated=await withTransaction(async client=>{
+      await client.query("SELECT pg_advisory_xact_lock(hashtext('gft-verified-schools'))");
+      const schools=await readVerifiedSchools(client.query.bind(client));
+      if(remove ? !schools.some(row=>row.id===removeId) : schools.some(row=>row.name.toLowerCase()===name.trim().toLowerCase())) return null;
+      const id=remove?removeId:randomBytes(16).toString('hex');
+      const next=remove?schools.filter(row=>row.id!==id):[...schools,{id,name:name.trim(),prefix:prefix.trim().toUpperCase()}];
+      await client.query("INSERT INTO configuration(config_key,config_value,version) VALUES('verified_schools',$1::jsonb,1) ON CONFLICT(config_key) DO UPDATE SET config_value=EXCLUDED.config_value,version=configuration.version+1,updated_at=NOW()",[JSON.stringify(next)]);
+      await client.query('INSERT INTO gft_admin_audit_events(event_id,admin_id,admin_email,action,details) VALUES($1,$2,$3,$4,$5::jsonb)',
+        ['AUD-'+randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,remove?'VERIFIED_SCHOOL_REMOVED':'VERIFIED_SCHOOL_ADDED',JSON.stringify({schoolId:id})]);
+      return next;
+    });
+    return updated?res.json({schools:updated}):res.status(409).json({error:'The school already exists or has been removed.'});
+  }catch(error){console.error('School directory update failed',error.code || error.name);return res.status(500).json({error:'Unable to update the school directory.'});}
+});
+
+app.get('/api/founder/reports/history',requireAdmin,async(req,res)=>{
+  if(String(req.admin.role).toUpperCase()!==FOUNDER_ROLE) return res.sendStatus(403);
+  res.set('Cache-Control','no-store');
+  try{
+    const {rows}=await query("SELECT created_at,details FROM gft_admin_audit_events WHERE action='FOUNDER_REPORT_PREPARED' ORDER BY created_at DESC,event_id DESC LIMIT 30");
+    return res.json({events:rows});
+  }catch(error){console.error('Founder report history failed',error.code || error.name);return res.status(500).json({error:'Report history unavailable.'});}
+});
+
+app.post('/api/founder/reports/:type',requireAdmin,async(req,res)=>{
+  if(String(req.admin.role).toUpperCase()!==FOUNDER_ROLE) return res.sendStatus(403);
+  const type=req.params.type;
+  if(!['beneficiaries','funeral','school','full'].includes(type)) return res.sendStatus(404);
+  res.set('Cache-Control','no-store');
+  try{
+    const sections=await withTransaction(async client=>{
+      const report=[];
+      if(type==='beneficiaries'||type==='full'){
+        const {rows}=await client.query("SELECT full_name,system_id,status FROM beneficiaries ORDER BY full_name,system_id");
+        report.push({title:'Beneficiaries',headers:['Name','GFT ID','Status'],rows:rows.map(row=>[row.full_name,row.system_id,row.status])});
+      }
+      for(const service of ['funeral','school']){
+        if(type!==service && type!=='full') continue;
+        const {rows}=await client.query("SELECT request_id,details->>'name' AS name,details->>'amount' AS amount,details->>'currency' AS currency FROM service_requests WHERE LOWER(service_id)=$1 AND UPPER(status) IN ('PAID','SETTLED') ORDER BY created_at DESC,request_id",[service]);
+        report.push({title:service==='school'?'School payments':'Funeral payments',headers:['Request','Name','Amount','Currency'],
+          rows:rows.map(row=>[row.request_id,row.name,row.amount,row.currency])});
+      }
+      await client.query("INSERT INTO gft_admin_audit_events(event_id,admin_id,admin_email,action,details) VALUES($1,$2,$3,'FOUNDER_REPORT_PREPARED',$4::jsonb)",
+        ['AUD-'+randomBytes(16).toString('hex'),req.admin.admin_id,req.admin.email,JSON.stringify({type,rows:report.reduce((count,section)=>count+section.rows.length,0)})]);
+      return report;
+    });
+    return res.json({sections});
+  }catch(error){console.error('Founder report failed',error.code || error.name);return res.status(500).json({error:'Unable to prepare the report.'});}
+});
+
+app.get('/api/admin/audit-events',requireAdmin,async(req,res)=>{
+  res.set('Cache-Control','no-store');
+  const permissions=req.admin.deployment?.permissions;
+  const all=String(req.admin.role).toUpperCase()===FOUNDER_ROLE || (Array.isArray(permissions) && permissions.includes('audit:view'));
+  try {
+    const {rows}=await query('SELECT action,created_at FROM gft_admin_audit_events WHERE ($1::boolean OR admin_id=$2) ORDER BY created_at DESC,event_id DESC LIMIT 50',[all,req.admin.admin_id]);
+    return res.json({events:rows});
+  }catch(error){console.error('Admin audit lookup failed',error.code || error.name);return res.status(500).json({error:'Audit history unavailable.'});}
 });
 
 app.get('/api/founder/audit-events', requireAdmin, async (req,res) => {
@@ -7575,6 +7876,8 @@ app.use('/api', (_req, res) => {
 // ------------------------------------------------------------
 // ERROR HANDLING
 installCompanyContributions(app, {query,withTransaction,requireAdmin});
+installFamilyCorrections(app, {query,withTransaction,requireAdmin});
+installPayoutAccounting(app, {withTransaction,requireAdmin});
 
 installDepartmentAdmin(app, {
   query, withTransaction, getAuthenticatedAdmin, getCookie, sha256,

@@ -111,7 +111,7 @@ Roles: Trustees, Family Council, Lawyer, Witness, Exec Assistant, Accountant, Se
 <div class="card" style="border-left-color:#8b5cf6"><p><a href="staff-admin.html" style="color:inherit">TV, Spotlight &amp; Library Admin</a></p><h2><span class="mi">task_alt</span> My Assigned Tasks</h2><p style="font-size:11px;color:var(--muted)">Tasks describe your responsibilities. A task does not automatically grant permissions beyond your deployed authority.</p><div id="tasksContent"></div></div>
 </div>
 
-<div id="sec-dashboard" class="section active"><div class="card" id="companyContributions"><h2>Monthly company contributions</h2><button type="button" id="refreshCompanyContributions">Open reports</button><div id="companyContributionContent" aria-live="polite"></div></div>
+<div id="sec-dashboard" class="section active"><div class="card" id="familyCorrections"><h2>Official family corrections</h2><form id="familyCorrectionSearch"><label>Family name or GFT ID <input name="query" minlength="3" maxlength="100" required></label><button type="submit">Find records</button></form><div id="familyCorrectionResults" aria-live="polite"></div><button type="button" id="familyCorrectionRefresh">Review requests</button><div id="familyCorrectionHistory" aria-live="polite"></div></div><div class="card" id="companyContributions"><h2>Monthly company contributions</h2><button type="button" id="refreshCompanyContributions">Open reports</button><div id="companyContributionContent" aria-live="polite"></div></div>
 <div class="manual-callout" style="border-color:#10b98155"><b>Start here:</b> Open <b>My Role & Control Manual</b> whenever you need to confirm your role, responsibilities, permissions, tasks or escalation path.</div>
 <div class="card fin"><h2>Your Permissions</h2><div id="permList" style="font-size:12px"></div></div>
 <div class="card mem"><h2><span class="mi">group</span> Pending Approvals - Failed Auto Register</h2><p style="font-size:11px;color:var(--muted)">Registrations that failed auto-approve need manual approve here</p><div id="dashPendingRegs"></div><button class="blue" onclick="showSec('pending')">Go to Pending</button></div>
@@ -311,7 +311,7 @@ Founded on Guvaza. Carried by Rutambo. Built for the rising generations.</textar
 if(typeof TRUST_CONFIG==='undefined'){window.TRUST_CONFIG={name:"The Guvaza Family Trust",caps:{funeral:6000,school:5000,funeralPayout:600},companies:[],homepage:{cards:[]},about:{familyMembers:[]}};}
 const CFG=TRUST_CONFIG;
 
-let customConfig = JSON.parse(localStorage.getItem('guvaza_custom_config')||'null') || JSON.parse(JSON.stringify(CFG));
+let customConfig = JSON.parse(JSON.stringify(CFG));
 let customConfigLoadedFromServer = false;
 
 async function loadCustomConfigFromServer(){
@@ -444,7 +444,7 @@ function renderAuthority(){
   const modules=Array.from(x.modules).filter(m=>!['roleManual','authority','tasks'].includes(m));
   const chips=modules.map(m=>`<span class="permission-chip on">${m}</span>`).join('')||'<span class="permission-chip off">No deployed business modules</span>';
   const perms=Array.from(x.permissions).map(p=>`<span class="permission-chip on">${p}</span>`).join('')||'<span class="permission-chip off">No granular permissions</span>';
-  const overrides=x.overrides.length?x.overrides.map(o=>`<div class="ben-item"><div><b>${o.permission||o.module||'Override'}</b><br><small>${o.reason||'No reason recorded'} ${o.expiresAt?'• Expires '+o.expiresAt:''}</small></div><span class="status-pill ${o.active===false?'danger':''}">${o.active===false?'INACTIVE':'ACTIVE'}</span></div>`).join(''):'<p style="font-size:11px;color:var(--muted)">No temporary overrides are currently recorded.</p>';
+  const overrides=x.overrides.length?x.overrides.map(o=>`<div class="ben-item"><div><b>${taskText(o.permission||o.module||'Override')}</b><br><small>${taskText(o.reason||'No reason recorded')} ${taskText(o.expiresAt?'• Expires '+o.expiresAt:'')}</small></div><span class="status-pill ${o.active===false?'danger':''}">${o.active===false?'INACTIVE':'ACTIVE'}</span></div>`).join(''):'<p style="font-size:11px;color:var(--muted)">No temporary overrides are currently recorded.</p>';
   el.innerHTML=`<div class="control-grid"><div class="control-card"><h3>Deployment status</h3><p><span class="status-pill ${a.status==='SUSPENDED'?'danger':a.status==='PENDING'?'warn':''}">${a.status||'ACTIVE'}</span></p><p>Version: <b>${a.version||'Legacy'}</b><br>Deployed by: <b>${a.deployedBy||'Founder role template / legacy system'}</b><br>Deployed: <b>${a.deployedAt||'Not recorded'}</b></p></div><div class="control-card"><h3>Role</h3><p><b>${currentAdmin.role||'Admin'}</b><br>${x.roleDef.label||''}</p></div></div><div class="control-card"><h3>Modules</h3><div>${chips}</div></div><div class="control-card"><h3>Action permissions</h3><div>${perms}</div></div><div class="control-card"><h3>Temporary overrides</h3>${overrides}</div>`;
 }
 function taskText(value){
@@ -458,12 +458,6 @@ function renderTasks(){
   if(!tasks.length){el.innerHTML='<p style="font-size:11px;color:var(--muted)">No assigned tasks are currently recorded. Your role manual still explains your standing responsibilities.</p>';return;}
   el.innerHTML=tasks.map((t,i)=>`<div class="ben-item"><div><b>${taskText(t.title||t.name||'Assigned task '+(i+1))}</b><br><small>${taskText(t.description||t.instructions||'')}</small><br><small>Due: ${taskText(t.dueDate||t.deadline||'Not specified')} • Priority: ${taskText(t.priority||'Normal')}</small></div><span class="status-pill ${String(t.status||'ASSIGNED').toUpperCase()==='OVERDUE'?'danger':''}">${taskText(t.status||'ASSIGNED')}</span></div>`).join('');
 }
-function logAdminControlEvent(action,details){
-  const logs=safeParseJSON(localStorage.getItem('gft_admin_audit_events')||'[]',[]);
-  logs.push({id:'AUD-'+Date.now(),adminId:currentAdmin?.id||null,adminEmail:currentAdmin?.email||null,action,details,timestamp:new Date().toISOString()});
-  localStorage.setItem('gft_admin_audit_events',JSON.stringify(logs));
-}
-
 function checkInviteLink(){
   if (!pendingInvite) return false;
   history.replaceState(null,"",location.pathname + location.search);
@@ -486,7 +480,7 @@ async function doSetOwnPassword(){
     document.getElementById("setPw1").value=document.getElementById("setPw2").value="";
     document.getElementById("setPasswordBox").style.display="none";
     document.getElementById("loginBox").style.display="block";
-    document.getElementById("loginMsg").textContent="Account activated. Sign in with your email and password.";
+    document.getElementById("loginMsg").textContent="Password saved. Sign in with your email and password.";
   } catch(error) { message.textContent=error.message; }
 }
 async function doAdminLogin(){
@@ -535,10 +529,6 @@ async function doAdminLogin(){
       temporarily for the existing dashboard UI.
       Authentication itself is now handled by the server.
     */
-    localStorage.setItem(
-      'guvaza_current_admin',
-      JSON.stringify(currentAdmin)
-    );
 
     msg.innerText = '';
 
@@ -557,7 +547,6 @@ if(!currentAdmin) return;
 loadCustomConfigFromServer();
  
  if(currentAdmin.active===false || ['PENDING','SUSPENDED','REVOKED','TEMPORARILY_LOCKED','EXPIRED'].includes(String(currentAdmin.status||'').toUpperCase())){ alert('This Admin account is not currently active. Contact Founder.'); return; }
- localStorage.setItem('guvaza_current_admin',JSON.stringify(currentAdmin));
  document.getElementById('loginScreen').style.display='none';
  document.getElementById('adminApp').style.display='block';
  document.getElementById('adminNameDisplay').innerText=currentAdmin.name||'Admin';
@@ -647,7 +636,6 @@ async function doLogout(){
     console.warn('Admin logout request failed:',error);
   }
 
-  localStorage.removeItem('guvaza_current_admin');
   currentAdmin=null;
 
   document.getElementById('adminApp').style.display='none';
@@ -670,10 +658,6 @@ async function doLogout(){
     if(response.ok && result.ok && result.admin){
       currentAdmin=result.admin;
 
-      localStorage.setItem(
-        'guvaza_current_admin',
-        JSON.stringify(currentAdmin)
-      );
 
       showAdminApp();
     }
@@ -681,35 +665,6 @@ async function doLogout(){
     console.warn('Admin session check failed:',error);
   }
 })();
-
-function gftDeepEqual(a,b){try{return JSON.stringify(a)===JSON.stringify(b);}catch(e){return a===b;}}
-function gftMergeConcurrent(base, local, latest){
-  if(gftDeepEqual(local,base)) return latest;
-  if(gftDeepEqual(latest,base)) return local;
-  if(local && latest && typeof local==='object' && typeof latest==='object' && !Array.isArray(local) && !Array.isArray(latest)){
-    const out={};
-    const keys=new Set([...Object.keys(base&&typeof base==='object'&&!Array.isArray(base)?base:{}),...Object.keys(local),...Object.keys(latest)]);
-    keys.forEach(k=>{
-      const b=base&&typeof base==='object'?base[k]:undefined;
-      const l=local[k]; const r=latest[k];
-      if(gftDeepEqual(l,b)) out[k]=r;
-      else if(gftDeepEqual(r,b)) out[k]=l;
-      else if(l&&r&&typeof l==='object'&&typeof r==='object'&&!Array.isArray(l)&&!Array.isArray(r)) out[k]=gftMergeConcurrent(b,l,r);
-      else out[k]=l;
-    });
-    return out;
-  }
-  return local;
-}
-function mergeLatestCustomConfigBeforeSave(){
-  try{
-    const raw=localStorage.getItem('guvaza_custom_config');
-    const latest=raw?JSON.parse(raw):null;
-    if(latest){
-      customConfig=gftMergeConcurrent(customConfigBaseline, customConfig, latest);
-    }
-  }catch(e){ console.warn('GFT concurrent config merge failed',e); }
-}
 
 async function saveCustomConfig(){
   try {
@@ -759,11 +714,6 @@ async function saveAboutRootEdits(){
  customConfig.about.description=storyVal;
  customConfig.about.aboutRoots=storyVal;
  try{
-   localStorage.setItem('guvaza_about_text', storyVal);
-   localStorage.setItem('guvaza_about_title', titleVal);
-   localStorage.setItem('aboutRoots', storyVal);
-   localStorage.setItem('aboutText', storyVal);
-   localStorage.setItem('aboutTitle', titleVal);
  }catch(e){}
  if(customConfig.about.sections && customConfig.about.sections.length>0){
    customConfig.about.sections[0].title=titleVal;
@@ -780,40 +730,49 @@ function previewRoot(){
  let s=document.getElementById('editAboutStoryRoot').value;
  document.getElementById('aboutRootPreview').innerText=t+"\n\n"+s;
 }
-function renderSecondEmailAdmin(){
- document.getElementById('adminFounderEmail').value=localStorage.getItem('guvaza_founder_email')||CFG.email||'';
- document.getElementById('adminFounderEmail2').value=localStorage.getItem('guvaza_founder_email2')||'';
- document.getElementById('adminWhatsappEmailSec').value=localStorage.getItem('guvaza_whatsapp_number')||'';
- let logs=JSON.parse(localStorage.getItem('guvaza_email_log')||'[]');
- document.getElementById('secondEmailLog').innerHTML=logs.slice(0,10).map(e=>`[${e.time}] To:${e.to} Subj:${e.subject}`).join('<br>')||'No logs yet';
+async function notificationRequest(path='',method='GET',body){
+  const response=await fetch('/api/admin/notifications'+path,{method,cache:'no-store',
+    ...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok) throw Error(result.error || 'Notification settings unavailable.');
+  return result;
 }
-function saveSecondEmailAdmin(){
- let e1=document.getElementById('adminFounderEmail').value.trim();
- let e2=document.getElementById('adminFounderEmail2').value.trim();
- let wa=document.getElementById('adminWhatsappEmailSec').value.trim();
- if(e1) localStorage.setItem('guvaza_founder_email',e1);
- if(e2) localStorage.setItem('guvaza_founder_email2',e2);
- if(wa) localStorage.setItem('guvaza_whatsapp_number',wa);
- alert('Both emails saved!');
- renderSecondEmailAdmin();
+function notificationHistory(events){
+  return events.map(event=>new Date(event.created_at).toLocaleString()+' · '+event.action.replaceAll('_',' ')).join('\n');
 }
-function testSecondEmailAdmin(){
- let e1=document.getElementById('adminFounderEmail').value.trim()||localStorage.getItem('guvaza_founder_email');
- let e2=document.getElementById('adminFounderEmail2').value.trim()||localStorage.getItem('guvaza_founder_email2');
- let logs=JSON.parse(localStorage.getItem('guvaza_email_log')||'[]');
- logs.unshift({to:e1,subject:'Test Primary Email from Admin',body:'Test',time:new Date().toLocaleString()});
- if(e2) logs.unshift({to:e2,subject:'Test Backup Email from Admin',body:'Backup test',time:new Date().toLocaleString()});
- localStorage.setItem('guvaza_email_log',JSON.stringify(logs));
- alert('Test emails logged');
- renderSecondEmailAdmin();
+async function renderSecondEmailAdmin(){
+  const log=document.getElementById('secondEmailLog');
+  try {
+    const {settings,events}=await notificationRequest();
+    document.getElementById('adminFounderEmail').value=settings.primaryEmail;
+    document.getElementById('adminFounderEmail2').value=settings.backupEmail;
+    document.getElementById('adminWhatsappEmailSec').value=settings.whatsappNumber;
+    log.textContent=notificationHistory(events)||'No server notification events.';
+  }catch(error){log.textContent=error.message;}
+}
+async function saveSecondEmailAdmin(){
+  const value=id=>document.getElementById(id).value;
+  try{await notificationRequest('','PATCH',{primaryEmail:value('adminFounderEmail'),backupEmail:value('adminFounderEmail2'),whatsappNumber:value('adminWhatsappEmailSec')});await renderSecondEmailAdmin();}
+  catch(error){alert(error.message);}
+}
+async function testSecondEmailAdmin(){
+  try{const result=await notificationRequest('/test-email','POST',{});alert(result.message);await renderSecondEmailAdmin();}
+  catch(error){alert(error.message);}
+}
+async function fillDashboardCount(id,url,key,label){
+  const field=document.getElementById(id);
+  field.textContent='Loading…';
+  try {
+    const response=await fetch(url,{cache:'no-store'});
+    if(!response.ok) throw Error('Records unavailable');
+    const result=await response.json();
+    field.textContent=result[key].filter(record=>String(record.status).toUpperCase()==='PENDING').length+' '+label;
+  }catch{field.textContent='Unavailable';}
 }
 function renderDashboard(){
- let pending=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');
- document.getElementById('dashPendingRegs').innerHTML=pending.length?pending.slice(0,3).map(p=>`${p.name} ID:${p.id}`).join('<br>'):'No pending';
- let fun=JSON.parse(localStorage.getItem('guvaza_funeral_requests')||'[]');
- document.getElementById('dashFun').innerText=fun.length+' pending claims';
- let sch=JSON.parse(localStorage.getItem('guvaza_school_requests')||'[]');
- document.getElementById('dashSch').innerText=sch.length+' pending invoices';
+ fillDashboardCount('dashPendingRegs','/api/registrations','registrations','pending registrations');
+ fillDashboardCount('dashFun','/api/admin/service-requests/funeral','requests','pending claims');
+ fillDashboardCount('dashSch','/api/admin/service-requests/school','requests','pending invoices');
  document.getElementById('configBadge').innerText=`${CFG.name} | ${(customConfig.companies||[]).length} companies`;
  fetch('/api/admin/count', {
   method: 'GET',
@@ -903,11 +862,6 @@ async function saveAboutEdits(){
  customConfig.about.description=storyVal;
  customConfig.about.aboutRoots=storyVal;
  try{
-   localStorage.setItem('guvaza_about_text', storyVal);
-   localStorage.setItem('guvaza_about_title', titleVal);
-   localStorage.setItem('aboutRoots', storyVal);
-   localStorage.setItem('aboutText', storyVal);
-   localStorage.setItem('aboutTitle', titleVal);
  }catch(e){}
  if(customConfig.about.sections && customConfig.about.sections.length>0){
    customConfig.about.sections[0].title=titleVal;
@@ -1228,8 +1182,8 @@ async function migrateOldToSections(){
   if(!confirm('Convert your current single About + old Gallery into timeline?')) return;
   if(!customConfig.about.sections) customConfig.about.sections=[];
   if(customConfig.about.sections.length>0 &&!confirm('You already have sections. Add old as new sections anyway?')) return;
-  let oldTitle=customConfig.about.title||localStorage.getItem('guvaza_about_title')||'About The Guvaza Family Trust - Our Root';
-  let oldStory=customConfig.about.story||customConfig.about.aboutText||localStorage.getItem('guvaza_about_text')||'Our Root...';
+  let oldTitle=customConfig.about.title||'About The Guvaza Family Trust - Our Root';
+  let oldStory=customConfig.about.story||customConfig.about.aboutText||'Our Root...';
   let oldGallery=customConfig.about.familyMembers||[];
   if(oldTitle && oldStory){
     customConfig.about.sections.unshift({title: oldTitle, story: oldStory, gallery: oldGallery.slice(0, Math.ceil(oldGallery.length/2)) || [], galleryTitle: 'Family Members Gallery', edgeColor:'#7a1a24'});
@@ -1379,33 +1333,89 @@ async function approvePendingAdmin(i){
  await renderPending();
 }
 
-function renderMembers(){
- let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');
- let list=document.getElementById('membersList');
- if(bens.length===0){list.innerHTML='<p style="color:var(--muted)">No members</p>';return;}
- list.innerHTML=bens.map((b,i)=>`<div class="ben-item"><div class="ben-info"><b>${b.name}</b> ID:${b.id}<br><small>${b.phone||''}</small></div><div><button class="danger" onclick="delMember(${i})" style="padding:6px">Delete</button></div></div>`).join('');
+async function editServerMember(member,refresh){
+  const fullName=prompt('Correct the official full name:',member.full_name);
+  if(fullName===null) return;
+  const phone=prompt('Contact phone (leave blank to clear):',member.phone||'');
+  if(phone===null) return;
+  const reason=prompt('Record the reason for this correction:');
+  if(reason===null) return;
+  try {
+    const response=await fetch('/api/beneficiaries/admin/pool/'+encodeURIComponent(member.beneficiary_id),{method:'PATCH',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({fullName,phone,reason})});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok) throw Error(data.error || 'Unable to save the beneficiary correction.');
+    await refresh();
+  } catch(error){alert(error.message);}
 }
-function delMember(i){if(currentAdmin.role==='Witness' || currentAdmin.role==='Employee') return alert('View only'); if(!confirm('Delete member?')) return; let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]'); bens.splice(i,1); localStorage.setItem('guvaza_bens',JSON.stringify(bens)); renderMembers();}
-function exportMembersCSV(){let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]'); let csv='Name,ID,Phone\n'+bens.map(b=>`"${b.name}","${b.id}","${b.phone||''}"`).join('\n'); let blob=new Blob([csv],{type:'text/csv'}); let url=URL.createObjectURL(blob); let a=document.createElement('a'); a.href=url; a.download='Members.csv'; a.click();}
-function renderFinances(){
- let comps=customConfig.companies||[];
- let grid=document.getElementById('finCompanyGrid');
- if(grid){grid.innerHTML=''; comps.forEach(c=>{grid.innerHTML+=`<div class="log" style="border-left:4px solid ${c.color};border-right:4px solid ${c.color}"><b>${c.name}</b><br>Profit: $${c.profit||0}</div>`});}
+async function loadServerMembers(){
+  const response=await fetch('/api/beneficiaries/admin/pool',{cache:'no-store'});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok) throw Error(data.error||'Beneficiaries unavailable.');
+  return data;
 }
-function renderBookkeeping(){
- let audit=JSON.parse(localStorage.getItem('guvaza_all_alerts')||'[]');
- let log=document.getElementById('auditLog'); if(log){log.innerHTML=audit.slice(0,30).map(a=>`[${a.time}] ${a.type}: ${a.message}`).join('<br>')||'No audit yet';}
+async function renderMembers(){
+  const list=document.getElementById('membersList');
+  try {
+    const {beneficiaries,canEdit}=await loadServerMembers();
+    list.textContent=beneficiaries.length?'':'No server beneficiaries recorded.';
+    for(const member of beneficiaries){
+      const row=document.createElement('div');row.className='ben-item';
+      row.textContent=[member.full_name,member.system_id,member.status,member.phone].filter(Boolean).join(' · ');
+      if(canEdit){const button=document.createElement('button');button.type='button';button.textContent='Correct details';
+        button.onclick=()=>editServerMember(member,renderMembers);row.append(' ',button);}
+      list.append(row);
+    }
+  } catch(error){list.textContent=error.message;}
 }
-function doBookAllocate(){
- let income=parseFloat(document.getElementById('bookIncome').value)||0;
- if(!income) return alert('Enter income');
- let msg=`[${new Date().toLocaleString()}] Income $${income} allocated by ${currentAdmin.name}`;
- let logs=JSON.parse(localStorage.getItem('guvaza_all_alerts')||'[]');
- logs.unshift({type:'BOOKKEEPING', message:msg, time:new Date().toLocaleString()});
- localStorage.setItem('guvaza_all_alerts', JSON.stringify(logs));
- document.getElementById('bookLog').innerHTML=msg+'<br>'+document.getElementById('bookLog').innerHTML;
- renderBookkeeping();
+async function exportMembersCSV(){
+  try {
+    const {beneficiaries}=await loadServerMembers();
+    const cell=value=>{const safe=String(value??'');return '"'+(/^[=+@\-\t\r\n]/.test(safe)?"'":'')+safe.replaceAll('"','""')+'"';};
+    const csv=['Name,GFT ID,Phone,Status',...beneficiaries.map(b=>[b.full_name,b.system_id,b.phone,b.status].map(cell).join(','))].join('\r\n');
+    const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+    const link=document.createElement('a');link.href=url;link.download='Members.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  } catch(error){alert(error.message);}
 }
+async function renderFinances(){
+  const grid=document.getElementById('finCompanyGrid');
+  grid.textContent='Loading company wallets…';
+  try {
+    const response=await fetch('/api/admin/company-wallets',{cache:'no-store'});
+    if(!response.ok) throw Error('Company wallets unavailable.');
+    const {wallets}=await response.json();
+    grid.textContent=wallets.length?'':'No company records are registered in PostgreSQL.';
+    const totals=new Map();
+    for(const wallet of wallets){
+      if(wallet.currency_total!=null) totals.set(wallet.currency,wallet.currency_total);
+    }
+    if(totals.size){
+      const summary=document.createElement('p');
+      summary.textContent='Recorded balances by currency · '+Array.from(totals,([currency,balance])=>currency+' '+balance).join(' · ');
+      grid.append(summary);
+    }
+    for(const wallet of wallets){
+      const card=document.createElement('div');
+      card.className='card';
+      const heading=document.createElement('h2');
+      heading.textContent=wallet.name;
+      const balance=document.createElement('p');
+      balance.textContent=!wallet.wallet_id?'Wallet not assigned':wallet.balance==null?'No ledger balance recorded':wallet.currency+' '+wallet.balance;
+      card.append(heading,balance);
+      grid.append(card);
+    }
+  } catch(error){grid.textContent=error.message;}
+}
+async function renderBookkeeping(){
+  const log=document.getElementById('auditLog');
+  try {
+    const response=await fetch('/api/admin/audit-events',{cache:'no-store'});
+    if(!response.ok) throw Error('Audit history unavailable.');
+    const {events}=await response.json();
+    log.textContent=events.map(row=>new Date(row.created_at).toLocaleString()+' · '+row.action).join('\n')||'No server audit entries.';
+  }catch(error){log.textContent=error.message;}
+}
+function doBookAllocate(){document.getElementById('bookLog').textContent='Record allocations from a verified deposit in the Founder dashboard.';}
 async function renderFuneralAdmin(){
   const pending = document.getElementById("adminFunListPending");
   const paid = document.getElementById("adminFunListPaid");
@@ -1458,7 +1468,6 @@ async function renderFuneralAdmin(){
     display(paid, requests.filter(settled), "No recorded payments");
   } catch { pending.textContent = paid.textContent = "Server records unavailable"; }
 }
-function approveFunAdmin(){alert("This action requires the server payment workflow.");}
 async function renderSchoolAdmin(){
   const pending = document.getElementById("adminSchListPending");
   const paid = document.getElementById("adminSchListPaid");
@@ -1511,20 +1520,15 @@ async function renderSchoolAdmin(){
     display(paid, requests.filter(settled), "No recorded payments");
   } catch { pending.textContent = paid.textContent = "Server records unavailable"; }
 }
-function approveSchAdmin(){alert("This action requires the server payment workflow.");}
-let adminCompaniesCache = JSON.parse(localStorage.getItem('guvaza_admin_companies')||'null') || customConfig.companies || [
- {id:'GH',name:'Guvaza Holdings',color:'#7a1a24',info:'Holdings',logo:'',description:'Trust Holdings - Main'},
- {id:'GA',name:'Guvaza Agri',color:'#10b981',info:'Agri',logo:'',description:'Agriculture division'},
- {id:'GL',name:'Guvaza Logistics',color:'#3b82f6',info:'Logistics',logo:'',description:'Logistics'},
- {id:'GF2',name:'Guvaza Foods',color:'#84cc16',info:'Foods',logo:'',description:'Foods division'}
-];
-function saveAllCompanies(){
-  localStorage.setItem('guvaza_admin_companies', JSON.stringify(adminCompaniesCache));
-  customConfig.companies = adminCompaniesCache;
-  saveCustomConfig();
+let adminCompaniesCache=[];
+async function saveAllCompanies(){
+  const before=customConfig.companies;
+  customConfig.companies=adminCompaniesCache;
+  if(!await saveCustomConfig()){customConfig.companies=before;renderCompaniesAdmin();return;}
   renderCompaniesAdmin();
 }
 function renderCompaniesAdmin(){
+ adminCompaniesCache=Array.isArray(customConfig.companies)?structuredClone(customConfig.companies):[];
  let list=document.getElementById('adminCompaniesList'); if(!list) return;
  if(adminCompaniesCache.length===0){list.innerHTML='<p style="color:var(--muted)">No companies - add above</p>';return;}
  list.innerHTML='';
@@ -1585,150 +1589,7 @@ function adminEditCompanyFull(i){
  saveAllCompanies();
 }
 </script>
-<div class="bottom-fix-wrap">
-<!-- ADMIN EDITOR - Edit / Delete any clan member - FIXED FOR YOUR REQUEST -->
-<div style="padding:15px;border:2px solid #7a1a24;border-radius:12px;background:#fff">
-<h3 style="color:#7a1a24">🛠️ Admin Clan Editor - Manual Fix (FullName + CurrentSurname + ParentID) - Second Surname Fixed = Guvaza</h3>
-<input id="adminSearch" placeholder="Search name to edit... e.g Fannuel" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc">
-<div id="adminList" style="max-height:400px;overflow:auto;margin-top:10px"></div>
-<div style="margin-top:10px;background:#f9fafb;padding:10px;border-radius:8px;border:1px dashed #7a1a24">
-<small><b>FIXED RULE:</b> When you change Parent ID, Generation auto = Parent GEN +1, Branch = Parent Branch. Second Surname stays Guvaza. No new ID created, only moves under correct parent.</small>
-</div>
-</div>
-<script>
-// === FIXED EDITOR - ONLY THIS PART CHANGED AS PER YOUR REQUEST ===
-function loadAdmin(){
- let regs=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]');
- // Also include guvazaTree if available from localStorage backup
- let treeBackup=JSON.parse(localStorage.getItem('guvazaTree_backup')||'[]');
- if(treeBackup.length>0 && regs.length===0) regs=treeBackup;
- let q=(document.getElementById('adminSearch').value||'').toLowerCase();
- let html='';
- regs.filter(r=> (r.fullName||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q) || (r.systemId||'').toLowerCase().includes(q)).forEach((r,i)=>{
-   const parentLabel = r.parentId? `${r.parentId}` : 'NO PARENT';
-   html+=`<div style="padding:8px;border-bottom:1px solid #eee;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-   <b style="flex:1">${r.fullName||r.name} - ${r.systemId} | CurrentSurname:${r.currentSurname||''} | Parent:${parentLabel} GEN${r.generation||'?'} Branch:${r.branch||''}</b>
-   <button onclick="editName(${i})" style="padding:4px 8px;background:#0ea5e9;color:#fff;border:none;border-radius:6px">Edit Name/Surname + Parent</button>
-   <button onclick="deleteName(${i})" style="padding:4px 8px;background:#ef4444;color:#fff;border:none;border-radius:6px">Delete</button>
-   </div>`;
- });
- document.getElementById('adminList').innerHTML=html||'No members - type at least 3 letters';
-}
-function getParentFromRegs(parentId){
- let regs=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]');
- return regs.find(m=>m.systemId===parentId) || null;
-}
-function editName(idx){
- let regs=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]');
- let r=regs[idx];
- if(!r){alert('Not found');return;}
-
- // 1. Edit FullName
- let newFullName=prompt('Edit Full Name (e.g Fannuel Guvaza (Zekia)):', r.fullName||r.name);
- if(newFullName===null) return;
- if(!newFullName.trim()){alert('FullName required');return;}
-
- // 2. Edit Current Surname (Second Surname fixed = Guvaza)
- let newCurrentSurname=prompt('Edit Current Surname (Second Surname is FIXED = Guvaza):', r.currentSurname||'Guvaza');
- if(newCurrentSurname===null) return;
-
- // 3. Edit Parent ID - THIS FIXES YOUR ISSUE - Move from Vurayai to Zekia
- let currentParent = r.parentId || '';
- let newParentId=prompt(`Edit Parent ID:\nCurrent: ${currentParent}\nTo fix YOU: enter GFT-GEN3-010 for Zekia\nTo fix Uncle: GFT-GEN2-02 for Vurayai\nEnter correct Parent SystemID:`, currentParent);
- if(newParentId===null) return;
- newParentId=newParentId.trim();
- if(!newParentId){alert('Parent ID required');return;}
-
- let parentObj = getParentFromRegs(newParentId);
- if(!parentObj){
-   // If parent not in registrations, try to guess gen from ID pattern
-   let genMatch = newParentId.match(/GEN(\d+)/);
-   let parentGen = genMatch? parseInt(genMatch[1]) : 2;
-   if(!confirm(`Parent ${newParentId} not found in local list, but will set you to GEN${parentGen+1} under that ID. Continue?`)) return;
-   // Create minimal parent info
-   parentObj = {systemId:newParentId, generation:parentGen, branch: r.branch || 'BRANCH_VURAYAI', fullName:newParentId};
- }
-
- // Apply FIXED RULES
- r.fullName=newFullName.trim();
- r.displayName=newFullName.trim();
- r.name=newFullName.trim();
- r.currentSurname=newCurrentSurname.trim() || 'Guvaza';
- r.secondSurname='Guvaza'; // FIXED - never editable
- r.parentId=newParentId;
- r.generation=parentObj.generation + 1; // FIXED RULE: Parent GEN +1
- r.branch=parentObj.branch; // FIXED RULE: Branch = Parent Branch
-
- regs[idx]=r;
- localStorage.setItem('guvaza_registrations', JSON.stringify(regs));
-
- // Also update descendants recursively - FIX GEN for children
- function updateChildren(parentSystemId){
-   regs=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]');
-   let p = regs.find(x=>x.systemId===parentSystemId);
-   if(!p) return;
-   regs.forEach(child=>{
-     if(child.parentId===parentSystemId){
-       child.generation = p.generation + 1;
-       child.branch = p.branch;
-     }
-   });
-   localStorage.setItem('guvaza_registrations', JSON.stringify(regs));
-   regs.filter(c=>c.parentId===parentSystemId).forEach(c=>updateChildren(c.systemId));
- }
- updateChildren(r.systemId);
-
- loadAdmin();
- alert(`✅ FIXED & SAVED:\n${r.fullName}\nCurrentSurname: ${r.currentSurname}\nSecondSurname: Guvaza (FIXED)\nParent: ${newParentId} (${parentObj.fullName})\nGEN: ${r.generation} = Parent GEN${parentObj.generation}+1\nBranch: ${r.branch}\nSame ID ${r.systemId} - No new ID created`);
-}
-function deleteName(idx){
- if(!confirm('Delete this person? This will not create new ID.')) return;
- let regs=JSON.parse(localStorage.getItem('guvaza_registrations')||'[]');
- regs.splice(idx,1);
- localStorage.setItem('guvaza_registrations', JSON.stringify(regs));
- loadAdmin();
-}
-document.getElementById('adminSearch').addEventListener('input', loadAdmin);
-setTimeout(loadAdmin,500);
-</script>
-
-<!-- === My Direct Lineage - Admin Edit Port === -->
-<div style="background:#fff;border-radius:12px;padding:12px;margin-top:14px;border:1px solid #e5e7eb">
-  <b>Edit My Direct Lineage - Fannuel Guvaza</b>
-  <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-    <button onclick="window.open('my-direct-lineage.html?admin=1&id=GFT-GEN4-043&name=Fannuel Guvaza','_blank')" style="background:#7a1a24;color:#fff;border:none;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer">
-      Open Editable Lineage
-    </button>
-    <button onclick="if(confirm('Reset wives?')){localStorage.removeItem('guvaza_wives_clean');location.reload()}" style="background:#f3f4f6;border:none;padding:8px 12px;border-radius:8px;cursor:pointer">
-      Reset Wives
-    </button>
-  </div>
-  <div class="small" style="margin-top:6px;color:#6b7280">Admin edit saves to same storage • Beneficiary portal sees it instantly</div>
-</div>
-<!-- === End Admin Edit Port === -->
-</div>
-<script src="guvazaTree.js"></script>
-<script>
-var oldRender=renderMembers;
-renderMembers=function(){
-  oldRender();
-  try{
-    var bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');
-    var list=document.getElementById('membersList'); if(!list) return;
-    if(getTreeMaster().length===0) return;
-    var items=list.querySelectorAll('.ben-item');
-    for(var i=0;i<items.length && i<bens.length;i++){
-      var a=auditOneMember(bens[i]);
-      if(!a.match){
-        var d=document.createElement('div');
-        d.innerHTML='<span style="background:#fee2e2;color:#991b1b;padding:4px 8px;border-radius:6px;font-size:11px">⚠️ '+a.errs.join(' | ')+'</span> <button onclick="fixMemberByIndex('+i+')" style="background:#ff9800;color:#fff;padding:4px 8px;border:none;border-radius:6px;margin-left:6px">Fix to '+(a.tree?a.tree.id:'')+'</button>';
-        items[i].appendChild(d);
-      }
-    }
-  }catch(e){}
-}
-</script>
-
+<script src="family-correction-panel.js"></script>
 <script src="company-contribution-panel.js"></script>
 </body>
 </html>

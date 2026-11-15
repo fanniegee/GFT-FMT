@@ -502,8 +502,7 @@ async function requestPayout() {
       },
       body: JSON.stringify({
         amount,
-        reason: reasonInput?.value?.trim() || '',
-        destination: {}
+        reason: reasonInput?.value?.trim() || ''
       })
     });
 
@@ -524,7 +523,7 @@ async function requestPayout() {
     msg.innerText = error.message || 'Payout request failed.';
   }
 }
-function applyVirtual(){document.getElementById('virtualMsg').innerText='✅ Virtual card application sent!';}
+function applyVirtual(){document.getElementById('virtualMsg').textContent='Virtual card applications are currently unavailable.';}
 async function logout(){
   try{
     await fetch('/api/beneficiary/logout',{
@@ -596,7 +595,7 @@ function openMyDirectLineage() {
 <option value="">-- Select --</option>
 <option value="Bank">Bank</option>
 <option value="Ecocash">Ecocash</option>
-<option value="Trust Card">Trust Card</option>
+
 </select>
 <div id="cashoutFields"></div>
 <div style="display:flex;gap:8px;margin-top:12px">
@@ -614,7 +613,6 @@ document.getElementById('cashoutMethod').addEventListener('change',function(){
  let f=document.getElementById('cashoutFields');let v=this.value;
  if(v==='Bank') f.innerHTML='<input id="bankAcc" placeholder="Bank Account Number" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px"><input id="bankName" placeholder="Bank Name" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px">';
  else if(v==='Ecocash') f.innerHTML='<input id="ecoNum" placeholder="Ecocash Number" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px"><input id="ecoName" placeholder="Ecocash Name" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px">';
- else if(v==='Trust Card') f.innerHTML='<div style="font-size:13px;padding:8px;background:#f1f5f9;border-radius:8px;margin-top:6px">Money will be sent to your GFT VISA Trust Card ending 4129</div>';
  else f.innerHTML='';
 });
 async function saveCashoutMethod() {

@@ -22,6 +22,7 @@ export function installDepartmentAdmin(app, services) {
         schema ??= withTransaction(async client => {
           await client.query("CREATE TABLE IF NOT EXISTS gft_department_staff (id TEXT PRIMARY KEY, department TEXT NOT NULL, email TEXT NOT NULL, name TEXT NOT NULL, role TEXT NOT NULL , password_hash TEXT, invite_hash TEXT UNIQUE, invite_expires TIMESTAMPTZ, invited_by TEXT NOT NULL, UNIQUE (department,email)); CREATE TABLE IF NOT EXISTS gft_department_sessions (token_hash TEXT PRIMARY KEY, staff_id TEXT NOT NULL REFERENCES gft_department_staff ON DELETE CASCADE, expires_at TIMESTAMPTZ NOT NULL)");
           await client.query("ALTER TABLE gft_department_staff DROP CONSTRAINT IF EXISTS gft_department_staff_role_check");
+          await client.query("CREATE TABLE IF NOT EXISTS gft_admin_password_resets (admin_id TEXT PRIMARY KEY REFERENCES gft_admin_accounts(admin_id) ON DELETE CASCADE, token_hash TEXT NOT NULL UNIQUE, expires_at TIMESTAMPTZ NOT NULL)");
         }).catch(error => {
           schema = undefined;
           throw error;
@@ -116,6 +117,28 @@ export function installDepartmentAdmin(app, services) {
     return res.status(201).json({ path: (department === 'trust' ? '/admin.html#invite=' : '/staff-admin.html?department=' + department + '#invite=') + invitation });
   });
 
+  route('post', '/password-reset', async (req,res,department)=>{
+    if(department!=='trust') return res.sendStatus(404);
+    const founder=await getAuthenticatedAdmin(req);
+    if(String(founder?.role).toUpperCase()!=='FOUNDER') return res.sendStatus(403);
+    const adminId=typeof req.body?.adminId==='string'?req.body.adminId.trim():'';
+    if(!adminId || adminId.length>180) return res.sendStatus(400);
+    const token=secret();
+    const saved=await withTransaction(async client=>{
+      const {rows}=await client.query(
+        "SELECT admin_id FROM gft_admin_accounts WHERE admin_id=$1 AND active AND UPPER(status)='ACTIVE' AND UPPER(role)<>'FOUNDER' FOR UPDATE",[adminId]);
+      if(!rows.length) return false;
+      await client.query(
+        "INSERT INTO gft_admin_password_resets (admin_id,token_hash,expires_at) VALUES ($1,$2,NOW()+INTERVAL '1 hour') ON CONFLICT(admin_id) DO UPDATE SET token_hash=EXCLUDED.token_hash,expires_at=EXCLUDED.expires_at",
+        [adminId,sha256(token)]
+      );
+      await client.query("INSERT INTO gft_admin_audit_events(event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,'ADMIN_PASSWORD_RESET_ISSUED',$4::jsonb)",
+        ['AUD-'+secret(),founder.admin_id,founder.email,JSON.stringify({targetAdminId:adminId})]);
+      return true;
+    });
+    return saved ? res.json({path:'/admin.html#invite='+token}) : res.status(404).json({error:'Active Trust Admin account unavailable.'});
+  });
+
   route('post', '/accept', async (req, res, department) => {
     const invitation = String(req.body?.token || '');
     const password = String(req.body?.password || '');
@@ -123,6 +146,20 @@ export function installDepartmentAdmin(app, services) {
       return res.status(400).json({ error: 'Provide a valid invitation and a password of 12 to 200 characters.' });
     }
     const accepted = await withTransaction(async client => {
+      if(department==='trust'){
+        const {rows:[reset]}=await client.query('SELECT admin_id FROM gft_admin_password_resets WHERE token_hash=$1 AND expires_at>NOW()',[sha256(invitation)]);
+        if(reset){
+          const {rows:[admin]}=await client.query("SELECT admin_id,email FROM gft_admin_accounts WHERE admin_id=$1 AND active AND UPPER(status)='ACTIVE' AND UPPER(role)<>'FOUNDER' FOR UPDATE",[reset.admin_id]);
+          if(!admin) return false;
+          const consumed=await client.query('DELETE FROM gft_admin_password_resets WHERE admin_id=$1 AND token_hash=$2 AND expires_at>NOW() RETURNING admin_id',[admin.admin_id,sha256(invitation)]);
+          if(!consumed.rows.length) return false;
+          await client.query("UPDATE gft_admin_accounts SET password_hash=$1,password_algorithm='scrypt',updated_at=NOW() WHERE admin_id=$2",[await createPasswordHash(password),admin.admin_id]);
+          await client.query('DELETE FROM gft_admin_sessions WHERE admin_id=$1',[admin.admin_id]);
+          await client.query("INSERT INTO gft_admin_audit_events(event_id,admin_id,admin_email,action,details) VALUES ($1,$2,$3,'ADMIN_PASSWORD_RESET_COMPLETED','{}'::jsonb)",
+            ['AUD-'+secret(),admin.admin_id,admin.email]);
+          return true;
+        }
+      }
       const match = await client.query(
         'SELECT id, name, email, role FROM gft_department_staff WHERE department = $1 AND invite_hash = $2 AND invite_expires > NOW() AND password_hash IS NULL FOR UPDATE',
         [department, sha256(invitation)]

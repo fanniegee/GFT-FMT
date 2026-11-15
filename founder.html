@@ -160,7 +160,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <header id="founderGlobalHeader">
 <div><h1 id="founderHeaderTitle"><span class="mi lg">admin_panel_settings</span> FOUNDER - 12 COMPANIES + FAMILY GALLERY + ADMIN INVITE</h1><p id="founderHeaderSubtitle" style="color:var(--muted);font-size:11px">6 wallets + FPB Account NEW | 12 companies clickable + banner + gallery | Family inside Trust Identity | Admin Invite Email+Password | <span id="configLoadedBadge">Loading config...</span></p></div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-<div class="auto-box"><span style="font-size:12px;font-weight:700">AUTO</span><div id="autoSwitch" class="switch on" onclick="toggleAuto()"></div><span id="autoLabel" style="font-size:11px;color:#10b981">ON</span></div>
+<div class="auto-box">Registrations use server review</div>
 <button class="top-right-btn" onclick="window.location.href='index.html'"><span class="mi">home</span> Home</button>
 </div>
 </header>
@@ -171,20 +171,12 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <div class="card ben"><h2><span class="mi">group</span> <span class="title-main">Beneficiary Pool</span> <span class="badge ok">AUTO</span></h2><div class="amt" id="benAmt">Unavailable</div>Slider: <input type="range" id="benSlider" min="10" max="20" value="15" oninput="updateBenLabel()"><span id="benLabel">15%</span><div class="row"><span class="mi">payments</span> Each: <b id="perHead">Unavailable</b> / <span id="benCount">0</span></div></div>
 <div class="card fun"><h2><span class="mi">church</span> <span class="title-main">FUNERAL WALLET</span> <span class="title-sub" id="funCapLabel">Cap $6,000 - AUTO</span></h2><div class="amt" id="funAmt">Unavailable</div><div id="funStatus" class="badge wait">Below Cap</div><div class="log" id="funPayLog" style="margin-top:8px">Last: None</div></div>
 <div class="card sch"><h2><span class="mi">school</span> <span class="title-main">SCHOOL FEES</span> <span class="title-sub" id="schCapLabel">Cap $5,000 - AUTO + VERIFIED</span></h2><div class="amt" id="schAmt">Unavailable</div><div id="schStatus" class="badge wait">Below Cap</div><div class="log" id="schPayLog" style="margin-top:8px">Last: None</div></div>
-<div class="card dist"><h2><span class="mi">account_balance</span> <span class="title-main">DISTRIBUTION ACCOUNT</span></h2><div class="amt" id="expAmt">Unavailable</div><span class="badge ok"><span class="mi">lock</span> LOCKED - 3 Trustees + 2 Elders</span><div class="row">Approvals: <b id="expApprove">0/5</b></div><button class="danger" onclick="requestExpansion()"><span class="mi">lock_open</span> Request Withdrawal</button><button class="primary" onclick="allocateDistribution()" style="margin-top:6px;background:#10b981;width:100%;justify-content:center"><span class="mi">call_split</span> Distribute 60/15/10/15 Now</button><div class="log" id="distBreakdown" style="margin-top:8px;font-size:10px">60% Ben Pool | 15% School cap $5000 | 10% Funeral cap $6000 | 15% Reserve stays in Dist</div></div>
+<div class="card dist"><h2><span class="mi">account_balance</span> <span class="title-main">DISTRIBUTION ACCOUNT</span></h2><div class="amt" id="expAmt">Unavailable</div><span class="badge ok"><span class="mi">lock</span> LOCKED - 3 Trustees + 2 Elders</span><button class="danger" onclick="requestExpansion()"><span class="mi">lock_open</span> Request Withdrawal</button><button class="primary" onclick="allocateDistribution()" style="margin-top:6px;background:#10b981;width:100%;justify-content:center"><span class="mi">call_split</span> Distribute 60/15/10/15 Now</button><div class="log" id="distBreakdown" style="margin-top:8px;font-size:10px">60% Ben Pool | 15% School cap $5000 | 10% Funeral cap $6000 | 15% Reserve, plus any school and funeral cap overflow</div></div>
 <div class="card notif"><h2><span class="mi">notifications</span> <span class="title-main">ALERTS STATUS</span></h2><div class="amt" style="font-size:18px" id="notifStatus">Push: OFF<br>Email: OFF<br>WhatsApp: OFF</div><button class="blue" onclick="showSec('notif', document.querySelectorAll('.menu')[9])"><span class="mi">settings</span> Setup Alerts</button></div>
 <!-- NEW FBP ACCOUNT UNDER EXISTING 6 CARDS - AS REQUESTED -->
 <div class="card fpb"><h2><span class="mi">workspace_premium</span> <span class="title-main" style="color:#f9a8d4">FBP ACCOUNT - Founder's Patent Benefit</span> <span class="badge" style="background:#ec489922;color:#ec4899;border:1px solid #ec489944">NEW - 8th Day Sweep Destination</span></h2><div class="amt" id="fpbAmt" style="color:#f9a8d4">Unavailable</div><div class="log" style="font-size:10px;background:#ec489911;border:1px solid #ec489944">Receives 100% of Funeral + School on 8th Day. If not used, founder benefits. Resets Funeral & School to $0.00</div><div id="fpbBreakdown" class="log" style="margin-top:8px;font-size:10px">No sweeps yet - FBP waits for 8th day</div></div>
 
-<div class="card" style="border-left:4px solid #a78bfa; border-right:2px solid #7c3aed; background:linear-gradient(135deg,#1e293b 0%,#1a1033 100%);">
-<h2><span class="mi">security</span> <span class="title-main" style="color:#c4b5fd">LOCK 8 - SILENT ALIAS MONITOR</span> <span class="badge" style="background:#7c3aed22;color:#a78bfa;border:1px solid #7c3aed44">FOUNDER ONLY</span></h2>
-<div class="amt" style="font-size:16px;color:#c4b5fd" id="heskiaCardStatus">Scanning...</div>
-<div id="heskiaCardList" class="log" style="margin-top:8px;max-height:120px;font-size:10px;background:#0f0a1f;border:1px solid #7c3aed44"></div>
-<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
-<button onclick="resolveHeskiaSilent()" style="background:#7c3aed;color:white;padding:8px 12px;border-radius:8px;font-size:11px;width:55%;justify-content:center;display:flex;align-items:center"><span class="mi">verified</span> Auto-Resolve Silently</button>
-<button onclick="updateHeskiaCard()" style="background:#334155;color:#c4b5fd;padding:8px 12px;border-radius:8px;font-size:11px;width:40%;justify-content:center;display:flex;align-items:center"><span class="mi">refresh</span> Refresh</button>
-</div>
-<div style="font-size:9px;color:#6d5a9e;margin-top:8px">Zekia = Heskia | ID 22-083583T22 | No villager sees this</div></div>
+
 <!-- ADMIN CONTROL CENTRE - exact open slot in Master Overview grid -->
 <div class="card admin-control-card" style="min-height:100%;display:flex;flex-direction:column;justify-content:flex-start" onclick="openAdminControlCentre()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')openAdminControlCentre()">
   <div class="admin-control-icon"><span class="mi">admin_panel_settings</span></div>
@@ -375,7 +367,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 </div>
 </div>
 <div id="sec-wallets" class="section"><div class="card" id="companyContributions"><h2>Monthly company contributions</h2><button type="button" id="refreshCompanyContributions">Open reports</button><div id="companyContributionContent" aria-live="polite"></div></div><h1><span class="mi lg">account_balance_wallet</span> Company Wallets (12)</h1><div class="grid" style="margin-top:16px" id="walletGrid"></div></div>
-<div id="sec-ben" class="section"><div class="card"><h2>Recent payout requests</h2><button type="button" onclick="loadFounderPayoutRequests()">Refresh requests</button><ul id="founderPayoutRequests"></ul></div><div class="card ben"><h2><span class="mi">group</span> Beneficiary Pool</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0"><input id="newBenName" placeholder="Full Name *"><input id="newBenID" placeholder="ID Number *"><input id="newBenPhone" placeholder="Phone for WhatsApp" style="grid-column:span 2"></div><button class="primary" onclick="addBen()"><span class="mi">person_add</span> Add with ID</button><button class="blue" onclick="exportBenPDF()"><span class="mi">picture_as_pdf</span> Export PDF</button><button class="blue" onclick="previewRegistrationReconciliation()"><span class="mi">fact_check</span> Preview Family Reconciliation</button><div id="registrationReconciliationPreview" style="display:none;margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:10px"><h3 style="margin:0 0 8px">Read-only Family Reconciliation Preview</h3><p id="registrationReconciliationSummary" style="color:var(--muted)"></p><div id="registrationReconciliationRows"></div></div><div class="tabs"><div class="tab active" id="tab-approved" onclick="switchBenTab('approved')">Approved (<span id="countApproved">0</span>)</div><div class="tab" id="tab-pending" onclick="switchBenTab('pending')">Pending Auto (<span id="countPending">0</span>)</div></div><div id="benListApproved"></div><div id="benListPending" style="display:none"></div></div><div class="card" style="margin-top:12px"><h2><span class="mi">history</span> Deletion Log</h2><div class="log" id="delLog">No deletions yet...</div></div></div>
+<div id="sec-ben" class="section"><div class="card" id="familyCorrections"><h2>Official family corrections</h2><form id="familyCorrectionSearch"><label>Family name or GFT ID <input name="query" minlength="3" maxlength="100" required></label><button type="submit">Find records</button></form><div id="familyCorrectionResults" aria-live="polite"></div><button type="button" id="familyCorrectionRefresh">Review requests</button><div id="familyCorrectionHistory" aria-live="polite"></div></div><div class="card"><h2>Recent payout requests</h2><button type="button" onclick="loadFounderPayoutRequests()">Refresh requests</button><ul id="founderPayoutRequests"></ul></div><div class="card ben"><h2><span class="mi">group</span> Beneficiary Pool</h2><p>Beneficiary accounts are created through approved registrations.</p><button class="blue" onclick="exportBenPDF()"><span class="mi">picture_as_pdf</span> Export PDF</button><button class="blue" onclick="previewRegistrationReconciliation()"><span class="mi">fact_check</span> Preview Family Reconciliation</button><div id="registrationReconciliationPreview" style="display:none;margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:10px"><h3 style="margin:0 0 8px">Read-only Family Reconciliation Preview</h3><p id="registrationReconciliationSummary" style="color:var(--muted)"></p><div id="registrationReconciliationRows"></div></div><div class="tabs"><div class="tab active" id="tab-approved" onclick="switchBenTab('approved')">Approved (<span id="countApproved">0</span>)</div><div class="tab" id="tab-pending" onclick="switchBenTab('pending')">Pending Auto (<span id="countPending">0</span>)</div></div><div id="benListApproved"></div><div id="benListPending" style="display:none"></div></div><div class="card" style="margin-top:12px"><h2><span class="mi">history</span> Deletion Log</h2><div class="log" id="delLog">No deletions yet...</div></div></div>
 <div id="sec-fun" class="section"><h1><span class="mi lg">church</span> Funeral</h1><div class="grid"><div class="card fun"><h2><span class="title-main">BALANCE</span></h2><div class="amt" id="funAmt2">Unavailable</div><div id="funStatus2" class="badge wait"></div><div class="log" id="funPayLog2" style="margin-top:10px">No payments</div></div><div class="card"><h2>Test Simulate Claim</h2><input id="testDeceasedName" placeholder="Deceased Name"><input id="testDeceasedID" placeholder="Deceased ID"><select id="testPayTo"><option value="Parlour">Parlour</option><option value="Church">Church</option></select><input type="file" id="testCertFile" accept="image/*,.pdf"><button class="orange" onclick="simulateFuneralClaim()">Submit Cert</button></div></div><div class="card" style="margin-top:16px"><div class="tabs"><div class="tab funTab active" id="funTab-pending" onclick="switchFunTab('pending')">Pending (<span id="countFunPending">0</span>)</div><div class="tab funTab" id="funTab-paid" onclick="switchFunTab('paid')">Paid (<span id="countFunPaid">0</span>)</div></div><div id="funListPending"></div><div id="funListPaid" style="display:none"></div><button class="orange" onclick="exportFuneralPDF()" style="margin-top:12px"><span class="mi">picture_as_pdf</span> Export Funeral PDF</button></div></div>
 <div id="sec-sch" class="section"><h1><span class="mi lg">school</span> School Fees</h1><div class="grid"><div class="card sch"><h2><span class="title-main">BALANCE</span></h2><div class="amt" id="schAmt2">Unavailable</div><div id="schStatus2" class="badge wait"></div><div class="log" id="schPayLog2" style="margin-top:10px">No payments</div></div><div class="card"><h2>Test Simulate Invoice</h2><input id="testStudentName" placeholder="Student Name *"><input id="testStudentID" placeholder="Student ID"><input id="testSchoolName" placeholder="School Name *"><input id="testSchoolAccount" placeholder="School Account *"><input id="testSchoolAmount" type="number" placeholder="Amount *"><input type="file" id="testInvoiceFile" accept="image/*,.pdf"><button class="purple" onclick="simulateSchoolClaim()">Submit Invoice</button></div></div><div class="card" style="margin-top:16px"><h2><span class="mi">verified</span> Verified Schools List</h2><div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0"><input id="newVerifiedSchool" placeholder="School Name"><input id="newVerifiedAccountPrefix" placeholder="Prefix"><button class="purple" onclick="addVerifiedSchool()">Add Verified School</button></div><div id="verifiedSchoolsList" class="log" style="max-height:120px"></div></div><div class="card" style="margin-top:16px"><div class="tabs"><div class="tab schTab active" id="schTab-pending" onclick="switchSchTab('pending')">Pending (<span id="countSchPending">0</span>)</div><div class="tab schTab" id="schTab-paid" onclick="switchSchTab('paid')">Paid Ledger (<span id="countSchPaid">0</span>)</div></div><div id="schListPending"></div><div id="schListPaid" style="display:none"></div><button class="purple" onclick="exportSchoolPDF()" style="margin-top:12px"><span class="mi">picture_as_pdf</span> Export School PDF</button></div></div>
 
@@ -440,10 +432,10 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
       </div>
       <div class="card" style="margin-top:12px;border-left:3px solid #f97316">
         <h2><span class="mi">timer</span> Temporary Overrides</h2>
-        <p style="font-size:11px;color:var(--muted)">Use this for a limited exception without changing the Admin's permanent role template. Overrides are recorded with a reason and optional expiry.</p>
+        <p style="font-size:11px;color:var(--muted)">Use this for a limited exception without changing the Admin's permanent role template. Overrides are recorded with a reason and expiry.</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <input id="adminOverridePermission" placeholder="Permission or module, e.g. finance:export">
-          <input id="adminOverrideExpires" type="datetime-local" title="Optional expiry">
+          <input id="adminOverridePermission" placeholder="Permission or module, e.g. finances:export">
+          <input id="adminOverrideExpires" type="datetime-local" title="Required expiry">
           <input id="adminOverrideReason" placeholder="Reason for temporary access" style="grid-column:span 2">
         </div>
         <button class="orange" onclick="addAdminDeploymentOverride()" style="margin-top:8px"><span class="mi">add_alarm</span> Add Temporary Override</button>
@@ -453,6 +445,7 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
         <button class="primary" onclick="deploySelectedAdmin()" style="background:#f59e0b;color:#111"><span class="mi">publish</span> Deploy / Save Authority</button>
         <button class="blue" onclick="reloadSelectedAdminControl()"><span class="mi">refresh</span> Reload</button>
+        <button type="button" onclick="resetAdminPw()">Create password reset link</button>
         <button class="danger" onclick="suspendSelectedAdmin()"><span class="mi">block</span> Suspend Admin</button>
       </div>
       <div id="adminControlAuditMsg" style="font-size:11px;color:#10b981;margin-top:8px"></div>
@@ -502,7 +495,6 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <span class="badge ok" id="adminCountBadge">0 Admins</span>
 <span class="badge blue" id="adminInfoBadge">Server-backed Admin accounts • PostgreSQL authority</span>
 <button class="blue" onclick="renderAdmins()"><span class="mi">refresh</span> Refresh</button>
-<button class="danger" onclick="clearAllAdmins()"><span class="mi">delete_forever</span> Clear All (Server controlled)</button>
 </div>
 <div id="adminList"></div>
 <div class="log" style="margin-top:12px;font-size:10px">
@@ -529,9 +521,6 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 <div id="sec-audit" class="section"><div class="card"><h2><span class="mi">receipt_long</span> Audit Trail</h2><button type="button" onclick="loadFounderAudit()">Refresh audit history</button><div class="log" id="audit" aria-live="polite"></div></div></div>
 </div>
 </div>
-<div id="deleteModal" class="modal"><div class="modal-box"><h2>Delete Beneficiary</h2><p id="deleteName"></p><p id="deleteID" style="font-size:12px"></p><select id="deleteReason"><option value="Death">Death</option><option value="False">False</option><option value="Custom">Custom</option></select><input id="customReason" placeholder="Custom" style="display:none"><div style="display:flex;gap:8px;margin-top:16px"><button class="danger" onclick="confirmDelete()">Delete</button><button onclick="closeDeleteModal()">Cancel</button></div></div></div>
-<div id="editModal" class="modal"><div class="modal-box"><h2>Edit</h2><input id="editNameInput"><input id="editIDInput" style="margin-top:8px"><input id="editPhoneInput" placeholder="Phone for WhatsApp" style="margin-top:8px"><div style="display:flex;gap:8px;margin-top:16px"><button class="primary" onclick="confirmEdit()">Save</button><button onclick="closeEditModal()">Cancel</button></div></div></div>
-<div id="certModal" class="modal"><div class="modal-box" style="max-width:700px"><h2>Document Viewer</h2><p id="certInfo" style="font-size:12px"></p><div id="certPreview" style="margin-top:12px;max-height:60vh;overflow:auto;text-align:center"></div><button onclick="closeCertModal()" style="margin-top:12px">Close</button></div></div>
 <div id="registrationReviewModal" class="modal"><div class="modal-box" style="max-width:900px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><h2 style="margin:0">Beneficiary Registration Review</h2><button type="button" onclick="closeRegistrationReview()">Close</button></div><p id="reviewStatus" class="badge wait" style="margin:10px 0">Loading application...</p><div id="reviewApplicant" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0"></div><h3 style="margin:16px 0 8px">Supporting documents</h3><div id="reviewDocuments" class="log">Loading documents...</div><h3 style="margin:16px 0 8px">Founder review note / reason</h3><textarea id="reviewReason" rows="3" style="width:100%;box-sizing:border-box" placeholder="Record the reason for rejection, further information, or referral. Required for non-approval decisions."></textarea><div id="reviewDecisionActions" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px"><button class="primary" onclick="decideRegistration('APPROVE')">Approve application</button><button class="danger" onclick="decideRegistration('REJECTED')">Reject</button><button class="orange" onclick="decideRegistration('NEEDS_INFORMATION')">Request information</button><button class="blue" onclick="decideRegistration('REFERRED')">Refer for further review</button></div><p style="font-size:11px;color:var(--muted);margin-top:12px">Approval creates the server beneficiary record. Requesting information, rejecting, or referring records a decision and note. No payout decision is made here.</p></div></div>
 <div id="wifeCorrectionModal" class="modal"><div class="modal-box" style="max-width:760px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><h2 style="margin:0">Founder — Wife Number Correction</h2><button type="button" onclick="closeWifeCorrection()">Close</button></div><p id="wifeCorrectionStatus" class="badge wait" style="margin:12px 0">Loading authoritative family-register information...</p><div id="wifeCorrectionDetails" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin:12px 0"></div><div style="margin-top:14px"><label for="wifeCorrectionSelect" style="display:block;font-weight:700;margin-bottom:6px">Confirm wife number</label><select id="wifeCorrectionSelect" style="width:100%;padding:11px;border-radius:8px"><option value="">Select wife number</option><option value="1">WIFE 1</option><option value="2">WIFE 2</option><option value="3">WIFE 3</option><option value="4">WIFE 4</option><option value="5">WIFE 5</option><option value="6">WIFE 6</option><option value="7">WIFE 7</option><option value="8">WIFE 8</option></select></div><div style="margin-top:12px"><label for="wifeCorrectionReason" style="display:block;font-weight:700;margin-bottom:6px">Correction reason (required)</label><textarea id="wifeCorrectionReason" rows="3" style="width:100%;box-sizing:border-box" placeholder="Explain how the family register was checked and why this correction is being confirmed."></textarea></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button id="wifeCorrectionSave" class="primary" type="button" onclick="saveWifeCorrection()">Confirm and Save Correction</button><button type="button" onclick="closeWifeCorrection()">Cancel</button></div><p style="font-size:11px;color:var(--muted);margin-top:12px">This action changes only the pending registration's wife number and records an audit event. It does not approve or activate the beneficiary.</p></div></div>
 
@@ -1310,20 +1299,17 @@ function save2FA() {
 // Check the authenticated Founder session when the page loads.
 checkFounderSession().then(loadFounderWalletBalances);
 
-let autoApprove=JSON.parse(localStorage.getItem('guvaza_auto_approve')??'true');
-let emailEnabled=JSON.parse(localStorage.getItem('guvaza_email_enabled')??'true');
-let whatsappEnabled=JSON.parse(localStorage.getItem('guvaza_whatsapp_enabled')??'true');
-let founderEmail=localStorage.getItem('guvaza_founder_email')||CFG.email||'founder@guvaza.com';
-let whatsappNumber=localStorage.getItem('guvaza_whatsapp_number')||'+263771234567';
-let verifiedSchools=JSON.parse(localStorage.getItem('guvaza_verified_schools')||'[{"name":"University of Zimbabwe","prefix":"UZ"}]');
-function updateAutoUI(){let sw=document.getElementById('autoSwitch');let lb=document.getElementById('autoLabel');if(!sw)return;if(autoApprove){sw.classList.add('on');lb.innerText='ON - All Auto';lb.style.color='#10b981';}else{sw.classList.remove('on');lb.innerText='OFF';lb.style.color='#f59e0b';}}
-function toggleAuto(){autoApprove=!autoApprove;localStorage.setItem('guvaza_auto_approve',JSON.stringify(autoApprove));updateAutoUI();log(`AUTO ${autoApprove?'ON':'OFF'}`);}updateAutoUI();
+let emailEnabled=false;
+let whatsappEnabled=false;
+let founderEmail='';
+let whatsappNumber='';
+
 function updateFounderHeader(id){
  const map={master:['Master Overview','Trust wallets, beneficiary distribution, service controls and Founder security.'],wallets:['Company Wallets','Review the 12 company wallet positions and related company data.'],ben:['Beneficiary Pool','Review and manage beneficiary registration and wallet information.'],fun:['Funeral Wallet','Review funeral requests, verification and approved payments.'],sch:['School Fees','Review school claims, invoices, verified schools and payments.'],siteSettings:['Site Settings','Master website content, identity, homepage, branding and company controls.'],adminControl:['Admin Control Centre','Founder deployment authority for Admin roles, modules, permissions and tasks.'],adminRoles:['Admin Invite + Roles','Create and maintain Admin accounts and role templates.'],approval:['5-Man Approval','Review the Trust approval workflow and withdrawal approvals.'],sweep:['8th Day Sweep → FBP','Review and execute the configured 8th-day sweep workflow.'],daughter:['Daughter Rule','Review the Trust daughter inheritance rule.'],notif:['Push + Email + WhatsApp Alerts','Configure Founder communication and notification controls.'],export:['Export PDF','Generate Trust operational reports and exports.'],audit:['Audit Trail','Review recorded Trust and administrative activity.']};
  const x=map[id]||['Founder Control Centre','The Guvaza Family Trust Founder administration panel.'];
  const h=document.getElementById('founderHeaderTitle'),p=document.getElementById('founderHeaderSubtitle');if(h)h.innerHTML='<span class="mi lg">admin_panel_settings</span> FOUNDER — '+x[0];if(p){p.innerHTML='';p.appendChild(document.createTextNode(x[1]+' | '));const badge=document.createElement('span');badge.id='configLoadedBadge';badge.textContent='Loading config...';p.appendChild(badge);}if(typeof refreshConfigDisplay==='function')refreshConfigDisplay();
 }
-function showSec(id, el){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));let t=document.getElementById('sec-'+id);if(t)t.classList.add('active');document.querySelectorAll('.menu').forEach(m=>m.classList.remove('active'));if(el)el.classList.add('active');updateFounderHeader(id);if(id==='ben'){renderBens();loadFounderPayoutRequests();}if(id==='fun')renderFuneral();if(id==='sch')renderSchool();if(id==='adminRoles')renderAdmins();if(id==='adminControl')refreshAdminControlCentre();if(id==='approval')checkApproval();if(id==='sweep')updateSweepUI();if(id==='notif')renderNotif();if(id==='export')renderExport();if(id==='audit')loadFounderAudit();if(id==='siteSettings')renderSiteSettings();if(id==='wallets')loadCompanyWallets();}
+function showSec(id, el){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));let t=document.getElementById('sec-'+id);if(t)t.classList.add('active');document.querySelectorAll('.menu').forEach(m=>m.classList.remove('active'));if(el)el.classList.add('active');updateFounderHeader(id);if(id==='ben'){renderBens();loadFounderPayoutRequests();}if(id==='fun')renderFuneral();if(id==='sch'){renderSchool();renderVerifiedSchools();}if(id==='adminRoles')renderAdmins();if(id==='adminControl')refreshAdminControlCentre();if(id==='approval')checkApproval();if(id==='sweep')updateSweepUI();if(id==='notif')renderNotif();if(id==='export')renderExport();if(id==='audit')loadFounderAudit();if(id==='siteSettings')renderSiteSettings();if(id==='wallets')loadCompanyWallets();}
 
 // === ENGINE WITH FBP + BEN 24H EQUAL + PAY NOW BUTTON AUTO-INJECT ===
 let wallets = {};
@@ -1430,6 +1416,35 @@ async function loadFounderPayoutRequests(){
           item.append(" ", button);
         }
       }
+      const controls=[['destination','View payment destination']];
+      if(row.status==='REVIEWED') controls.push(['authorize','Authorize external payment']);
+      if(row.status==='AUTHORIZED') controls.push(['settle','Record confirmed external payment'],['cancel','Cancel authorization']);
+      for(const [action,label] of controls){
+        const control=document.createElement('button');
+        control.type='button';control.textContent=label;
+        control.onclick=async()=>{
+          control.disabled=true;
+          try {
+            const url='/api/founder/payout-requests/'+encodeURIComponent(row.payout_id)+'/'+action;
+            if(action==='destination'){
+              const response=await fetch(url,{cache:'no-store'});
+              if(!response.ok) throw Error('Payment destination unavailable.');
+              const {destination}=await response.json();
+              alert(destination?.method==='Bank' ? destination.bankName+' · '+destination.accountNumber :
+                destination?.method==='Ecocash' ? destination.name+' · '+destination.number : 'No recorded destination.');
+              return;
+            }
+            const note=prompt(action==='settle'?'Enter the verified reference for the external payment already made:':'Enter the reason for this action:')?.trim();
+            if(!note) return;
+            const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({note})});
+            const data=await response.json().catch(()=>({}));
+            if(!response.ok) throw Error(data.error || 'Unable to record payout action.');
+            await loadFounderPayoutRequests();
+          } catch(error){alert(error.message);}
+          finally{control.disabled=false;}
+        };
+        item.append(' ',control);
+      }
       list.append(item);
     }
   } catch { list.textContent = "Payout requests unavailable."; }
@@ -1516,7 +1531,6 @@ async function requestExpansion(){
     showSec('approval');
   } catch(error){alert(error.message);}
 }
-function approveWithdrawal(){alert("Approval requires a server-recorded decision.");}
 function updateSweepUI(){}
 async function recordFundTransfer(operation,body,button){
   if(!confirm("Record this internal transfer in the Trust ledger?")) return;
@@ -1539,7 +1553,7 @@ async function loadCompanyWallets(){
   const grid=document.getElementById('walletGrid');
   grid.textContent='Loading company wallets…';
   try {
-    const response=await fetch('/api/founder/company-wallets',{cache:'no-store'});
+    const response=await fetch('/api/admin/company-wallets',{cache:'no-store'});
     if(!response.ok) throw Error('Company wallets unavailable.');
     const {wallets}=await response.json();
     grid.textContent=wallets.length?'':'No company records are registered in PostgreSQL.';
@@ -1565,7 +1579,7 @@ async function loadCompanyWallets(){
   } catch(error){grid.textContent=error.message;}
 }
 
-let bens=JSON.parse(localStorage.getItem('guvaza_bens')||'[]');let pendingRegs=JSON.parse(localStorage.getItem('guvaza_pending_regs')||'[]');let delLogs=JSON.parse(localStorage.getItem('guvaza_del_log')||'[]');let deleteIndex=-1,editIndex=-1;
+let bens=[]; let pendingRegs=[];
 function switchBenTab(tab){document.getElementById('tab-approved').classList.toggle('active', tab==='approved');document.getElementById('tab-pending').classList.toggle('active', tab==='pending');document.getElementById('benListApproved').style.display=tab==='approved'?'block':'none';document.getElementById('benListPending').style.display=tab==='pending'?'block':'none';renderBens();}
 async function previewRegistrationReconciliation(){
   const panel=document.getElementById('registrationReconciliationPreview');
@@ -1592,17 +1606,29 @@ async function previewRegistrationReconciliation(){
   }catch(error){summary.textContent='Preview unavailable: '+(error.message||'Please sign in and try again.');}
 }
 
+async function editServerMember(member,refresh){
+  const fullName=prompt('Correct the official full name:',member.full_name);
+  if(fullName===null) return;
+  const phone=prompt('Contact phone (leave blank to clear):',member.phone||'');
+  if(phone===null) return;
+  const reason=prompt('Record the reason for this correction:');
+  if(reason===null) return;
+  try {
+    const response=await fetch('/api/beneficiaries/admin/pool/'+encodeURIComponent(member.beneficiary_id),{method:'PATCH',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({fullName,phone,reason})});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok) throw Error(data.error || 'Unable to save the beneficiary correction.');
+    await refresh();
+  } catch(error){alert(error.message);}
+}
+
 async function renderBens(){
   const listA=document.getElementById('benListApproved');
   const listP=document.getElementById('benListPending');
   let serverBeneficiaries=[];
 
-  // Legacy Founder entries remain intact and retain their existing controls.
   if(listA){
-    listA.innerHTML='';
-    bens.forEach((b,i)=>{
-      listA.innerHTML+=`<div class="ben-item"><div class="ben-info"><b>${b.name}</b> <span class="badge blue">Legacy local record</span> <span class="badge blue">Login Wallet unavailable</span><br><small>ID:${b.id} | ${b.phone||''}<br></small></div><div class="ben-actions"><button class="icon-btn edit" onclick="openEditModal(${i})">Edit</button><button class="icon-btn del" onclick="openDeleteModal(${i})">Delete</button></div></div>`;
-    });
+    listA.replaceChildren();
     try{
       const poolResponse=await fetch('/api/beneficiaries/admin/pool',{credentials:'include',cache:'no-store'});
       const poolData=await poolResponse.json();
@@ -1620,7 +1646,10 @@ async function renderBens(){
           const badge=document.createElement('span'); badge.className='badge ok'; badge.style.marginLeft='8px'; badge.textContent=b.payout_eligible?'PAYOUT ELIGIBLE':'APPROVED · PAYOUT INELIGIBLE'; info.appendChild(badge);
           const details=document.createElement('small'); details.style.display='block';
           details.textContent=`System ID: ${b.system_id||'—'} | Membership: ${b.membership||'—'} | Phone: ${b.phone||'—'} | Identity: ${b.identity_status||'—'} | Lineage: ${b.lineage_status||'—'} | Status: ${b.status||'—'}`;
-          info.appendChild(details); item.appendChild(info); listA.appendChild(item);
+          info.appendChild(details); item.appendChild(info);
+          if(poolData.canEdit){const button=document.createElement('button');button.type='button';
+            button.textContent='Correct details';button.onclick=()=>editServerMember(b,renderBens);item.append(button);}
+          listA.appendChild(item);
         });
       }
     }catch(error){
@@ -1714,11 +1743,11 @@ async function renderBens(){
   }
 
   // Keep legacy payout calculations isolated from the new server registry.
-  benCount=bens.length;
-  document.getElementById('countApproved').innerText=bens.length+serverBeneficiaries.length;
+  bens=serverBeneficiaries.map(b=>({name:b.full_name,id:b.system_id,phone:b.phone}));
+  benCount=serverBeneficiaries.filter(b=>b.payout_eligible).length;
+  document.getElementById('countApproved').innerText=serverBeneficiaries.length;
   updateUI();
-  localStorage.setItem('guvaza_bens',JSON.stringify(bens));
-  renderDelLog();
+
   const histEl=document.getElementById('benPayoutHistory');
   if(histEl){
     if(benPoolPayouts.length===0)histEl.textContent="Payment history unavailable";
@@ -1815,20 +1844,12 @@ async function saveWifeCorrection(){
   }catch(error){alert(error.message||'Wife correction failed.');save.disabled=false;}
 }
 
-function addBen(){let name=document.getElementById('newBenName').value.trim();let id=document.getElementById('newBenID').value.trim();let phone=document.getElementById('newBenPhone').value.trim();if(!name||!id)return alert('Name+ID');if(bens.some(b=>b.id===id))return alert('ID exists');bens.push({name,id,phone,dateAdded:new Date().toLocaleString()});localStorage.setItem("guvaza_bens", JSON.stringify(bens));document.getElementById('newBenName').value='';document.getElementById('newBenID').value='';document.getElementById('newBenPhone').value='';renderBens();log(`Added ${name}`);}
 async function approvePending(i){await renderBens();}
-function rejectPending(i){alert('Rejection is not available yet because the server has no registration rejection endpoint. This application remains pending.');}
-function openEditModal(i){editIndex=i;document.getElementById('editNameInput').value=bens[i].name;document.getElementById('editIDInput').value=bens[i].id;document.getElementById('editPhoneInput').value=bens[i].phone||'';document.getElementById('editModal').classList.add('show');}
 function closeEditModal(){document.getElementById('editModal').classList.remove('show');}
-function confirmEdit(){let nn=document.getElementById('editNameInput').value.trim();let nid=document.getElementById('editIDInput').value.trim();let nphone=document.getElementById('editPhoneInput').value.trim();if(!nn||!nid||editIndex<0)return;if(bens.some((b,idx)=>idx!==editIndex && b.id===nid))return alert('ID used');bens[editIndex].name=nn;bens[editIndex].id=nid;bens[editIndex].phone=nphone;localStorage.setItem('guvaza_bens',JSON.stringify(bens));renderBens();closeEditModal();}
-function openDeleteModal(i){deleteIndex=i;document.getElementById('deleteName').innerText=bens[i].name;document.getElementById('deleteID').innerText=bens[i].id;document.getElementById('deleteModal').classList.add('show');}
 function closeDeleteModal(){document.getElementById('deleteModal').classList.remove('show');}
-function confirmDelete(){if(deleteIndex<0)return;let removed=bens.splice(deleteIndex,1)[0];delLogs.unshift({name:removed.name,id:removed.id,reason:'Manual delete',time:new Date().toLocaleString()});localStorage.setItem('guvaza_del_log',JSON.stringify(delLogs));localStorage.setItem('guvaza_bens',JSON.stringify(bens));renderBens();closeDeleteModal();}
-function renderDelLog(){let el=document.getElementById('delLog');if(!el)return;if(delLogs.length===0){el.innerText='No deletions';return;}el.innerHTML=delLogs.map(d=>`[${d.time}] ${d.name} ID:${d.id} - ${d.reason}`).join('<br>');}
 renderBens();
 
 // Automatic local-storage approval disabled: server registrations require authorised review.
-const funeralRequests = [], funeralPaid = [];
 function switchFunTab(tab){document.getElementById('funTab-pending').classList.toggle('active', tab==='pending');document.getElementById('funTab-paid').classList.toggle('active', tab==='paid');document.getElementById('funListPending').style.display=tab==='pending'?'block':'none';document.getElementById('funListPaid').style.display=tab==='paid'?'block':'none';renderFuneral();}
 async function renderFuneral(){
   const pending = document.getElementById("funListPending");
@@ -1902,12 +1923,6 @@ async function renderFuneral(){
     display(paid, requests.filter(settled), "No recorded payments");
   } catch { pending.textContent = paid.textContent = "Server records unavailable"; }
 }
-function viewCert(index,type,wallet){let r;if(wallet==='school'){r=type==='pending'?schoolRequests[index]:schoolPaid[index];}else{r=type==='pending'?funeralRequests[index]:funeralPaid[index];}document.getElementById('certInfo').innerText=`Doc: ${r.deceasedName||r.studentName}`;let preview=document.getElementById('certPreview');let b64=r.certBase64||r.invoiceBase64;if(b64){if((r.certName||r.invoiceName||'').toLowerCase().includes('.pdf')){preview.innerHTML=`<a href="${b64}" target="_blank">Open PDF</a>`;}else{preview.innerHTML=`<img src="${b64}" style="max-width:100%">`;}}else preview.innerHTML='No file';document.getElementById('certModal').classList.add('show');}
-function closeCertModal(){document.getElementById('certModal').classList.remove('show');}
-function approveFuneral(){alert("This action requires the server payment workflow.");}
-function rejectFuneral(){alert("This action requires the server service workflow.");}
-function autoApproveFuneral(){}
-setInterval(autoApproveFuneral,4000);
 async function submitServiceRequest(service, fields, evidence) {
   if (!evidence) return alert("Attach supporting evidence.");
   const body = new FormData();
@@ -1928,13 +1943,33 @@ function simulateFuneralClaim(){
     document.getElementById("testCertFile").files[0]);
 }
 renderFuneral();
-const schoolRequests = [], schoolPaid = [];
 function switchSchTab(tab){document.getElementById('schTab-pending').classList.toggle('active', tab==='pending');document.getElementById('schTab-paid').classList.toggle('active', tab==='paid');document.getElementById('schListPending').style.display=tab==='pending'?'block':'none';document.getElementById('schListPaid').style.display=tab==='paid'?'block':'none';renderSchool();}
-function verifySchoolAccount(schoolName, accountNumber){return {valid:true,verified:true,reason:'Verified'};}
-function addVerifiedSchool(){let name=document.getElementById('newVerifiedSchool').value.trim();let pref=document.getElementById('newVerifiedAccountPrefix').value.trim();if(!name||!pref)return alert('Name+Prefix');verifiedSchools.push({name,prefix:pref});localStorage.setItem('guvaza_verified_schools',JSON.stringify(verifiedSchools));document.getElementById('newVerifiedSchool').value='';document.getElementById('newVerifiedAccountPrefix').value='';renderVerifiedSchools();}
-function renderVerifiedSchools(){let el=document.getElementById('verifiedSchoolsList');if(!el)return;if(verifiedSchools.length===0){el.innerText='No verified schools';return;}el.innerHTML=verifiedSchools.map((s,i)=>`${s.name} | ${s.prefix} <button onclick="removeVerifiedSchool(${i})" style="padding:2px 6px;font-size:10px;background:#ef4444;color:#fff;border:0;border-radius:4px">X</button>`).join('<br>');}
-function removeVerifiedSchool(i){verifiedSchools.splice(i,1);localStorage.setItem('guvaza_verified_schools',JSON.stringify(verifiedSchools));renderVerifiedSchools();}
-renderVerifiedSchools();
+function displayVerifiedSchools(schools){
+  const list=document.getElementById('verifiedSchoolsList');
+  list.textContent=schools.length?'':'No verified schools recorded.';
+  for(const school of schools){
+    const line=document.createElement('p');line.textContent=school.name+' · '+school.prefix;
+    const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';
+    remove.onclick=()=>removeVerifiedSchool(school.id);line.append(' ',remove);list.append(line);
+  }
+}
+async function renderVerifiedSchools(){
+  try {
+    const response=await fetch('/api/founder/verified-schools',{cache:'no-store'});
+    if(!response.ok) throw Error('School directory unavailable.');
+    displayVerifiedSchools((await response.json()).schools);
+  } catch(error){document.getElementById('verifiedSchoolsList').textContent=error.message;}
+}
+async function updateVerifiedSchools(body){
+  try {
+    const response=await fetch('/api/founder/verified-schools',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw Error(result.error||'Unable to update the school directory.');
+    displayVerifiedSchools(result.schools);
+  } catch(error){alert(error.message);}
+}
+function addVerifiedSchool(){updateVerifiedSchools({name:document.getElementById('newVerifiedSchool').value,prefix:document.getElementById('newVerifiedAccountPrefix').value});}
+function removeVerifiedSchool(removeId){if(confirm('Remove this verified school?')) updateVerifiedSchools({removeId});}
 async function renderSchool(){
   const pending = document.getElementById("schListPending");
   const paid = document.getElementById("schListPaid");
@@ -2007,11 +2042,6 @@ async function renderSchool(){
     display(paid, requests.filter(settled), "No recorded payments");
   } catch { pending.textContent = paid.textContent = "Server records unavailable"; }
 }
-function viewSchoolInvoice(idx,type){let r=type==='pending'?schoolRequests[idx]:schoolPaid[idx];document.getElementById('certInfo').innerText=`Student: ${r.studentName} | School: ${r.schoolName} | Account: ${r.schoolAccount} | $${r.amount}`;let preview=document.getElementById('certPreview');let b64=r.invoiceBase64;if(b64){if((r.invoiceName||'').toLowerCase().includes('.pdf')){preview.innerHTML=`<a href="${b64}" target="_blank">Open PDF</a>`;}else{preview.innerHTML=`<img src="${b64}" style="max-width:100%">`;}}else preview.innerHTML='No invoice';document.getElementById('certModal').classList.add('show');}
-function approveSchool(){alert("This action requires the server payment workflow.");}
-function rejectSchool(){alert("This action requires the server service workflow.");}
-function autoApproveSchool(){}
-setInterval(autoApproveSchool,4000);
 function simulateSchoolClaim(){
   const value=id=>document.getElementById(id).value;
   submitServiceRequest("school",{name:value("testStudentName"),subjectId:value("testStudentID"),
@@ -2019,28 +2049,98 @@ function simulateSchoolClaim(){
     document.getElementById("testInvoiceFile").files[0]);
 }
 renderSchool();
-let emailLogs=JSON.parse(localStorage.getItem('guvaza_email_log')||'[]');let whatsappLogs=JSON.parse(localStorage.getItem('guvaza_whatsapp_log')||'[]');let allAlerts=JSON.parse(localStorage.getItem('guvaza_all_alerts')||'[]');
-function renderNotif(){document.getElementById('founderEmail').value=founderEmail;document.getElementById('whatsappNumber').value=whatsappNumber;updateNotifUI();document.getElementById('emailLog').innerHTML=emailLogs.length?emailLogs.slice(0,20).map(e=>`[${e.time}] To:${e.to} | ${e.subject}`).join('<br>'):'No emails yet';document.getElementById('whatsappLog').innerHTML=whatsappLogs.length?whatsappLogs.slice(0,20).map(w=>`[${w.time}] To:${w.to} | ${w.message.substring(0,60)}`).join('<br>'):'No WhatsApp yet';document.getElementById('allAlertsLog').innerHTML=allAlerts.length?allAlerts.slice(0,50).map(a=>`[${a.time}] ${a.type}: ${a.message}`).join('<br>'):'No alerts yet';document.getElementById('pushStatus').innerText=Notification.permission==='granted'?'Push ENABLED':'Push '+Notification.permission;document.getElementById('pushStatus').className=Notification.permission==='granted'?'badge ok':'badge wait';}
-function updateNotifUI(){let es=document.getElementById('emailSwitch');let el=document.getElementById('emailLabel');if(es){if(emailEnabled){es.classList.add('on');el.innerText='ON';el.style.color='#10b981';}else{es.classList.remove('on');el.innerText='OFF';el.style.color='#f59e0b';}}let ws=document.getElementById('waSwitch');let wl=document.getElementById('waLabel');if(ws){if(whatsappEnabled){ws.classList.add('on');wl.innerText='ON';wl.style.color='#10b981';}else{ws.classList.remove('on');wl.innerText='OFF';wl.style.color='#f59e0b';}}let ns=document.getElementById('notifStatus');if(ns){ns.innerHTML=`Push: ${Notification.permission}<br>Email: ${emailEnabled?'ON':'OFF'}<br>WhatsApp: ${whatsappEnabled?'ON':'OFF'}<br>FBP: ${walletDisplay("fpb")}`;}}
-function toggleEmail(){emailEnabled=!emailEnabled;localStorage.setItem('guvaza_email_enabled',JSON.stringify(emailEnabled));founderEmail=document.getElementById('founderEmail').value.trim()||founderEmail;localStorage.setItem('guvaza_founder_email',founderEmail);updateNotifUI();log(`Email ${emailEnabled?'ON':'OFF'}`);}
-function toggleWhatsApp(){whatsappEnabled=!whatsappEnabled;localStorage.setItem('guvaza_whatsapp_enabled',JSON.stringify(whatsappEnabled));whatsappNumber=document.getElementById('whatsappNumber').value.trim()||whatsappNumber;localStorage.setItem('guvaza_whatsapp_number',whatsappNumber);updateNotifUI();log(`WhatsApp ${whatsappEnabled?'ON':'OFF'}`);}
+async function notificationRequest(path='',method='GET',body){
+  const response=await fetch('/api/admin/notifications'+path,{method,cache:'no-store',
+    ...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok) throw Error(result.error || 'Notification settings unavailable.');
+  return result;
+}
+function notificationHistory(events){
+  return events.map(event=>new Date(event.created_at).toLocaleString()+' · '+event.action.replaceAll('_',' ')).join('\n');
+}
+async function renderNotif(){
+  try {
+    const {settings,events}=await notificationRequest();
+    ({emailEnabled,whatsappEnabled,primaryEmail:founderEmail,whatsappNumber}=settings);
+    document.getElementById('founderEmail').value=founderEmail;
+    document.getElementById('whatsappNumber').value=whatsappNumber;
+    document.getElementById('allAlertsLog').textContent=notificationHistory(events)||'No server notification events.';
+    document.getElementById('emailLog').textContent=notificationHistory(events.filter(event=>event.action.includes('TEST_EMAIL')))||'No email tests recorded.';
+    document.getElementById('whatsappLog').textContent='WhatsApp opens a draft. Delivery is confirmed in WhatsApp.';
+    updateNotifUI();
+  }catch(error){document.getElementById('allAlertsLog').textContent=error.message;}
+}
+function updateNotifUI(){
+  document.getElementById('emailSwitch').classList.toggle('on',emailEnabled);
+  document.getElementById('waSwitch').classList.toggle('on',whatsappEnabled);
+  document.getElementById('emailLabel').textContent=emailEnabled?'ON':'OFF';
+  document.getElementById('waLabel').textContent=whatsappEnabled?'ON':'OFF';
+  document.getElementById('pushStatus').textContent='Browser notifications: '+(window.Notification?.permission || 'unavailable');
+  document.getElementById('notifStatus').textContent='FBP: '+walletDisplay('fpb');
+}
+async function saveNotificationSettings(patch){
+  try{await notificationRequest('','PATCH',patch);await renderNotif();}catch(error){alert(error.message);}
+}
+function toggleEmail(){saveNotificationSettings({emailEnabled:!emailEnabled,primaryEmail:document.getElementById('founderEmail').value});}
+function toggleWhatsApp(){saveNotificationSettings({whatsappEnabled:!whatsappEnabled,whatsappNumber:document.getElementById('whatsappNumber').value});}
+async function testEmail(){
+  try{const result=await notificationRequest('/test-email','POST',{});alert(result.message);await renderNotif();}
+  catch(error){alert(error.message);}
+}
+function testWhatsApp(){
+  if(!whatsappEnabled || !/^\+[1-9]\d{7,14}$/.test(whatsappNumber)) return alert('Enable and save a WhatsApp number first.');
+  window.open('https://wa.me/'+whatsappNumber.slice(1)+'?text='+encodeURIComponent('GFT notification test'),'_blank','noopener,noreferrer');
+}
+function addAlertLog(message){console.info(message);}
 function requestPushPermission(){if(!('Notification' in window)) return alert('Push not supported');Notification.requestPermission().then(p=>{document.getElementById('pushStatus').innerText=p==='granted'?'Push ENABLED':'Push '+p;document.getElementById('pushStatus').className=p==='granted'?'badge ok':'badge wait';if(p==='granted'){new Notification('Guvaza Family Trust',{body:'Push Enabled'});log('Push granted');updateNotifUI();}});}
 function sendPushNotification(title, body){if(!('Notification' in window)) return;if(Notification.permission==='granted'){try{new Notification(title,{body:body});}catch(e){}} addAlertLog(`PUSH: ${title} - ${body}`);}
 function testPush(){let msg=document.getElementById('testPushMsg').value||'Test push';sendPushNotification('Test Push', msg);alert('Push sent if permission granted');}
-function sendEmailAlert(to, subject, body){if(!emailEnabled) return;to = to || founderEmail || CFG.email;emailLogs.unshift({to, subject, body, time:new Date().toLocaleString()});if(emailLogs.length>100) emailLogs=emailLogs.slice(0,100);localStorage.setItem('guvaza_email_log',JSON.stringify(emailLogs));addAlertLog(`EMAIL to ${to} | ${subject}`);}
-function testEmail(){let to=document.getElementById('founderEmail').value||founderEmail;sendEmailAlert(to,'Test Email','Test email from Trust');alert(`Email logged to ${to}`);}
-function sendWhatsAppAlert(to, message){if(!whatsappEnabled) return;to = to || whatsappNumber;whatsappLogs.unshift({to, message, time:new Date().toLocaleString()});if(whatsappLogs.length>100) whatsappLogs=whatsappLogs.slice(0,100);localStorage.setItem('guvaza_whatsapp_log',JSON.stringify(whatsappLogs));addAlertLog(`WHATSAPP to ${to} | ${message.substring(0,60)}`);}
-function testWhatsApp(){let to=document.getElementById('whatsappNumber').value||whatsappNumber;let msg=`Test WhatsApp`;sendWhatsAppAlert(to,msg);let link=`https://wa.me/${to.replace(/\+/g,'').replace(/\s/g,'')}?text=${encodeURIComponent(msg)}`;window.open(link,'_blank');}
-function addAlertLog(message){let type='INFO';if(message.includes('FUNERAL')) type='FUNERAL';else if(message.includes('SCHOOL')) type='SCHOOL';else if(message.includes('BEN')) type='BENEFICIARY';else if(message.includes('FBP')) type='FBP';allAlerts.unshift({type, message, time:new Date().toLocaleString()});if(allAlerts.length>200) allAlerts=allAlerts.slice(0,200);localStorage.setItem('guvaza_all_alerts',JSON.stringify(allAlerts));if(document.getElementById('allAlertsLog')) document.getElementById('allAlertsLog').innerHTML=allAlerts.slice(0,50).map(a=>`[${a.time}] ${a.type}: ${a.message}`).join('<br>');}
-function renderExport(){let el=document.getElementById('exportLog'); if(!el) return; el.innerText=localStorage.getItem('guvaza_export_log')||'No exports yet';}
-function logExport(msg){let logs=JSON.parse(localStorage.getItem('guvaza_export_log_arr')||'[]');logs.unshift(`[${new Date().toLocaleString()}] ${msg}`);localStorage.setItem('guvaza_export_log_arr',JSON.stringify(logs.slice(0,50)));localStorage.setItem('guvaza_export_log',logs.slice(0,20).join('\n'));document.getElementById('exportLog').innerText=logs.slice(0,20).join('\n');}
-function exportBenPDF(){const { jsPDF } = window.jspdf; const doc = new jsPDF();doc.text(`${CFG.name} - Beneficiaries Wallets`,10,10);doc.setFontSize(10); doc.text(`Date: ${new Date().toLocaleString()} | Total: ${bens.length}`,10,18);let y=28; bens.forEach((b,i)=>{ if(y>270){doc.addPage(); y=10;} doc.text(`${i+1}. ${b.name} | ID:${b.id} | Wallet unavailable`,10,y); y+=7;});doc.save(`Beneficiaries_Wallets_${new Date().toISOString().slice(0,10)}.pdf`); logExport(`Ben Wallets PDF`);}
-function exportFuneralPDF(){const { jsPDF } = window.jspdf; const doc = new jsPDF();doc.text(`${CFG.name} - Funeral Paid`,10,10);doc.save(`Funeral_${new Date().toISOString().slice(0,10)}.pdf`);}
-function exportSchoolPDF(){const { jsPDF } = window.jspdf; const doc = new jsPDF();doc.text(`${CFG.name} - School Paid`,10,10);doc.save(`School_${new Date().toISOString().slice(0,10)}.pdf`);}
-function exportFullReportPDF(){const { jsPDF } = window.jspdf; const doc = new jsPDF();doc.text(`${CFG.name} - FULL REPORT`,10,10);doc.save(`Full_${new Date().toISOString().slice(0,10)}.pdf`);}
-function exportBenCSV(){let csv='Name,ID,Wallet\n'+bens.map(b=>`"${b.name}","${b.id}",Unavailable`).join('\n');downloadCSV(csv,`Ben_Wallets_${new Date().toISOString().slice(0,10)}.csv`);}
-function exportFuneralCSV(){alert("This action requires the server service workflow.");}
-function exportSchoolCSV(){alert("This action requires the server service workflow.");}
+async function renderExport(){
+  const log=document.getElementById('exportLog');
+  try{
+    const response=await fetch('/api/founder/reports/history',{cache:'no-store'});
+    if(!response.ok) throw Error('Report history unavailable.');
+    const {events}=await response.json();
+    log.textContent=events.map(event=>new Date(event.created_at).toLocaleString()+' · '+event.details.type+' · '+event.details.rows+' rows prepared').join('\n')||'No reports prepared.';
+  }catch(error){log.textContent=error.message;}
+}
+async function exportFounderReport(type,format){
+  try{
+    if(format==='pdf'&&!window.jspdf?.jsPDF) throw Error('PDF generator unavailable.');
+    const response=await fetch('/api/founder/reports/'+type,{method:'POST'});
+    if(!response.ok) throw Error('Unable to prepare the report.');
+    const {sections}=await response.json();
+    const filename='GFT-'+type+'-'+new Date().toISOString().slice(0,10);
+    if(format==='csv'){
+      const cell=value=>{const text=String(value??'');return '"'+(/^[=+@\-\t\r\n]/.test(text)?"'":'')+text.replaceAll('"','""')+'"';};
+      const section=sections[0];
+      downloadCSV([section.headers,...section.rows].map(row=>row.map(cell).join(',')).join('\r\n'),filename+'.csv');
+    }else{
+      const pdf=new window.jspdf.jsPDF();let y=16;
+      function line(text){
+        for(const part of pdf.splitTextToSize(text,180)){
+          if(y>280){pdf.addPage();y=16;}
+          pdf.text(part,14,y);y+=6;
+        }
+      }
+      for(const section of sections){
+        line(section.title);line(section.headers.join(' | '));
+        if(!section.rows.length) line('No records.');
+        for(const row of section.rows) line(row.map(value=>value??'').join(' | '));
+      }
+      pdf.save(filename+'.pdf');
+    }
+    await renderExport();
+  }catch(error){alert(error.message);}
+}
+function exportBenPDF(){return exportFounderReport('beneficiaries','pdf');}
+function exportFuneralPDF(){return exportFounderReport('funeral','pdf');}
+function exportSchoolPDF(){return exportFounderReport('school','pdf');}
+function exportFullReportPDF(){return exportFounderReport('full','pdf');}
+function exportBenCSV(){return exportFounderReport('beneficiaries','csv');}
+function exportFuneralCSV(){return exportFounderReport('funeral','csv');}
+function exportSchoolCSV(){return exportFounderReport('school','csv');}
 function downloadCSV(csv, filename){let blob=new Blob([csv],{type:'text/csv'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
 
 
@@ -2773,15 +2873,20 @@ function renderAdminDeploymentOverrides(admin){
 
   const overrides = admin?.deployment?.overrides || [];
 
-  element.innerHTML = overrides.length
-    ? overrides.map(override => `
-        <div class="ben-item">
-          <div class="ben-info">
-            <b>${override.permission || override.module || 'Override'}</b><br>
-            <small>${override.reason || 'No reason recorded'} • ${override.expiresAt ? 'Expires ' + override.expiresAt : 'No expiry'}</small>
-          </div>
-        </div>`).join('')
-    : '<p style="font-size:11px;color:var(--muted)">No temporary overrides recorded.</p>';
+  element.replaceChildren();
+  if(!overrides.length) element.textContent='No temporary permissions recorded.';
+  for(const override of overrides){
+    const row=document.createElement('p');
+    const expires=Date.parse(override?.expiresAt);
+    row.textContent=[override?.permission,override?.reason,expires>Date.now()?'Expires '+new Date(expires).toLocaleString():'Expired or inactive'].filter(Boolean).join(' · ');
+    if(override?.id){
+      const button=document.createElement('button');
+      button.type='button'; button.textContent='Revoke';
+      button.onclick=()=>removeAdminDeploymentOverride(override.id);
+      row.append(' ',button);
+    }
+    element.append(row);
+  }
 }
 
 // ------------------------------------------------------------
@@ -2792,9 +2897,6 @@ function renderAdminDeploymentOverrides(admin){
 // Do not write Admin records to localStorage. Write operations will
 // be connected when their corresponding protected server endpoints
 // are added to server.js.
-function adminServerWritePending(){
-  alert('This Admin action is now server-controlled. The protected server write endpoint for this action has not been connected yet. No browser-local Admin record will be created.');
-}
 
 async function addAdminInvite(){
   const name = document.getElementById("adminName").value.trim();
@@ -2809,10 +2911,17 @@ async function addAdminInvite(){
     prompt("Share this private link with the invitee. It expires in 48 hours.", new URL(data.path,location.origin).href);
   } catch (error) { alert(error.message); }
 }
-function delAdmin(){ adminServerWritePending(); }
-function resetAdminPw(){ adminServerWritePending(); }
-function changeAdminRole(){ adminServerWritePending(); }
-function clearAllAdmins(){ adminServerWritePending(); }
+async function resetAdminPw(){
+  const admin=admins[document.getElementById('controlAdminSelect').value];
+  if(!admin || !confirm('Create a one-hour password reset link for this Admin?')) return;
+  try {
+    const response=await fetch('/api/staff-admin/trust/password-reset',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({adminId:admin.admin_id || admin.adminId})});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw Error(result.error || 'Unable to create the reset link.');
+    prompt('Share this one-time reset link privately with the Admin:',new URL(result.path,location.origin).href);
+  } catch(error){alert(error.message);}
+}
 async function updateAdminDeploymentTasks(body){
   const select = document.getElementById('controlAdminSelect');
   const admin = admins[select.value];
@@ -2837,8 +2946,31 @@ function addAdminDeploymentTask(){
 function removeAdminDeploymentTask(id){
   if (confirm('Remove this task?')) updateAdminDeploymentTasks({removeId:id});
 }
-function addAdminDeploymentOverride(){ adminServerWritePending(); }
-function removeAdminDeploymentOverride(){ adminServerWritePending(); }
+async function updateAdminOverride(body){
+  const select=document.getElementById('controlAdminSelect');
+  const admin=admins[select.value];
+  if(!admin) return;
+  const id=admin.admin_id || admin.adminId;
+  try {
+    const response=await fetch('/api/founder/admins/'+encodeURIComponent(id)+'/overrides',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)
+    });
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw Error(result.error || 'Unable to save temporary permission.');
+    await loadFounderAdmins();
+    const index=admins.findIndex(account=>(account.admin_id || account.adminId)===id);
+    if(index>=0){select.value=String(index);loadAdminControlCentre();}
+  } catch(error){alert(error.message);}
+}
+function addAdminDeploymentOverride(){
+  const value=id=>document.getElementById(id).value.trim();
+  const expiry=new Date(value('adminOverrideExpires'));
+  if(!Number.isFinite(expiry.getTime())) return alert('Choose a future expiry.');
+  updateAdminOverride({permission:value('adminOverridePermission'),expiresAt:expiry.toISOString(),reason:value('adminOverrideReason')});
+}
+function removeAdminDeploymentOverride(id){
+  if(confirm('Revoke this temporary permission?')) updateAdminOverride({removeId:id});
+}
 async function deploySelectedAdmin(statusOverride){
   const index = document.getElementById("controlAdminSelect").value;
   const admin = admins[index];
@@ -2870,73 +3002,10 @@ loadFounderAdmins();
 
 </script>
 
-<script>
-// ===== LOCK 8 - SILENT ALIAS MONITOR (FOUNDER ONLY) =====
-function updateHeskiaCard(){
-  const listEl = document.getElementById('heskiaCardList');
-  const statusEl = document.getElementById('heskiaCardStatus');
-  if(!listEl || !statusEl) return;
-  try{
-    // Scan all villages/members for Heskia/Zekia alias
-    let found = [];
-    let raw = localStorage.getItem('vv_members') || localStorage.getItem('members') || '[]';
-    let members = [];
-    try{ members = JSON.parse(raw); }catch(e){ members = []; }
-    
-    members.forEach((m, idx)=>{
-      let name = (m.name || m.fullName || '').toLowerCase();
-      let alias = (m.alias || '').toLowerCase();
-      if(name.includes('heskia') || name.includes('zekia') || alias.includes('heskia') || alias.includes('zekia')){
-        found.push(`${m.name || 'ID 22-083583T22'} - ${m.village || m.id || idx} - ${m.alias || 'Zekia=Heskia'}`);
-      }
-    });
-
-    // Also check config / url param
-    if(found.length === 0){
-      statusEl.innerHTML = "✅ No silent alias - Clean";
-      statusEl.style.color = "#10b981";
-      listEl.innerHTML = "System clean - No Heskia/Zekia conflict found.<br>ID 22-083583T22 secure.";
-    } else {
-      statusEl.innerHTML = `⚠️ ${found.length} Silent Alias Found`;
-      statusEl.style.color = "#f59e0b";
-      listEl.innerHTML = found.map(f=>`• ${f}`).join('<br>');
-    }
-  }catch(err){
-    document.getElementById('heskiaCardStatus').innerText = "Scan error - check console";
-    listEl.innerText = err.message;
-  }
-}
-
-function resolveHeskiaSilent(){
-  if(!confirm("Silently resolve Zekia = Heskia ? Villagers will NOT see this. Founder only.")) return;
-  try{
-    let raw = localStorage.getItem('vv_members') || localStorage.getItem('members') || '[]';
-    let members = JSON.parse(raw);
-    let fixed = 0;
-    members.forEach(m=>{
-      let n = (m.name||'').toLowerCase();
-      if(n.includes('zekia')){
-        m.alias = 'Heskia';
-        m.silentResolved = true;
-        m.resolvedBy = 'Founder Lock 8';
-        m.resolvedAt = new Date().toISOString();
-        fixed++;
-      }
-    });
-    if(fixed>0){
-      localStorage.setItem('vv_members', JSON.stringify(members));
-      localStorage.setItem('members', JSON.stringify(members));
-    }
-    alert(`✅ ${fixed} resolved silently. Refreshing...`);
-    updateHeskiaCard();
-    if(typeof loadMembers === 'function') loadMembers();
-  }catch(e){ alert("Error: "+e.message); }
-}
-// Auto-scan on load
-document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(updateHeskiaCard, 800); });
-</script>
 
 
+
+<script src="family-correction-panel.js"></script>
 <script src="company-contribution-panel.js"></script>
 </body>
 </html>
