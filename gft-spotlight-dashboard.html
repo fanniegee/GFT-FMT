@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="typography.css">
 <link rel="stylesheet" href="spotlight-profile-card.css">
+  <link rel="stylesheet" href="spotlight-workrooms.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
   <style>
     :root {
@@ -77,8 +78,8 @@
     .department:after{content:"";position:absolute;width:110px;height:110px;border:1px solid rgba(8,120,232,.1);border-radius:50%;right:-50px;bottom:-50px;pointer-events:none}
     .dept-icon{width:43px;height:43px;border-radius:13px;display:grid;place-items:center;color:white;background:var(--blue);font-size:17px;margin-bottom:13px}
     .department.artist .dept-icon{background:var(--red)}.department.music .dept-icon{background:#17263a}.department.film .dept-icon{background:linear-gradient(145deg,var(--red),var(--blue))}
-    .department h3{font-family:Montserrat, Arial, sans-serif;font-size:16px;margin-bottom:6px}
-    .department p{font-size:12px;color:#718096;line-height:1.55;margin-bottom:13px;max-width:280px}
+    .department .dept-title{font-family:Montserrat, Arial, sans-serif;font-size:16px;font-weight:700;margin-bottom:6px}
+    .department .dept-description{font-size:12px;color:#718096;line-height:1.55;margin-bottom:13px;max-width:280px}
     .dept-link{margin-top:auto;font-size:12px;font-weight:800;color:#075fbd;display:flex;gap:8px;align-items:center}
     .side-stack{display:grid;gap:18px;align-content:start}
     .completion{background:linear-gradient(145deg,#091a31,#102f54);color:white;border:0}
@@ -115,7 +116,7 @@
       .header-inner{padding:18px 16px 0}.brand-mark{width:44px;height:44px;border-radius:13px}.brand-tag{font-size:8px;letter-spacing:1.8px}.brand-title{font-size:20px}.profile-mini .profile-text{display:none}.profile-mini{padding:5px}.profile-mini .avatar{width:34px;height:34px}.header-actions{gap:6px}.icon-btn{width:39px;height:39px}
       .main-nav{gap:22px;padding:17px 0 15px}.main-nav a{font-size:13px}
       main{padding:18px 14px 35px}.welcome-hero{border-radius:21px;min-height:0;padding:27px 22px}.welcome-copy{font-size:14px;line-height:1.75}.hero-actions .btn{width:100%}
-      .section-head{align-items:flex-start;margin-top:28px}.overview-grid{grid-template-columns:1fr;gap:10px}.overview-card{align-items:center;padding:15px}.overview-card strong{font-size:18px}.content-grid{margin-top:22px}.panel{padding:18px;border-radius:19px}.department-grid{gap:10px}.department{padding:14px;min-height:182px}.department h3{font-size:14px}.department p{font-size:11px}.dept-icon{width:39px;height:39px}
+      .section-head{align-items:flex-start;margin-top:28px}.overview-grid{grid-template-columns:1fr;gap:10px}.overview-card{align-items:center;padding:15px}.overview-card strong{font-size:18px}.content-grid{margin-top:22px}.panel{padding:18px;border-radius:19px}.department-grid{gap:10px}.department{padding:14px;min-height:182px}.department .dept-title{font-size:14px}.department .dept-description{font-size:11px}.dept-icon{width:39px;height:39px}
       .side-stack{grid-template-columns:1fr}.completion{grid-row:auto}.footer-inner{padding:24px 18px;align-items:flex-start;flex-direction:column}.footer-links{gap:14px}
     }
     @media(max-width:380px){.brand-title{font-size:18px}.brand-tag{letter-spacing:1px}.department-grid{grid-template-columns:1fr}.department{min-height:155px}.main-nav{gap:17px}}
@@ -194,35 +195,61 @@
         <a class="btn btn-primary" href="gft-spotlight-profile-editor.html?new=1" style="display:inline-flex;margin-top:14px"><i class="fa-solid fa-plus"></i> Create another profile</a>
       </section>
       <section class="panel" id="departments">
-        <h2>Choose your creative departments</h2>
-        <p class="panel-intro">You can add more than one department to the same membership. Each department will have its own specialist profile and portfolio tools.</p>
+        <h2>Explore creative departments</h2>
+        <p class="panel-intro">Open a workroom to discover creators, exchange proposals, and collaborate with people in your field.</p>
         <div class="department-grid">
-          <a class="department author" href="gft-spotlight-profile-editor.html?department=author" data-department="author">
+          <button type="button" class="department author" data-department="author" aria-expanded="false" aria-controls="spotlight-workroom">
             <span class="dept-icon"><i class="fa-solid fa-feather-pointed"></i></span>
-            <h3>Author Profiles</h3>
-            <p>Present your books, articles, research, biography and published writing.</p>
-            <span class="dept-link">Open author tools <span class="dept-count" data-count="author"></span> <i class="fa-solid fa-arrow-right"></i></span>
-          </a>
-          <a class="department artist" href="gft-spotlight-profile-editor.html?department=artist" data-department="artist">
+            <span class="dept-title">Author Profiles</span>
+            <span class="dept-description">Present your books, articles, research, biography and published writing.</span>
+            <span class="dept-link">Explore workroom <span class="dept-count" data-count="author"></span> <i class="fa-solid fa-arrow-right"></i></span>
+          </button>
+          <button type="button" class="department artist" data-department="artist" aria-expanded="false" aria-controls="spotlight-workroom">
             <span class="dept-icon"><i class="fa-solid fa-palette"></i></span>
-            <h3>Artist Profiles</h3>
-            <p>Showcase visual art, performance, dance, spoken word and other creative disciplines.</p>
-            <span class="dept-link">Open artist tools <span class="dept-count" data-count="artist"></span> <i class="fa-solid fa-arrow-right"></i></span>
-          </a>
-          <a class="department music" href="gft-spotlight-profile-editor.html?department=music" data-department="music">
+            <span class="dept-title">Artist Profiles</span>
+            <span class="dept-description">Showcase visual art, performance, dance, spoken word and other creative disciplines.</span>
+            <span class="dept-link">Explore workroom <span class="dept-count" data-count="artist"></span> <i class="fa-solid fa-arrow-right"></i></span>
+          </button>
+          <button type="button" class="department music" data-department="music" aria-expanded="false" aria-controls="spotlight-workroom">
             <span class="dept-icon"><i class="fa-solid fa-music"></i></span>
-            <h3>Music Production</h3>
-            <p>Feature production credits, compositions, audio releases, collaborations and samples.</p>
-            <span class="dept-link">Open music tools <span class="dept-count" data-count="music"></span> <i class="fa-solid fa-arrow-right"></i></span>
-          </a>
-          <a class="department film" href="gft-spotlight-profile-editor.html?department=film" data-department="film">
+            <span class="dept-title">Music Production</span>
+            <span class="dept-description">Feature production credits, compositions, audio releases, collaborations and samples.</span>
+            <span class="dept-link">Explore workroom <span class="dept-count" data-count="music"></span> <i class="fa-solid fa-arrow-right"></i></span>
+          </button>
+          <button type="button" class="department film" data-department="film" aria-expanded="false" aria-controls="spotlight-workroom">
             <span class="dept-icon"><i class="fa-solid fa-film"></i></span>
-            <h3>Film Production</h3>
-            <p>Show your film projects, screen credits, production roles, trailers and showreels.</p>
-            <span class="dept-link">Open film tools <span class="dept-count" data-count="film"></span> <i class="fa-solid fa-arrow-right"></i></span>
-          </a>
+            <span class="dept-title">Film Production</span>
+            <span class="dept-description">Show your film projects, screen credits, production roles, trailers and showreels.</span>
+            <span class="dept-link">Explore workroom <span class="dept-count" data-count="film"></span> <i class="fa-solid fa-arrow-right"></i></span>
+          </button>
         </div>
-        <div class="privacy-note"><i class="fa-solid fa-circle-info"></i><span><strong>Designed for your control.</strong> Your professional profile should be published only when you choose to submit it. Publishing, account verification and privacy controls will be connected during backend development.</span></div>
+        <section id="spotlight-workroom" class="spotlight-workroom" aria-labelledby="workroom-title" hidden>
+          <div class="room-head">
+            <div><h3 id="workroom-title" tabindex="-1"></h3><p>Find creators in your field and work together on Spotlight.</p></div>
+            <button type="button" class="room-button" data-close-room>Close workroom</button>
+          </div>
+          <div class="room-content">
+            <p role="status" aria-live="polite"></p>
+            <section aria-label="Your directory listings">
+              <h4>Your listings</h4>
+              <p>Listing shares your professional details and portfolio links with signed-in Spotlight members. You can remove a draft listing at any time. Public publication remains under Founder control.</p>
+              <div data-my-listings></div>
+            </section>
+            <section aria-label="Creator directory">
+              <h4>Creator directory</h4>
+              <form class="room-search" role="search">
+                <label>Search creators<input name="q" type="search" maxlength="120" placeholder="Name, speciality or location"></label>
+                <button type="submit" class="room-button">Search</button>
+              </form>
+              <div data-creators></div>
+            </section>
+            <section aria-label="Private collaborations">
+              <h4>Private collaborations</h4>
+              <button type="button" class="room-button" data-refresh-inbox>Refresh proposals</button>
+              <div data-collaborations></div>
+            </section>
+          </div>
+        </section>
       </section>
 
       <aside class="side-stack">
@@ -299,12 +326,12 @@
     }
   </script>
 <script src="spotlight-profile-card.js"></script>
+<script src="spotlight-workrooms.js"></script>
 <script>
 (function(){
  const status=document.getElementById('myProfilesStatus');
  const grid=document.getElementById('myProfilesGrid');
  if(!status||!grid)return;
- const labels={author:'Author',artist:'Artist',music:'Music Production',film:'Film Production'};
  async function loadMyProfiles(){
   status.textContent='Loading your saved profiles…';grid.replaceChildren();
   try{
@@ -317,7 +344,6 @@
    const departments=[...new Set(profiles.map(p=>p.department))];
    const count=document.getElementById('profileDepartmentCount');if(count)count.textContent=departments.length+' department'+(departments.length===1?'':'s');
    document.querySelectorAll('[data-count]').forEach(el=>{const n=profiles.filter(p=>p.department===el.dataset.count).length;el.textContent=n?'('+n+' profile'+(n===1?'':'s')+')':'(no profile yet)';});
-   document.querySelectorAll('[data-department]').forEach(card=>{const dep=card.dataset.department;const exists=profiles.some(p=>p.department===dep);card.classList.toggle('has-profile',exists);card.setAttribute('aria-label',(labels[dep]||dep)+(exists?' workroom, saved profile available':' workroom, create a profile'));});
    if(!profiles.length){status.textContent='You have no saved profiles yet. Use a department card or Create another profile to get started.';return;}
    status.textContent=profiles.length+' saved profile'+(profiles.length===1?'':'s')+' · '+drafts.length+' draft'+(drafts.length===1?'':'s');
    for (const profile of profiles) {

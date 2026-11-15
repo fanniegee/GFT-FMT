@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { installSpotlightWorkrooms } from './spotlight-workrooms.js';
 import { installLibrary } from './library-readers.js';
 import { installVirtualCardRequests } from './virtual-card-requests.js';
 import { installDepartmentAdmin } from './department-admin.js';
@@ -123,6 +124,8 @@ const publicFiles = [
   '/staff-admin.html',
   '/spotlight-profile-card.css',
   '/spotlight-profile-card.js',
+  '/spotlight-workrooms.css',
+  '/spotlight-workrooms.js',
   '/staff-admin.js',
   '/styles.css',
   '/trustRules.js',
@@ -7741,7 +7744,7 @@ app.put('/api/spotlight/my-profiles/:profileId', async (req, res) => {
   try {
     const member = await getAuthenticatedSpotlightMember(req);
     if (!member) return res.status(401).json({ ok: false, error: 'Spotlight sign-in required' });
-    await ensureSpotlightProfileTable();
+    await ensureSpotlightWorkroomSchema();
 
     const body = req.body || {};
     const departmentMap = {
@@ -7761,7 +7764,8 @@ app.put('/api/spotlight/my-profiles/:profileId', async (req, res) => {
     const result = await query(`
       UPDATE spotlight_profiles
       SET department = $3, display_name = $4, headline = $5, biography = $6,
-          details = $7::jsonb, updated_at = NOW()
+          details = $7::jsonb, updated_at = NOW(),
+          workroom_listed = workroom_listed AND department = $3
       WHERE profile_id = $1 AND owner_system_id = $2 AND status = 'draft'
       RETURNING profile_id, department, display_name, headline, biography, details, status, created_at, updated_at
     `, [req.params.profileId, member.system_id, department, displayName, headline, biography, JSON.stringify(details)]);
@@ -7811,6 +7815,13 @@ async function ensureSpotlightProfileTable() {
     ON spotlight_profiles (owner_system_id, updated_at DESC)
   `);
 }
+
+const ensureSpotlightWorkroomSchema = installSpotlightWorkrooms(app, {
+  query,
+  withTransaction,
+  getMember: getAuthenticatedSpotlightMember,
+  ensureProfiles: ensureSpotlightProfileTable
+});
 
 app.get('/api/spotlight/profiles', async (req, res) => {
   try {
