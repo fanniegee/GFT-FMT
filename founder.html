@@ -465,8 +465,14 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 
 <div id="sec-adminRoles" class="section">
 <div class="card" style="border-left:4px solid #f59e0b">
-<h2><span class="mi">manage_accounts</span> <span class="title-main">Admin Invite System - Email + Password for admin.html + 12 Roles</span></h2>
-<p style="font-size:11px;color:var(--muted)">Founder creates an invitation link. The invitee chooses their password. Admin logs into admin.html ONLY. Founder.html is only you. Roles: Trustees, Family Council, Lawyer, Witness, Founder's Executive Assistant, Accountant, Secretary, Employee + Super Admin, Finance, Companies, Support</p>
+<h2><span class="mi">manage_accounts</span> Admin invitations</h2>
+<div class="control-grid">
+  <div class="control-card"><h3>GFT Trust</h3><p>Choose one of the 12 Trust roles in the form below. The invitee sets their own password.</p></div>
+  <div class="control-card"><h3>Spotlight Studio</h3><p>Invite a Spotlight Super Admin or Admin.</p><a href="staff-admin.html?department=spotlight" style="color:#7dd3fc">Open Spotlight invitations</a></div>
+  <div class="control-card"><h3>GGC Clinic</h3><p>Invite a GGC Super Admin, Clinic Admin, or Department Staff member.</p><a href="clinic-staff.html?mode=founder" style="color:#7dd3fc">Open GGC invitations</a></div>
+  <div class="control-card"><h3>GFT-TV and GFT-Library</h3><a href="staff-admin.html?department=tv" style="color:#7dd3fc">Open TV invitations</a><br><a href="staff-admin.html?department=library" style="color:#7dd3fc">Open Library invitations</a></div>
+</div>
+<h3>Invite a GFT Trust Admin</h3>
 <div style="background:#020617;padding:14px;border-radius:12px;border:1px solid var(--border);margin:12px 0">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
 <input id="adminName" placeholder="Full Name * e.g. John Guvaza">

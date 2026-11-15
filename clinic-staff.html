@@ -39,7 +39,31 @@ $('logoutBtn').onclick=async()=>{try{await api('/api/clinic/staff/logout',{metho
 $('newInviteBtn').onclick=()=>$('staffInviteForm').classList.toggle('hidden');
 $('staffInviteForm').addEventListener('submit',async e=>{e.preventDefault();try{const d=await api('/api/clinic/staff/invitations',{method:'POST',body:JSON.stringify({fullName:$('staffInviteName').value,email:$('staffInviteEmail').value,role:$('staffInviteRole').value,department:$('staffInviteDept').value,permissions:$('staffInvitePerms').value.split(',').map(s=>s.trim()).filter(Boolean)})});message('staffInviteMessage',`Invitation created. Copy and send this link securely: ${d.invitation.acceptUrl}`);$('staffInviteForm').reset()}catch(err){message('staffInviteMessage',err.message,'error')}});
 $('founderForm').addEventListener('submit',async e=>{e.preventDefault();try{const d=await api('/api/clinic/staff/founder-invitations',{method:'POST',body:JSON.stringify({fullName:$('inviteName').value,email:$('inviteEmail').value,role:$('inviteRole').value,department:$('inviteDepartment').value,permissions:$('invitePermissions').value.split(',').map(s=>s.trim()).filter(Boolean)})});message('founderMessage',`Invitation created. Copy and send this link securely: ${d.invitation.acceptUrl}`);$('founderForm').reset()}catch(err){message('founderMessage',err.message,'error')}});
-async function init(){const token=new URLSearchParams(location.search).get('invite');if(token){showTab('invite');$('inviteToken').value=token}try{const d=await api('/api/clinic/staff/me');if(d.authenticated){await showDashboard(d.staff);return}}catch{}try{const d=await api('/api/admin/me');if(d.authenticated&&String(d.admin.role).toUpperCase()==='FOUNDER'){$('founderForm').classList.remove('hidden');$('formTitle').textContent='Founder controls';$('formSub').textContent='Create and manage initial GGC clinic staff invitations using your existing Founder session.';$('loginForm').classList.add('hidden');$('acceptForm').classList.add('hidden');$('loginTab').classList.remove('active');$('inviteTab').classList.remove('active')}}catch{}}
+async function showFounderInvitations(){
+  try {
+    const session=await api('/api/admin/me');
+    if(!session.authenticated || String(session.admin.role).toUpperCase()!=='FOUNDER') return false;
+    $('founderForm').classList.remove('hidden');
+    $('formTitle').textContent='Founder clinic invitations';
+    $('formSub').textContent='Create a clinic staff invitation using your Founder session.';
+    $('loginForm').classList.add('hidden');
+    $('acceptForm').classList.add('hidden');
+    $('loginTab').classList.remove('active');
+    $('inviteTab').classList.remove('active');
+    return true;
+  } catch { return false; }
+}
+async function init(){
+  const params=new URLSearchParams(location.search);
+  const token=params.get('invite');
+  if(token){showTab('invite');$('inviteToken').value=token;return;}
+  if(params.get('mode')==='founder' && await showFounderInvitations()) return;
+  try {
+    const session=await api('/api/clinic/staff/me');
+    if(session.authenticated){await showDashboard(session.staff);return;}
+  } catch {}
+  await showFounderInvitations();
+}
 init();
 </script>
 <script src="clinic-footer.js"></script>

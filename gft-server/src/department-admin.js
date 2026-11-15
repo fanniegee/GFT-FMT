@@ -52,12 +52,14 @@ export function installDepartmentAdmin(app, services) {
     const grant = 'INVITE_' + department.toUpperCase() + '_SUPER_ADMIN';
     const canInviteSuperAdmin = String(admin?.role).toUpperCase() === 'FOUNDER'
       || (Array.isArray(admin?.deployment?.permissions) && admin.deployment.permissions.includes(grant));
-    return { staff, admin, canInviteSuperAdmin };
+    const canInviteAdmin = staff?.role === 'SUPER_ADMIN' ||
+      (department === 'spotlight' && String(admin?.role).toUpperCase() === 'FOUNDER');
+    return { staff, admin, canInviteSuperAdmin, canInviteAdmin };
   }
 
   route('get', '/me', async (req, res, department) => {
-    const { staff, admin, canInviteSuperAdmin } = await authority(req, department);
-    return res.json({ staff, canInviteSuperAdmin, founder: String(admin?.role).toUpperCase() === 'FOUNDER' });
+    const { staff, admin, canInviteSuperAdmin, canInviteAdmin } = await authority(req, department);
+    return res.json({ staff, canInviteSuperAdmin, canInviteAdmin, founder: String(admin?.role).toUpperCase() === 'FOUNDER' });
   });
 
   route('post', '/delegation', async (req, res, department) => {
@@ -91,14 +93,14 @@ export function installDepartmentAdmin(app, services) {
   });
 
   route('post', '/invitations', async (req, res, department) => {
-    const { staff, admin, canInviteSuperAdmin } = await authority(req, department);
+    const { staff, admin, canInviteSuperAdmin, canInviteAdmin } = await authority(req, department);
     const role = req.body?.role;
     if (department === 'trust') {
       if (String(admin?.role).toUpperCase() !== 'FOUNDER') return res.sendStatus(403);
       if (!trustRoles.has(role)) return res.status(400).json({ error: 'Choose a valid Trust role.' });
     }
     const inviter = department === 'trust' ? admin.admin_id : role === 'SUPER_ADMIN' && canInviteSuperAdmin ? admin.admin_id
-      : role === 'ADMIN' && staff?.role === 'SUPER_ADMIN' ? staff.id : null;
+      : role === 'ADMIN' && canInviteAdmin ? (staff?.role === 'SUPER_ADMIN' ? staff.id : admin.admin_id) : null;
     if (!inviter) return res.status(403).json({ error: 'Invitation authority is required.' });
     const email = String(req.body?.email || '').trim().toLowerCase();
     const name = String(req.body?.name || '').trim();

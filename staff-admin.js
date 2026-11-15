@@ -24,17 +24,17 @@
   }
 
   async function refresh() {
-    const { staff, canInviteSuperAdmin, founder } = await request('/me');
+    const { staff, canInviteSuperAdmin, canInviteAdmin, founder } = await request('/me');
     get('account').hidden = !staff || Boolean(invitation);
     get('login').hidden = Boolean(staff || invitation);
     get('accept').hidden = !invitation;
-    get('invite').hidden = Boolean(invitation) || !(canInviteSuperAdmin || staff?.role === 'SUPER_ADMIN');
+    get('invite').hidden = Boolean(invitation) || !(canInviteSuperAdmin || canInviteAdmin);
     get('delegation').hidden = !founder || Boolean(invitation);
     get('identity').textContent = staff ? staff.name + ' · ' + (staff.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin') : '';
     const roles = get('invite').elements.role;
     roles.replaceChildren();
     if (canInviteSuperAdmin) roles.add(new Option('Super Admin', 'SUPER_ADMIN'));
-    if (staff?.role === 'SUPER_ADMIN') roles.add(new Option('Admin', 'ADMIN'));
+    if (canInviteAdmin) roles.add(new Option('Admin', 'ADMIN'));
   }
 
   async function perform(action) {

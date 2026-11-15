@@ -77,6 +77,7 @@
         <h1>A World of <span>Knowledge</span></h1>
         <p>Welcome to the Guvaza Library — a growing home for books, original compositions, family knowledge, African stories, ideas, research, music and works created for generations to come.</p>
 
+        <a class="library-nav-btn gold" style="display:inline-flex;text-decoration:none;margin-bottom:16px" href="gft-spotlight-membership.html"><span class="material-icons-round" aria-hidden="true">auto_awesome</span> Register with Spotlight Studio</a>
         <div class="library-search">
             <span class="material-icons-round">search</span>
             <input type="search" id="librarySearch" placeholder="Search books, authors, topics or collections..." aria-label="Search the Guvaza Library">
@@ -284,7 +285,7 @@ document.getElementById("wishlistBtn").onclick=()=>location.assign("gft-library-
 document.getElementById("continueBtn").onclick=()=>location.assign("gft-library-member-dashboard.html");
 
 document.getElementById("libraryAccountBtn").onclick=()=>window.location.href="gft-library-login.html";
-document.getElementById("membershipBtn").onclick=()=>window.location.href="gft-library-login.html";
+document.getElementById("membershipBtn").onclick=()=>window.location.href="gft-library-login.html?mode=create";
 
 document.getElementById("authorsBtn").onclick=e=>{e.preventDefault();future("Author profiles will be available when the publishing system is connected.")};
 document.getElementById("viewAllBtn").onclick=e=>{e.preventDefault();search.focus()};
