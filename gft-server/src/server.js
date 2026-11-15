@@ -7864,6 +7864,17 @@ app.get('/api/spotlight/health', async (_req, res) => {
 });
 
 
+installCompanyContributions(app, {query,withTransaction,requireAdmin});
+installLibrary(app,{query,withTransaction,getCookie,sha256,createPasswordHash,verifyPassword,rateLimit});
+installVirtualCardRequests(app,{query,withTransaction,getAuthenticatedBeneficiary,requireAdmin});
+installFamilyCorrections(app, {query,withTransaction,requireAdmin});
+installPayoutAccounting(app, {withTransaction,requireAdmin});
+
+installDepartmentAdmin(app, {
+  query, withTransaction, getAuthenticatedAdmin, getCookie, sha256,
+  createPasswordHash, verifyPassword
+});
+
 // ------------------------------------------------------------
 // SAFE API 404
 // ------------------------------------------------------------
@@ -7877,17 +7888,6 @@ app.use('/api', (_req, res) => {
 
 // ------------------------------------------------------------
 // ERROR HANDLING
-installCompanyContributions(app, {query,withTransaction,requireAdmin});
-installLibrary(app,{query,withTransaction,getCookie,sha256,createPasswordHash,verifyPassword,rateLimit});
-installVirtualCardRequests(app,{query,withTransaction,getAuthenticatedBeneficiary,requireAdmin});
-installFamilyCorrections(app, {query,withTransaction,requireAdmin});
-installPayoutAccounting(app, {withTransaction,requireAdmin});
-
-installDepartmentAdmin(app, {
-  query, withTransaction, getAuthenticatedAdmin, getCookie, sha256,
-  createPasswordHash, verifyPassword
-});
-
 // ------------------------------------------------------------
 
 app.use((error, _req, res, _next) => {
