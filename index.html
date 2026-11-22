@@ -1092,16 +1092,20 @@
 
         }
 
-    /* Push GFT.TV to the far-right of the navigation */
-.top-menu {
-  display: flex;
+    /* Keep TV near the navigation with a distinct, bounded gap. */
+.gft-public-page .top-menu {
   align-items: center;
-  width: 100%;
-  box-sizing: border-box;
 }
 
-.top-menu a[href="https://gft-tv.onrender.com"] {
-  margin-left: auto;
+.gft-public-page .top-menu a[href="https://gft-tv.onrender.com"] {
+  margin-inline-start: clamp(16px, 4vw, 64px);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .gft-public-page .top-menu a[href="https://gft-tv.onrender.com"] {
+    margin-inline-start: 12px;
+  }
 }
 
     </style>
