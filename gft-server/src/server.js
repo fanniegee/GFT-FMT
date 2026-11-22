@@ -1,3 +1,4 @@
+import { installBeneficiaryProfile } from './beneficiary-profile.js';
 import { ensurePersonNameCleanup } from './person-name-cleanup.js';
 import 'dotenv/config';
 import { installSpotlightStudioBridge } from './spotlight-studio-bridge.js';
@@ -93,6 +94,9 @@ const publicFiles = [
   '/assets/ggc.html',
   '/beneficiary-gen-drilldown.html',
   '/beneficiary-login.html',
+  '/beneficiary-profile.js',
+  '/beneficiary-jobs-admin.html',
+  '/beneficiary-job-admin.js',
   '/beneficiary-portal.html',
   '/clinic-footer.js',
   '/clinic-registration.html',
@@ -2450,7 +2454,7 @@ app.post(
           }
         }
 
-        const membership = `GFT-MEM-${systemId}`;
+        const membership = systemId;
         const profile = {
           parentId: registration.parent_system_id || null,
           grandparentId: registration.grandparent_system_id || null,
@@ -2518,7 +2522,7 @@ app.post(
         beneficiary: {
           beneficiaryId: beneficiary.beneficiary_id,
           systemId: beneficiary.system_id,
-          membership: beneficiary.membership,
+          membership: beneficiary.system_id,
           fullName: beneficiary.full_name,
           username: beneficiary.username,
           identityStatus: beneficiary.identity_status,
@@ -2843,7 +2847,7 @@ app.post('/api/beneficiary/login', async (req, res) => {
       authenticated: true,
       beneficiary: {
         systemId: beneficiary.system_id,
-        membership: beneficiary.membership,
+        membership: beneficiary.system_id,
         fullName: beneficiary.full_name,
         username: beneficiary.username,
         identityStatus:
@@ -2893,7 +2897,7 @@ app.get('/api/beneficiary/me', async (req, res) => {
       authenticated: true,
       beneficiary: {
         systemId: beneficiary.system_id,
-        membership: beneficiary.membership,
+        membership: beneficiary.system_id,
         fullName: beneficiary.full_name,
         username: beneficiary.username,
         identityStatus:
@@ -4448,6 +4452,10 @@ app.get('/api/beneficiary/wallet', async (req, res) => {
  // BENEFICIARY — PAYOUT REQUEST
  // ------------------------------------------------------------
 
+const beneficiaryProfile = installBeneficiaryProfile(app, {
+  query, withTransaction, getBeneficiary: getAuthenticatedBeneficiary, getAdmin: getAuthenticatedAdmin
+});
+
 app.post('/api/beneficiary/cashout', async(req,res)=>{
   res.set('Cache-Control','no-store');
   if(!req.is('application/json')) return res.sendStatus(415);
@@ -4462,10 +4470,11 @@ app.post('/api/beneficiary/cashout', async(req,res)=>{
     } else if(method==='Ecocash' && /^\+?[0-9]{8,15}$/.test(field('number')) && field('name').length>=2 && field('name').length<=100){
       destination={number:field('number'),name:field('name')};
     } else return res.status(400).json({error:'Enter a valid bank account or EcoCash destination.'});
-    const {rows}=await query("INSERT INTO cashout_requests (beneficiary_system_id,method,destination) VALUES ($1,$2,$3::jsonb) RETURNING cashout_id,status",
-      [beneficiary.system_id,method,JSON.stringify(destination)]);
+    const saved = await beneficiaryProfile.saveLegacyDestination(beneficiary.system_id, method, destination);
+    const rows = [saved];
     return res.status(201).json({ok:true,cashout:{id:rows[0].cashout_id,status:rows[0].status}});
   } catch(error){
+    if(error.status) return res.status(error.status).json({ok:false,error:error.message});
     console.error('Saving payout destination failed',error.code || error.name);
     return res.status(500).json({error:'Unable to save the payout destination.'});
   }
@@ -4497,10 +4506,7 @@ app.post('/api/beneficiary/payouts', async (req, res) => {
 
     const amount = Number(req.body?.amount);
     const reason = String(req.body?.reason || '').trim();
-    const cashout=await query("SELECT cashout_id,method,destination FROM cashout_requests WHERE beneficiary_system_id=$1 AND method IN ('Bank','Ecocash') ORDER BY created_at DESC,cashout_id DESC LIMIT 1",[beneficiary.system_id]);
-    const selected=cashout.rows[0];
-    if(!selected) return res.status(409).json({error:'Save a payment destination before requesting a payout.'});
-    const destination={...selected.destination,method:selected.method,cashoutId:selected.cashout_id};
+    const destination = await beneficiaryProfile.paymentDestination(query, beneficiary.system_id, req.body?.paymentMethodId);
 
     if (
       !Number.isFinite(amount) ||
@@ -4566,6 +4572,7 @@ app.post('/api/beneficiary/payouts', async (req, res) => {
       serverAuthoritative: true
     });
   } catch (error) {
+    if (error.status) return res.status(error.status).json({ ok: false, error: error.message });
     console.error('Beneficiary payout request error:', error);
 
     return res.status(500).json({
@@ -4591,6 +4598,8 @@ app.get('/api/beneficiary/card', async (req, res) => {
       });
     }
 
+    const eligibility = await beneficiaryProfile.cardEligibility(beneficiary.system_id);
+
     const result = await query(
       `SELECT
          card_id,
@@ -4610,6 +4619,8 @@ app.get('/api/beneficiary/card', async (req, res) => {
       return res.json({
         ok: true,
         card: null,
+        placeholderExpiresAt: eligibility.expires_at || null,
+        walletEligibleAt: eligibility.wallet_eligible_at || null,
         issued: false,
         serverAuthoritative: true
       });
@@ -4627,7 +4638,9 @@ app.get('/api/beneficiary/card', async (req, res) => {
         cardLast4: card.card_last4,
         cardStatus: card.card_status,
         issuedAt: card.issued_at,
-        expiresAt: card.expires_at
+        expiresAt: eligibility.expires_at || null,
+        walletEligibleAt: eligibility.wallet_eligible_at || null,
+        placeholder: true
       },
       serverAuthoritative: true
     });

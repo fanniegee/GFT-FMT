@@ -46,6 +46,9 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 .visa-front{background:linear-gradient(135deg,#3d0c15 0%,#8a1e32 60%,#b0354a 100%);color:#fff;display:flex;flex-direction:column;justify-content:space-between}
 .visa-back{background:#0f172a;color:#fff;transform:rotateY(180deg);border-radius:18px;padding:18px;display:flex;flex-direction:column;justify-content:center}
 @media(max-width:560px){.companiesGrid{grid-template-columns:repeat(2,1fr)!important}#libraryContent>div:nth-child(3){grid-template-columns:1fr!important}}
+.profile-form{display:grid;gap:10px;margin-top:12px}.profile-form label{display:grid;gap:5px;font-size:12px}.profile-form input,.profile-form select,.profile-form textarea{font:inherit;width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px}.profile-form input[type=checkbox]{width:auto}.profile-form textarea{min-height:100px}.profile-form button,.profile-account button{padding:9px 12px;border:0;border-radius:8px;background:#075fbd;color:white;cursor:pointer}.profile-account{padding:12px;border:1px solid #dce5ef;border-radius:12px;margin:10px 0;overflow-wrap:anywhere}.profile-account button{margin-right:6px}.profile-account p{font-size:12px}.profile-account small{display:block;margin-top:6px}#profileStatus{padding:8px}
+.nav a{flex:1;min-width:0}.nav .mi{display:block;width:32px;overflow:hidden}#profilePhotoFile{display:block;width:100%;max-width:100%;box-sizing:border-box;margin:10px 0}.profile-account button{margin-bottom:5px}
+.mi{display:inline-block;width:1.2em;overflow:hidden;vertical-align:middle;flex-shrink:0}.row2{grid-template-columns:repeat(2,minmax(0,1fr))}.btnTree{overflow-wrap:anywhere}.top h1{overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -85,14 +88,6 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 <h3 style="margin:0 0 6px;display:flex;align-items:center;gap:6px;color:#fff"><span class="mi">fingerprint</span> Payout</h3>
 <p style="font-size:11px;color:#e3f2fd;margin:0 0 10px">Payout granted only after fingerprint verification — last step.</p>
 
-<input
-  id="payoutAmount"
-  type="number"
-  min="0.01"
-  step="0.01"
-  placeholder="Enter payout amount (USD)"
-  style="width:100%;box-sizing:border-box;padding:11px;margin:8px 0;border-radius:8px;border:1px solid #93c5fd;font-size:14px"
->
 <label for="payoutAmount" style="display:block;margin:10px 0 5px;color:#fff;font-size:12px">
   Payout Amount (USD $)
 </label>
@@ -113,6 +108,7 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
   placeholder="Reason for payout"
   style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #cbd5e1;margin-bottom:10px"
 >
+<label for="payoutPaymentMethod" style="display:block;margin:8px 0">Pay to saved account</label><select id="payoutPaymentMethod" style="width:100%;padding:10px;border-radius:8px"></select><p style="font-size:11px">Manage trusted accounts under Profile.</p>
 <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:8px">
 <button class="payoutBtn" onclick="requestPayout()" style="background:#fff;color:#0d47a1;border:none;padding:10px 16px;border-radius:10px;font-weight:800;display:flex;align-items:center;gap:6px"><span class="mi">fingerprint</span> Request Payout</button>
 <button class="payoutBtn" onclick="openCashoutModal()" style="background:#fff;color:#0d47a1;border:none;padding:10px 14px;border-radius:10px;font-weight:700">💵 Cashout</button>
@@ -190,11 +186,31 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 
 <div class="card" style="text-align:center;background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%);color:#fff;border:none">
 
-<img src="assets/gft.png" style="width:64px;height:64px;border-radius:50%;border:3px solid #7a1a24;object-fit:cover;margin:0 auto 10px;background:#fff" onerror="this.style.display='none'">
+<img id="beneficiaryProfilePhoto" src="assets/gft.png" style="width:64px;height:64px;border-radius:50%;border:3px solid #7a1a24;object-fit:cover;margin:0 auto 10px;background:#fff" onerror="this.style.display='none'">
+<div><label for="profilePhotoFile">Change profile image</label><input id="profilePhotoFile" type="file" accept="image/jpeg,image/png"><button type="button" id="removeProfilePhoto">Use default image</button></div>
 <h3 style="margin:0" id="profileName"></h3>
-<p style="font-size:12px;color:#ffffff" id="profileId">GFT-2026-0014 • Approved</p>
+<p style="font-size:12px;color:#ffffff" id="profileId"></p>
 <button onclick="logout()" style="padding:10px 16px;background:#7a1a24;color:#fff;border:none;border-radius:8px;font-weight:700">Logout</button>
 </div>
+
+<div class="card">
+  <h3>Trusted payment accounts</h3>
+  <p>Save your bank accounts and payment wallets here, then choose one when requesting cashout.</p>
+  <div id="paymentAccounts"></div>
+  <form id="paymentForm" class="profile-form">
+    <input type="hidden" name="paymentId">
+    <label>Account label<input name="label" maxlength="100" placeholder="My main bank account" required></label>
+    <label>Payment method<select name="method"><option value="Bank">Bank account</option><option value="Ecocash">EcoCash</option><option value="MobileMoney">Other mobile money</option><option value="EWallet">Other payment wallet</option></select></label>
+    <label>Bank or payment provider<input name="provider" maxlength="100" required></label>
+    <label>Account holder name<input name="accountHolder" maxlength="160" required></label>
+    <label>Account or wallet number<input name="accountNumber" maxlength="80" required></label>
+    <label><input type="checkbox" name="isDefault"> Use as my default cashout account</label>
+    <div><button type="submit">Save account</button> <button type="button" id="cancelPaymentEdit">Clear</button></div>
+  </form>
+</div>
+<div class="card"><h3>My job applications</h3><button type="button" id="refreshApplications">Refresh status</button><div id="jobApplications"></div></div>
+<p id="profileStatus" role="status" aria-live="polite"></p>
+
 </div>
 </div>
 <div class="nav">
@@ -226,13 +242,13 @@ async function loadBeneficiarySession(){
 
     session=result.beneficiary;
     session.name=session.fullName||session.name||session.username||'Beneficiary';
-    session.idNumber=session.membership||'';
+    session.idNumber=session.systemId||'';
 
     document.getElementById('topName').innerText='Welcome, '+session.name;
-    document.getElementById('memberId').innerText=session.membership||session.systemId||'GFT-';
-    document.getElementById('watermark').innerText=Array(40).fill((session.membership||session.systemId||'GFT-')+' • '+(session.systemId||'')).join(' ');
+    document.getElementById('memberId').innerText=session.systemId||'GFT-';
+    document.getElementById('watermark').innerText=Array(40).fill(session.systemId||'GFT-').join(' ');
     document.getElementById('profileName').innerText=session.name;
-    document.getElementById('profileId').innerText=(session.membership||session.systemId||'GFT-')+' • Approved';
+    document.getElementById('profileId').innerText=(session.systemId||'GFT-')+' • Approved';
     document.getElementById('cardHolderName').innerText=session.name;
 
 function formatCardExpiry(value) {
@@ -293,6 +309,8 @@ async function loadGftVisaCard(){
 
       return;
     }
+
+    if (expiry) expiry.textContent = formatCardExpiry(result.card?.expiresAt || result.placeholderExpiresAt);
 
     if(!result.issued || !result.card){
 
@@ -412,14 +430,6 @@ function getCompanies(){
   try{ if(window.GFT_PORTAL_DATA && Array.isArray(window.GFT_PORTAL_DATA.companies)) return window.GFT_PORTAL_DATA.companies; }catch(e){}
   return DEFAULT_COMPANIES;
 }
-let jobs=(window.GFT_PORTAL_DATA && window.GFT_PORTAL_DATA.jobs && Array.isArray(window.GFT_PORTAL_DATA.jobs.vacancies))
-  ? window.GFT_PORTAL_DATA.jobs.vacancies
-  : [
-      {title:'Operations Manager',company:'Guvaza Holdings',type:'Full-time • Harare',close:'Closes 30 Sep 2026'},
-      {title:'Finance Assistant',company:'Guvaza Finance',type:'Part-time • Remote',close:'Closes 15 Oct 2026'},
-      {title:'Agri Field Officer',company:'Guvaza Agri',type:'Contract • Murewa',close:'Closes 20 Sep 2026'}
-    ];
-
 function renderCompanies(){
  let companies=getCompanies(), grid=document.getElementById('companiesGrid'); if(!grid)return;
  grid.innerHTML=''; grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:14px;width:100%';
@@ -436,24 +446,6 @@ function openCompanyInside(c){
   el.innerHTML=`<div class="card"><h2>${escapeHtml(c.name)}</h2><p>${escapeHtml(c.description||c.info||'')}</p></div><button onclick="openView('jobs')">View Jobs</button>`;
   openView('companyDetail');
 }
-function renderJobs(){
- let list=document.getElementById('jobsList');list.innerHTML='';
-
- // small maroon card centered
- let notice=document.createElement('div');
- notice.style.cssText='background:linear-gradient(135deg,#7f1d1d 0%,#b91c1c 100%);color:#fff;text-align:center;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:600;max-width:85%;margin:0 auto 16px auto;box-shadow:0 4px 12px rgba(0,0,0,0.15)';
- notice.innerHTML='Priority to family first — Upload qualifications to apply.';
- list.appendChild(notice);
-
- jobs.forEach(j=>{
-  let div=document.createElement('div');div.className='card';div.style.background='linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%)';div.style.color='#fff';div.style.border='none';
-  const close=j.closingDate?('Closes '+j.closingDate):(j.close||'');
-  const type=j.employmentType||j.type||'', location=j.location||'';
-  div.innerHTML=`<b>${escapeHtml(j.title||'Vacancy')}</b><div style="color:#fff;opacity:.9">${escapeHtml(j.company||'')}</div><div style="font-size:10px;margin-top:6px;opacity:.9">${escapeHtml(type)}${location?' • '+escapeHtml(location):''}</div><div style="font-size:9px;margin-top:4px;opacity:.8">${escapeHtml(close)}</div>`;
-  list.appendChild(div);
-});
-}
-
 function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function renderPortalServices(){
  const grid=document.getElementById('portalServicesGrid'),d=window.GFT_PORTAL_DATA;if(!grid||!d)return;
@@ -476,6 +468,7 @@ function openView(name){
   let nav=document.getElementById('nav-'+navId); if(nav) nav.classList.add('active');
   if(name==='companies') renderCompanies();
   if(name==='jobs') renderJobs();
+  if(name==='profile') window.loadBeneficiaryProfile?.();
   if(name==='home' || name==='accounts') refreshBenWallet();
   if(name==='notifications') renderNotifications();
   if(name==='security') renderSecurity();
@@ -517,6 +510,7 @@ async function requestPayout() {
       },
       body: JSON.stringify({
         amount,
+        paymentMethodId: document.getElementById('payoutPaymentMethod').value || undefined,
         reason: reasonInput?.value?.trim() || ''
       })
     });
@@ -615,85 +609,6 @@ function openMyDirectLineage() {
   document.addEventListener('keyup', e=>{ if(e.key==='PrintScreen') triggerLock(); });
 })();
 </script>
-<!-- CASHOUT MODAL -->
-<div id="cashoutModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center">
-<div style="background:#fff;width:90%;max-width:360px;border-radius:16px;padding:20px">
-<h3 style="margin:0 0 10px">Cashout Method</h3>
-<p style="font-size:12px;color:#64748b">Choose where your wallet money will be sent</p>
-<select id="cashoutMethod" style="width:100%;padding:10px;border-radius:10px;margin:10px 0;border:1px solid #ddd">
-<option value="">-- Select --</option>
-<option value="Bank">Bank</option>
-<option value="Ecocash">Ecocash</option>
-
-</select>
-<div id="cashoutFields"></div>
-<div style="display:flex;gap:8px;margin-top:12px">
-<button onclick="saveCashoutMethod()" style="flex:1;background:#3b82f6;color:#fff;border:none;padding:10px;border-radius:10px;font-weight:700">Save</button>
-<button onclick="closeCashoutModal()" style="flex:1;background:#e2e8f0;border:none;padding:10px;border-radius:10px">Cancel</button>
-</div>
-<p id="cashoutMsg" style="font-size:11px;color:green;margin-top:8px"></p>
-</div>
-</div>
-
-<script>
-function openCashoutModal(){document.getElementById('cashoutModal').style.display='flex';}
-function closeCashoutModal(){document.getElementById('cashoutModal').style.display='none';}
-document.getElementById('cashoutMethod').addEventListener('change',function(){
- let f=document.getElementById('cashoutFields');let v=this.value;
- if(v==='Bank') f.innerHTML='<input id="bankAcc" placeholder="Bank Account Number" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px"><input id="bankName" placeholder="Bank Name" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px">';
- else if(v==='Ecocash') f.innerHTML='<input id="ecoNum" placeholder="Ecocash Number" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px"><input id="ecoName" placeholder="Ecocash Name" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px">';
- else f.innerHTML='';
-});
-async function saveCashoutMethod() {
-  const msg = document.getElementById('cashoutMsg');
-  const method = document.getElementById('cashoutMethod').value;
-  const destination = {};
-
-  if (!method) {
-    msg.innerText = 'Select a cashout method.';
-    return;
-  }
-
-  if (method === 'Bank') {
-    destination.accountNumber =
-      document.getElementById('bankAcc')?.value.trim() || '';
-    destination.bankName =
-      document.getElementById('bankName')?.value.trim() || '';
-  } else if (method === 'Ecocash') {
-    destination.number =
-      document.getElementById('ecoNum')?.value.trim() || '';
-    destination.name =
-      document.getElementById('ecoName')?.value.trim() || '';
-  }
-
-  msg.innerText = 'Saving cashout method...';
-
-  try {
-    const response = await fetch('/api/beneficiary/cashout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({ method, destination })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.ok) {
-      throw new Error(data.error || 'Unable to save cashout method.');
-    }
-
-    msg.innerText =
-      'Cashout method saved for review. Status: ' +
-      data.cashout.status + '.';
-
-    setTimeout(closeCashoutModal, 1500);
-  } catch (error) {
-    msg.innerText = error.message || 'Unable to save cashout method.';
-  }
-}
-</script>
+<script src="beneficiary-profile.js"></script>
 </body>
 </html>
