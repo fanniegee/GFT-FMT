@@ -38,21 +38,21 @@ const LEGACY_GUVAZA_TREE = [
   {fullName:"Lydia Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN3-031",generation:3,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN2-03",isPlaceholder:false,isEditable:true,isFemaleChild:true,wifeNo:"WIFE2_NoName"},
   {fullName:"Tambudzai Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN3-032",generation:3,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN2-03",isPlaceholder:false,isEditable:true,isFemaleChild:true,wifeNo:"WIFE2_NoName"},
   {fullName:"Sekai Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN3-033",generation:3,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN2-03",isPlaceholder:false,isEditable:true,isFemaleChild:true,wifeNo:"WIFE2_NoName"},
-  {fullName:"Daughter 4 Guvaza (2)",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN3-034",generation:3,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN2-03",isPlaceholder:true,isEditable:true,isFemaleChild:true,wifeNo:"WIFE2_NoName"},
-  {fullName:"Daughter 5 Guvaza (2)",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN3-035",generation:3,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN2-03",isPlaceholder:true,isEditable:true,isFemaleChild:true,wifeNo:"WIFE2_NoName"},
+  {fullName:"Daughter 4 Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN3-034",generation:3,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN2-03",isPlaceholder:true,isEditable:true,isFemaleChild:true,wifeNo:"WIFE2_NoName"},
+  {fullName:"Daughter 5 Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN3-035",generation:3,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN2-03",isPlaceholder:true,isEditable:true,isFemaleChild:true,wifeNo:"WIFE2_NoName"},
   {fullName:"Gwisai Tavingei",rootSurname:"Guvaza",currentSurname:"Tavingei",secondSurname:"",systemId:"GFT-GEN3-036",generation:3,branch:"BRANCH_VAFONJO",parentId:"GFT-GEN2-04",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Muchaonesu (VaChitema) Tavingei",rootSurname:"Guvaza",currentSurname:"Tavingei",secondSurname:"",systemId:"GFT-GEN3-037",generation:3,branch:"BRANCH_VAFONJO",parentId:"GFT-GEN2-04",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Chemwi Tavingei",rootSurname:"Guvaza",currentSurname:"Tavingei",secondSurname:"",systemId:"GFT-GEN3-038",generation:3,branch:"BRANCH_VAFONJO",parentId:"GFT-GEN2-04",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Lydia Tavingei",rootSurname:"Guvaza",currentSurname:"Tavingei",secondSurname:"",systemId:"GFT-GEN3-039",generation:3,branch:"BRANCH_VAFONJO",parentId:"GFT-GEN2-04",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Child 1 xxxx (Daughter2)",rootSurname:"Guvaza",currentSurname:"xxxx",secondSurname:"",systemId:"GFT-GEN3-040",generation:3,branch:"BRANCH_DAUGHTER2",parentId:"GFT-GEN2-05",isPlaceholder:true,isEditable:true,isFemaleChild:false,wifeNo:null},
-  {fullName:"Child 1 Guvaza (Hwangwa)",rootSurname:"Guvaza",currentSurname:"(Hwangwa)",secondSurname:"",systemId:"GFT-GEN4-001",generation:4,branch:"BRANCH_RUTAMBO",parentId:"GFT-GEN3-001",isPlaceholder:true,isEditable:true,isFemaleChild:false,wifeNo:null},
+  {fullName:"Child 1 Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-001",generation:4,branch:"BRANCH_RUTAMBO",parentId:"GFT-GEN3-001",isPlaceholder:true,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Josias Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-002",generation:4,branch:"BRANCH_RUTAMBO",parentId:"GFT-GEN3-002",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Justin Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-003",generation:4,branch:"BRANCH_RUTAMBO",parentId:"GFT-GEN3-002",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Judith Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-004",generation:4,branch:"BRANCH_RUTAMBO",parentId:"GFT-GEN3-002",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Joseph Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-005",generation:4,branch:"BRANCH_RUTAMBO",parentId:"GFT-GEN3-002",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Annah Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-006",generation:4,branch:"BRANCH_RUTAMBO",parentId:"GFT-GEN3-002",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Takawira Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-007",generation:4,branch:"BRANCH_RUTAMBO",parentId:"GFT-GEN3-002",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
-  {fullName:"Child 1 Guvaza (Unknown)",rootSurname:"Guvaza",currentSurname:"(Unknown)",secondSurname:"",systemId:"GFT-GEN4-008",generation:4,branch:"BRANCH_RUTAMBO",parentId:"GFT-GEN3-003",isPlaceholder:true,isEditable:true,isFemaleChild:false,wifeNo:null},
+  {fullName:"Child 1 Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-008",generation:4,branch:"BRANCH_RUTAMBO",parentId:"GFT-GEN3-003",isPlaceholder:true,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Francis Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-009",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-004",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Joseph Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-010",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-004",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Twin Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-011",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-004",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
@@ -70,12 +70,12 @@ const LEGACY_GUVAZA_TREE = [
   {fullName:"Tatenda Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-023",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-005",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE2"},
   {fullName:"Tinashe Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-024",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-005",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE2"},
   {fullName:"Nyasha Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-025",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-005",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE2"},
-  {fullName:"Joseph Guvaza (Edward)",rootSurname:"Guvaza",currentSurname:"(Edward)",secondSurname:"",systemId:"GFT-GEN4-026",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE1"},
+  {fullName:"Joseph Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-026",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE1"},
   {fullName:"Cephas (Felix) Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-027",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE1"},
   {fullName:"Edward (Obert) Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-028",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE1"},
   {fullName:"Edwin Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-029",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE1"},
-  {fullName:"Edson Guvaza (Edward)",rootSurname:"Guvaza",currentSurname:"(Edward)",secondSurname:"",systemId:"GFT-GEN4-030",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE1"},
-  {fullName:"Isaac Guvaza (Edward)",rootSurname:"Guvaza",currentSurname:"(Edward)",secondSurname:"",systemId:"GFT-GEN4-031",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE1"},
+  {fullName:"Edson Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-030",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE1"},
+  {fullName:"Isaac Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-031",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE1"},
   {fullName:"Beauty Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-032",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE2"},
   {fullName:"Gilbert Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-033",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE2"},
   {fullName:"Leonard Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-034",generation:4,branch:"BRANCH_VURAYAI",parentId:"GFT-GEN3-006",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE2"},
@@ -180,7 +180,7 @@ const LEGACY_GUVAZA_TREE = [
   {fullName:"Edmore Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-133",generation:4,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN3-022",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:"WIFE4"},
   {fullName:"Mary Guvaza",rootSurname:"Guvaza",currentSurname:"(Johanes)",secondSurname:"",systemId:"GFT-GEN4-134",generation:4,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN3-023",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Tungamirai (Chinoto) Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-135",generation:4,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN3-023",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
-  {fullName:"Annah Guvaza (Johanes)",rootSurname:"Guvaza",currentSurname:"(Johanes)",secondSurname:"",systemId:"GFT-GEN4-136",generation:4,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN3-023",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
+  {fullName:"Annah Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-136",generation:4,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN3-023",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Munyaradzi Guvaza",rootSurname:"Guvaza",currentSurname:"(Johanes)",secondSurname:"",systemId:"GFT-GEN4-137",generation:4,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN3-023",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Loice Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-138",generation:4,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN3-023",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
   {fullName:"Obedience Guvaza",rootSurname:"Guvaza",currentSurname:"Guvaza",secondSurname:"",systemId:"GFT-GEN4-139",generation:4,branch:"BRANCH_SVUSVU",parentId:"GFT-GEN3-023",isPlaceholder:false,isEditable:true,isFemaleChild:false,wifeNo:null},
@@ -339,9 +339,9 @@ const NAME_CORRECTIONS = {
 //
 // Examples:
 //
-//   Zekia Guvaza (Dzikamai)
-//   Mary Guvaza (Zekia)
-//   Joseph Guvaza (Edward)
+//   Zekia Guvaza
+//   Mary Guvaza
+//   Joseph Guvaza
 //
 // Personal second names are also preserved in fullName:
 //

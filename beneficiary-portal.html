@@ -148,6 +148,7 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
         <div style="font-size:20px;letter-spacing:4px;margin-top:20px"><span id="gftVisaCardNumber">GFT VISA — NOT ISSUED</span></div>
         <div style="display:flex;justify-content:space-between;align-items:end;margin-top:20px">
           <div>
+            <div style="font-size:10px;margin-bottom:6px">VALID THRU <span id="gftVisaCardExpiry">—</span></div>
             <div id="cardHolderName" style="font-size:14px">CARD HOLDER</div>
             <div style="font-size:12px;opacity:0.8;margin-top:4px">Tap to flip for CVV</div>
           </div>
@@ -234,7 +235,19 @@ async function loadBeneficiarySession(){
     document.getElementById('profileId').innerText=(session.membership||session.systemId||'GFT-')+' • Approved';
     document.getElementById('cardHolderName').innerText=session.name;
 
+function formatCardExpiry(value) {
+  if (typeof value !== 'string' || !value.trim()) return '—';
+  const compact = /^(0[1-9]|1[0-2])\/(\d{2}|\d{4})$/.exec(value.trim());
+  if (compact) return compact[1] + '/' + compact[2].slice(-2);
+  if (!/^\d{4}-\d{2}-\d{2}(?:T|$)/.test(value)) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return String(date.getUTCMonth() + 1).padStart(2, '0') + '/' + String(date.getUTCFullYear()).slice(-2);
+}
+
 async function loadGftVisaCard(){
+  const expiry = document.getElementById('gftVisaCardExpiry');
+  if (expiry) expiry.textContent = '—';
 
   try{
 
@@ -299,6 +312,8 @@ async function loadGftVisaCard(){
 
     const card =
       result.card;
+
+    if (expiry) expiry.textContent = formatCardExpiry(card.expiresAt);
 
     if(front)
       front.textContent =

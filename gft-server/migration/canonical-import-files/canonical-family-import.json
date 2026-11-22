@@ -752,7 +752,7 @@
     {
       "systemId": "GFT-GEN3-034",
       "parentSystemId": "GFT-GEN2-03",
-      "fullName": "Daughter 4 Guvaza (2)",
+      "fullName": "Daughter 4 Guvaza",
       "gender": "FEMALE",
       "generation": 3,
       "branchCode": "BRANCH_SVUSVU",
@@ -771,7 +771,7 @@
     {
       "systemId": "GFT-GEN3-035",
       "parentSystemId": "GFT-GEN2-03",
-      "fullName": "Daughter 5 Guvaza (2)",
+      "fullName": "Daughter 5 Guvaza",
       "gender": "FEMALE",
       "generation": 3,
       "branchCode": "BRANCH_SVUSVU",
@@ -828,7 +828,7 @@
     {
       "systemId": "GFT-GEN4-001",
       "parentSystemId": "GFT-GEN3-001",
-      "fullName": "Child 1 Guvaza (Hwangwa)",
+      "fullName": "Child 1 Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_RUTAMBO",
@@ -961,7 +961,7 @@
     {
       "systemId": "GFT-GEN4-008",
       "parentSystemId": "GFT-GEN3-003",
-      "fullName": "Child 1 Guvaza (Unknown)",
+      "fullName": "Child 1 Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_RUTAMBO",
@@ -1303,7 +1303,7 @@
     {
       "systemId": "GFT-GEN4-026",
       "parentSystemId": "GFT-GEN3-006",
-      "fullName": "Joseph Guvaza (Edward)",
+      "fullName": "Joseph Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -1379,7 +1379,7 @@
     {
       "systemId": "GFT-GEN4-030",
       "parentSystemId": "GFT-GEN3-006",
-      "fullName": "Edson Guvaza (Edward)",
+      "fullName": "Edson Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -1398,7 +1398,7 @@
     {
       "systemId": "GFT-GEN4-031",
       "parentSystemId": "GFT-GEN3-006",
-      "fullName": "Isaac Guvaza (Edward)",
+      "fullName": "Isaac Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -1835,7 +1835,7 @@
     {
       "systemId": "GFT-GEN4-054",
       "parentSystemId": "GFT-GEN3-009",
-      "fullName": "Zekia Guvaza (Dzikamai)",
+      "fullName": "Zekia Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -1892,7 +1892,7 @@
     {
       "systemId": "GFT-GEN4-057",
       "parentSystemId": "GFT-GEN3-010",
-      "fullName": "Fannuel Guvaza (Zekia)",
+      "fullName": "Fannuel Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -1911,7 +1911,7 @@
     {
       "systemId": "GFT-GEN4-058",
       "parentSystemId": "GFT-GEN3-010",
-      "fullName": "Mary Guvaza (Zekia)",
+      "fullName": "Mary Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -2006,7 +2006,7 @@
     {
       "systemId": "GFT-GEN4-063",
       "parentSystemId": "GFT-GEN3-011",
-      "fullName": "Leonard Guvaza (Fannuel)",
+      "fullName": "Leonard Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -2025,7 +2025,7 @@
     {
       "systemId": "GFT-GEN4-064",
       "parentSystemId": "GFT-GEN3-011",
-      "fullName": "Francis Guvaza (Fannuel)",
+      "fullName": "Francis Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -2044,7 +2044,7 @@
     {
       "systemId": "GFT-GEN4-065",
       "parentSystemId": "GFT-GEN3-011",
-      "fullName": "Josias Guvaza (Fannuel)",
+      "fullName": "Josias Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -2139,7 +2139,7 @@
     {
       "systemId": "GFT-GEN4-070",
       "parentSystemId": "GFT-GEN3-012",
-      "fullName": "Child 1 Guvaza (Vurayai G3-012)",
+      "fullName": "Child 1 Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -2253,7 +2253,7 @@
     {
       "systemId": "GFT-GEN4-076",
       "parentSystemId": "GFT-GEN3-013",
-      "fullName": "Dzidzai Guvaza (Imbayago)",
+      "fullName": "Dzidzai Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -2272,7 +2272,7 @@
     {
       "systemId": "GFT-GEN4-077",
       "parentSystemId": "GFT-GEN3-013",
-      "fullName": "Tafireyi Guvaza (Imbayago)",
+      "fullName": "Tafireyi Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -2291,7 +2291,7 @@
     {
       "systemId": "GFT-GEN4-078",
       "parentSystemId": "GFT-GEN3-014",
-      "fullName": "Joseph Guvaza (Tafireyi W1)",
+      "fullName": "Joseph Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -2310,7 +2310,7 @@
     {
       "systemId": "GFT-GEN4-079",
       "parentSystemId": "GFT-GEN3-014",
-      "fullName": "Shamiso Guvaza (Tafireyi W1)",
+      "fullName": "Shamiso Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -2329,7 +2329,7 @@
     {
       "systemId": "GFT-GEN4-080",
       "parentSystemId": "GFT-GEN3-014",
-      "fullName": "Sekai Guvaza (Tafireyi W2)",
+      "fullName": "Sekai Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -2367,7 +2367,7 @@
     {
       "systemId": "GFT-GEN4-082",
       "parentSystemId": "GFT-GEN3-014",
-      "fullName": "Isaac Guvaza (Tafireyi)",
+      "fullName": "Isaac Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_VURAYAI",
@@ -3203,7 +3203,7 @@
     {
       "systemId": "GFT-GEN4-126",
       "parentSystemId": "GFT-GEN3-022",
-      "fullName": "Munyaradzi Guvaza (Binduki)",
+      "fullName": "Munyaradzi Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_SVUSVU",
@@ -3241,7 +3241,7 @@
     {
       "systemId": "GFT-GEN4-128",
       "parentSystemId": "GFT-GEN3-022",
-      "fullName": "Varaidzo Guvaza (Binduki)",
+      "fullName": "Varaidzo Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_SVUSVU",
@@ -3317,7 +3317,7 @@
     {
       "systemId": "GFT-GEN4-132",
       "parentSystemId": "GFT-GEN3-022",
-      "fullName": "Sharai Guvaza (Binduki)",
+      "fullName": "Sharai Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_SVUSVU",
@@ -3355,7 +3355,7 @@
     {
       "systemId": "GFT-GEN4-134",
       "parentSystemId": "GFT-GEN3-023",
-      "fullName": "Mary Guvaza (Johanes)",
+      "fullName": "Mary Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_SVUSVU",
@@ -3393,7 +3393,7 @@
     {
       "systemId": "GFT-GEN4-136",
       "parentSystemId": "GFT-GEN3-023",
-      "fullName": "Annah Guvaza (Johanes)",
+      "fullName": "Annah Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_SVUSVU",
@@ -3412,7 +3412,7 @@
     {
       "systemId": "GFT-GEN4-137",
       "parentSystemId": "GFT-GEN3-023",
-      "fullName": "Munyaradzi Guvaza (Johanes)",
+      "fullName": "Munyaradzi Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_SVUSVU",
@@ -3469,7 +3469,7 @@
     {
       "systemId": "GFT-GEN4-140",
       "parentSystemId": "GFT-GEN3-023",
-      "fullName": "Tendai Guvaza (Johanes)",
+      "fullName": "Tendai Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_SVUSVU",
@@ -3754,7 +3754,7 @@
     {
       "systemId": "GFT-GEN4-155",
       "parentSystemId": "GFT-GEN3-029",
-      "fullName": "Sekai Guvaza (Mavhuna)",
+      "fullName": "Sekai Guvaza",
       "gender": null,
       "generation": 4,
       "branchCode": "BRANCH_SVUSVU",

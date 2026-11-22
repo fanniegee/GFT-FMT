@@ -1,3 +1,4 @@
+import { ensurePersonNameCleanup } from './person-name-cleanup.js';
 import 'dotenv/config';
 import { installSpotlightStudioBridge } from './spotlight-studio-bridge.js';
 import { installSpotlightWorkrooms } from './spotlight-workrooms.js';
@@ -7930,7 +7931,8 @@ app.use((error, _req, res, _next) => {
 // START SERVER
 // ------------------------------------------------------------
 
-ensureFounderAccount()
+ensurePersonNameCleanup(withTransaction)
+  .then(() => ensureFounderAccount())
   .then(() => {
     app.listen(PORT, () => {
       setInterval(processMatureBeneficiaryBatches,60_000).unref();

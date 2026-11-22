@@ -167,8 +167,8 @@ const TRUST_RULES = {
 
     parentIdentifyingParentheses: {
       examples: [
-        "Zekia Guvaza (Dzikamai)",
-        "Mary Guvaza (Zekia)"
+        "Zekia Guvaza",
+        "Mary Guvaza"
       ],
 
       meaning:
@@ -255,7 +255,7 @@ const TRUST_RULES = {
         "Heskia",
 
       relationshipClarification:
-        "Zekia/Heskia Guvaza is the uncle of Zekia Guvaza (Dzikamai).",
+        "Zekia/Heskia Guvaza is the uncle of Zekia Guvaza.",
 
       separateIndividual: {
 
@@ -263,7 +263,7 @@ const TRUST_RULES = {
           "GFT-GEN4-054",
 
         name:
-          "Zekia Guvaza (Dzikamai)",
+          "Zekia Guvaza",
 
         rule:
           "This is a separate individual and must not be merged with GFT-GEN3-010."
