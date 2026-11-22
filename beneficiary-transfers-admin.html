@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Beneficiary transfers | GFT Founder</title>
+    <link rel="stylesheet" href="typography.css" />
+    <link rel="stylesheet" href="beneficiary-transfers.css" />
+  </head>
+  <body class="transfer-admin">
+    <main id="transferAdmin">
+      <a href="founder.html">Return to Founder platform</a>
+      <h1>Beneficiary transfers</h1>
+      <p>
+        Review the sender, recipient and amount. Authorization reserves funds.
+        Execute an authorized request to move the funds between wallets.
+      </p>
+      <p id="transferStatus" role="status" aria-live="polite"></p>
+      <button type="button" id="transferRefresh">Refresh transfers</button>
+      <div id="transferHistory"></div>
+      <button type="button" id="transferMore" hidden>
+        Load older transfers
+      </button>
+    </main>
+    <script src="beneficiary-transfers.js"></script>
+  </body>
+</html>

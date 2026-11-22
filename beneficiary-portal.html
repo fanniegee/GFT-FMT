@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portal - GFT Dashboard</title>
 <link rel="stylesheet" href="typography.css">
+<link rel="stylesheet" href="beneficiary-transfers.css">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 <style>
 body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
@@ -57,7 +58,7 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 .portal-company-card>p:first-of-type{color:var(--company-color);font-weight:700}
 .portal-company-brand{width:66px;height:66px;position:relative;background:#f8fafc;border:1px solid #dce5ef;border-radius:12px;display:grid;place-items:center;overflow:hidden}
 .portal-company-brand span{font-size:18px;font-weight:800;color:var(--company-color)}
-.portal-company-brand img{position:absolute;inset:0;box-sizing:border-box;width:100%;height:100%;object-fit:contain;background:white;padding:5px}
+.portal-company-brand img{position:absolute;inset:0;box-sizing:border-box;width:100%;height:100%;object-fit:cover;background:white;padding:0}
 .portal-company-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:auto;padding-top:8px}
 .portal-company-card button,.job-company-filter button{cursor:pointer;padding:9px 11px;border:1px solid var(--company-color,#cbd5e1);border-radius:8px;background:#fff;color:#17233b;font:inherit;font-size:12px;font-weight:700}
 .portal-company-banner{width:100%;max-height:180px;object-fit:cover;border-radius:9px}
@@ -132,6 +133,11 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 
 
 .mi{white-space:nowrap}#view-profile .profile-form label:has(input[type=checkbox]){display:flex;align-items:center;gap:8px}
+.visa-front{overflow:hidden;isolation:isolate;border:1px solid #ffffff38;box-shadow:0 12px 32px #10101438;
+background:radial-gradient(ellipse at 96% 0%,#c3c5cb77,transparent 47%),repeating-linear-gradient(125deg,#ffffff05 0px,#ffffff05 1px,transparent 1px,transparent 5px),linear-gradient(115deg,#691b32 0%,#3f1828 33%,#111217 60%,#666b75 100%)}
+.visa-front::before{content:"";position:absolute;inset:-50% -20% -40% 58%;transform:rotate(23deg);background:linear-gradient(90deg,transparent,#c8cbd130 45%,#ffffff18 46%,transparent 70%);z-index:0;pointer-events:none}
+.visa-front::after{content:"";position:absolute;inset:10px;border:1px solid #ffffff20;border-radius:12px;z-index:0;pointer-events:none}
+.visa-front>*{position:relative;z-index:1}
 </style>
 </head>
 <body>
@@ -265,6 +271,30 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 
 <div id="jobsList"></div>
 </div>
+
+<div id="view-transfers" class="view">
+  <button type="button" class="transfer-secondary" onclick="openView('home')">Back to wallet</button>
+  <section class="card transfer-panel">
+    <h2>Transfer between beneficiaries</h2>
+    <p>Send a transfer request to another registered Trust beneficiary. Founder authorization reserves the amount; execution moves the funds.</p>
+    <form id="transferForm" class="profile-form">
+      <label>Your wallet<select id="transferSource" required></select></label>
+      <p id="transferAvailable"></p>
+      <label>Recipient GFT system ID<input id="transferRecipientId" maxlength="60" placeholder="GFT-GEN4-001" required autocomplete="off"></label>
+      <button type="button" id="transferFind">Find recipient</button>
+      <p id="transferRecipientName" role="status"></p>
+      <label>Amount<input id="transferAmount" type="text" pattern="[0-9]{1,16}([.][0-9]{1,2})?" maxlength="19" inputmode="decimal" required></label>
+      <label>Transfer note (optional)<input id="transferNote" maxlength="300"></label>
+      <label class="transfer-confirm"><input id="transferConfirm" type="checkbox" required> I confirm the recipient and amount.</label>
+      <button type="submit">Submit transfer request</button>
+      <button type="button" id="transferNew" class="transfer-secondary">Start another transfer</button>
+    </form>
+    <p id="transferStatus" role="status" aria-live="polite"></p>
+  </section>
+  <section class="card transfer-panel"><h3>Your transfer history</h3><p>Requests, authorizations, cancellations and completed transfers are permanently recorded.</p><button type="button" id="transferRefresh">Refresh transfers</button><div id="transferHistory"></div><button type="button" id="transferMore" hidden>Load older transfers</button></section>
+</div>
+
+
 <div id="view-profile" class="view">
 
 <div class="card profile-identity">
@@ -495,7 +525,7 @@ async function refreshBenWallet() {
 function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function renderPortalServices(){
  const grid=document.getElementById('portalServicesGrid'),d=window.GFT_PORTAL_DATA;if(!grid||!d)return;
- const items=[['notifications','notifications'],['security','security'],['documents','folder_copy'],['benefits','card_giftcard'],['accounts','account_balance_wallet'],['companies','business'],['jobs','work'],['profile','person'],['library','local_library']];
+ const items=[['notifications','notifications'],['security','security'],['documents','folder_copy'],['benefits','card_giftcard'],['accounts','account_balance_wallet'],['transfers','swap_horiz'],['companies','business'],['jobs','work'],['profile','person'],['library','local_library']];
  grid.innerHTML=items.map(([key,icon])=>{const c=d.portalColors?.[key]||{primary:'#334155',secondary:'#64748b',accent:'#e2e8f0',background:'#f8fafc'};const title=c.name||({documents:'My Documents',library:'Trust Library'}[key]||key);return `<button onclick="openView('${key}')" style="border:1px solid ${c.accent};background:linear-gradient(135deg,${c.background},#fff);border-radius:12px;padding:11px 8px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:9px"><span class="mi" style="color:${c.secondary}">${icon}</span><span style="font-size:11px;font-weight:800;color:${c.primary}">${escapeHtml(title)}</span></button>`}).join('');
 }
 function renderNotifications(){const box=document.getElementById('notificationsContent'),d=window.GFT_PORTAL_DATA?.notifications;if(!box||!d)return;box.innerHTML=`<h2 style="margin:0;color:#7c2d12">${escapeHtml(d.title)}</h2><p style="font-size:12px;color:#64748b">${escapeHtml(d.introduction)}</p>${(d.publicNotices||[]).map(n=>`<div style="padding:12px;margin-top:10px;border-radius:12px;background:#fff7ed;border-left:4px solid #f97316"><b>${escapeHtml(n.title)}</b><div style="font-size:11px;margin-top:4px;color:#475569">${escapeHtml(n.message)}</div><div style="font-size:9px;color:#9a3412;margin-top:6px">${escapeHtml(n.date)} • ${escapeHtml(n.priority)}</div></div>`).join('')}<p style="font-size:11px;color:#64748b;margin-top:12px">${escapeHtml(d.emptyState||'No personal notifications yet.')}</p>`;}
@@ -510,8 +540,9 @@ function openView(name){
   let target=document.getElementById('view-'+name);
   if(target) target.classList.add('active');
   document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
-  let navId=name==='companyDetail'?'companies':name;
+  let navId=name==='companyDetail'?'companies':name==='transfers'?'home':name;
   let nav=document.getElementById('nav-'+navId); if(nav) nav.classList.add('active');
+  if(name==='transfers') window.loadBeneficiaryTransfers?.();
   if(name==='companies') renderCompanies();
   if(name==='jobs') renderJobs();
   if(name==='profile') window.loadBeneficiaryProfile?.();
@@ -657,5 +688,6 @@ function openMyDirectLineage() {
 </script>
 <script src="beneficiary-companies.js"></script>
 <script src="beneficiary-profile.js"></script>
+<script src="beneficiary-transfers.js"></script>
 </body>
 </html>

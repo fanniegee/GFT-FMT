@@ -1,3 +1,4 @@
+import { installBeneficiaryTransfers } from './beneficiary-transfers.js';
 import { installBeneficiaryProfile } from './beneficiary-profile.js';
 import { ensurePersonNameCleanup } from './person-name-cleanup.js';
 import 'dotenv/config';
@@ -95,6 +96,9 @@ const publicFiles = [
   '/beneficiary-gen-drilldown.html',
   '/beneficiary-login.html',
   '/beneficiary-companies.js',
+  '/beneficiary-transfers.js',
+  '/beneficiary-transfers.css',
+  '/beneficiary-transfers-admin.html',
   '/beneficiary-profile.js',
   '/beneficiary-jobs-admin.html',
   '/beneficiary-job-admin.js',
@@ -7904,7 +7908,10 @@ installCompanyContributions(app, {query,withTransaction,requireAdmin});
 installLibrary(app,{query,withTransaction,getCookie,sha256,createPasswordHash,verifyPassword,rateLimit});
 installVirtualCardRequests(app,{query,withTransaction,getAuthenticatedBeneficiary,requireAdmin});
 installFamilyCorrections(app, {query,withTransaction,requireAdmin});
-installPayoutAccounting(app, {withTransaction,requireAdmin});
+const beneficiaryTransfers = installBeneficiaryTransfers(app, {
+  query, withTransaction, getBeneficiary: getAuthenticatedBeneficiary, getAdmin: getAuthenticatedAdmin
+});
+installPayoutAccounting(app, {withTransaction,requireAdmin,ensureTransfers:beneficiaryTransfers.ensureSchema});
 
 installDepartmentAdmin(app, {
   query, withTransaction, getAuthenticatedAdmin, getCookie, sha256,
@@ -7947,6 +7954,7 @@ app.use((error, _req, res, _next) => {
 
 ensurePersonNameCleanup(withTransaction)
   .then(() => ensureFounderAccount())
+  .then(() => beneficiaryTransfers.ensureSchema())
   .then(() => {
     app.listen(PORT, () => {
       setInterval(processMatureBeneficiaryBatches,60_000).unref();

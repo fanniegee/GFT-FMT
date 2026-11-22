@@ -17,6 +17,7 @@ const GFT_PORTAL_DATA = {
      Each portal has its own visual identity.
      ========================================================== */
   portalColors: {
+    transfers: { name: "Transfer", primary: "#164e43", secondary: "#0f766e", accent: "#99d8c8", background: "#eaf9f3" },
     notifications: {
       name: "Notifications",
       primary: "#7c2d12",
