@@ -261,15 +261,79 @@
     }),
   );
 
+  let jobsVersion = 0;
   window.renderJobs = async () => {
+    const version = ++jobsVersion;
+    const selected = window.beneficiaryJobsCompany || "";
     const host = $("jobsList");
     host.textContent = "Loading opportunities…";
     try {
       const data = await api("/jobs");
+      if (version !== jobsVersion) return;
+      const companies = data.companies || (await GFTPortalCompanies.load());
       host.replaceChildren();
-      for (const job of data.jobs) {
+      const filter = node("div");
+      filter.className = "job-company-filter";
+      const label = node("label", "Opportunities by company");
+      const select = node("select");
+      select.id = "jobCompanyFilter";
+      select.append(new Option("All Trust companies", ""));
+      for (const company of companies)
+        select.append(new Option(company.name, String(company.id)));
+      select.value = selected;
+      select.addEventListener("change", () => {
+        window.beneficiaryJobsCompany = select.value;
+        window.renderJobs();
+      });
+      label.append(select);
+      filter.append(label);
+      host.append(filter);
+      const employers = node("div");
+      employers.className = "job-employers";
+      const matchingCompanies = companies.filter(
+        (company) => !selected || String(company.id) === selected,
+      );
+      for (const company of matchingCompanies) {
+        const preview = GFTPortalCompanies.card(company, true);
+        preview.setAttribute(
+          "aria-current",
+          String(String(company.id) === selected),
+        );
+        const count = data.jobs.filter(
+          (job) => job.company_id === String(company.id),
+        ).length;
+        preview.append(
+          node(
+            "p",
+            count
+              ? count +
+                  " open " +
+                  (count === 1 ? "opportunity" : "opportunities")
+              : "No open vacancies yet",
+          ),
+        );
+        const explore = button(
+          selected ? "Show all companies" : "View opportunities",
+          () => window.showCompanyJobs(selected ? "" : company.id),
+        );
+        preview.append(explore);
+        employers.append(preview);
+      }
+      host.append(employers);
+      const jobs = data.jobs.filter(
+        (job) => !selected || job.company_id === selected,
+      );
+      for (const job of jobs) {
         const card = node("article");
         card.className = "card";
+        const company = companies.find(
+          (item) => String(item.id) === job.company_id,
+        );
+        if (company) {
+          card.style.borderTop =
+            "4px solid " + GFTPortalCompanies.color(company);
+          card.append(GFTPortalCompanies.brand(company));
+        }
         card.append(
           node("h3", job.title),
           node("p", job.company + " · " + job.location),
@@ -315,8 +379,15 @@
         );
         host.append(card);
       }
-      if (!data.jobs.length)
-        host.textContent = "No open opportunities have been posted yet.";
+      if (!jobs.length)
+        host.append(
+          node(
+            "p",
+            selected
+              ? "No open vacancies from this company yet. Future opportunities will appear here."
+              : "Future company vacancies will appear here as they are published.",
+          ),
+        );
     } catch (error) {
       host.textContent = error.message;
     }

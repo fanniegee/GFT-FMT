@@ -94,6 +94,7 @@ const publicFiles = [
   '/assets/ggc.html',
   '/beneficiary-gen-drilldown.html',
   '/beneficiary-login.html',
+  '/beneficiary-companies.js',
   '/beneficiary-profile.js',
   '/beneficiary-jobs-admin.html',
   '/beneficiary-job-admin.js',

@@ -66,6 +66,31 @@ export function installBeneficiaryProfile(
   app,
   { query, withTransaction, getBeneficiary, getAdmin },
 ) {
+  async function configuredCompanies(runQuery = query, required = true) {
+    const { rows } = await runQuery(
+      "SELECT config_value FROM configuration WHERE config_key = 'public_site' LIMIT 1",
+    );
+    const companies = rows[0]?.config_value?.companies;
+    if (!Array.isArray(companies)) {
+      if (required) throw fail("Company information is temporarily unavailable.", 503);
+      return [];
+    }
+    return companies.filter(
+      (company) =>
+        company &&
+        company.id !== undefined &&
+        company.id !== null &&
+        company.name,
+    );
+  }
+  function companyJobs(rows, companies) {
+    return rows.map((job) => {
+      const company = companies.find(
+        (item) => String(item.id) === job.company_id,
+      );
+      return { ...job, company: company?.name || job.company };
+    });
+  }
   let schema;
   function ensureSchema() {
     schema ??= withTransaction(async (client) => {
@@ -87,6 +112,22 @@ export function installBeneficiaryProfile(
           "CREATE TABLE IF NOT EXISTS beneficiary_job_replies(event_id UUID PRIMARY KEY,application_id UUID NOT NULL REFERENCES beneficiary_job_applications(application_id),admin_id TEXT NOT NULL,status TEXT NOT NULL,reply TEXT NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());",
         ].join("\n"),
       );
+      await client.query(
+        "ALTER TABLE beneficiary_jobs ADD COLUMN IF NOT EXISTS company_id TEXT",
+      );
+      const companies = await configuredCompanies(client.query.bind(client), false);
+      for (const company of companies) {
+        const matches = companies.filter(
+          (item) =>
+            item.name.trim().toLowerCase() ===
+            company.name.trim().toLowerCase(),
+        );
+        if (matches.length !== 1) continue;
+        await client.query(
+          "UPDATE beneficiary_jobs SET company_id = $1 WHERE company_id IS NULL AND LOWER(TRIM(company)) = LOWER(TRIM($2))",
+          [String(company.id), company.name],
+        );
+      }
       const legacy = await client.query(
         "SELECT DISTINCT ON(beneficiary_system_id) cashout_id,beneficiary_system_id,method,destination FROM cashout_requests WHERE method IN ('Bank','Ecocash') ORDER BY beneficiary_system_id,created_at DESC,cashout_id DESC",
       );
@@ -152,14 +193,12 @@ export function installBeneficiaryProfile(
             "Beneficiary profile request failed:",
             error.code || error.name,
           );
-        return res
-          .status(error.status || 500)
-          .json({
-            ok: false,
-            error: error.status
-              ? error.message
-              : "Unable to complete this request.",
-          });
+        return res.status(error.status || 500).json({
+          ok: false,
+          error: error.status
+            ? error.message
+            : "Unable to complete this request.",
+        });
       }
     });
   }
@@ -314,9 +353,13 @@ export function installBeneficiaryProfile(
   );
   route("get", "/api/beneficiary/jobs", async (_req, res) => {
     const { rows } = await query(
-      "SELECT job_id,title,company,location,description,closing_date FROM beneficiary_jobs WHERE active AND closing_date>=CURRENT_DATE ORDER BY created_at DESC",
+      "SELECT job_id,title,company,company_id,location,description,closing_date FROM beneficiary_jobs WHERE active AND closing_date>=CURRENT_DATE ORDER BY created_at DESC",
     );
-    return res.json({ ok: true, jobs: rows });
+    const companies = await configuredCompanies();
+    const jobs = companyJobs(rows, companies).filter((job) =>
+      companies.some((company) => String(company.id) === job.company_id),
+    );
+    return res.json({ ok: true, jobs, companies });
   });
   route(
     "post",
@@ -325,9 +368,10 @@ export function installBeneficiaryProfile(
       const letter = field(req.body?.coverLetter, 5000);
       if (!uuid.test(req.params.id) || !letter)
         throw fail("Choose a job and enter your application.");
+      const companies = await configuredCompanies();
       const file = fileData(req.body.cv);
       const { rows } = await query(
-        "INSERT INTO beneficiary_job_applications(application_id,job_id,system_id,cover_letter,cv,cv_name) SELECT $1,job_id,$3,$4,$5,$6 FROM beneficiary_jobs WHERE job_id=$2 AND active AND closing_date>=CURRENT_DATE ON CONFLICT(job_id,system_id) DO NOTHING RETURNING application_id",
+        "INSERT INTO beneficiary_job_applications(application_id,job_id,system_id,cover_letter,cv,cv_name) SELECT $1,job_id,$3,$4,$5,$6 FROM beneficiary_jobs WHERE job_id=$2 AND active AND closing_date>=CURRENT_DATE AND company_id=ANY($7::text[]) ON CONFLICT(job_id,system_id) DO NOTHING RETURNING application_id",
         [
           randomUUID(),
           req.params.id,
@@ -335,6 +379,7 @@ export function installBeneficiaryProfile(
           letter,
           file.bytes,
           file.name,
+          companies.map((company) => String(company.id)),
         ],
       );
       if (!rows.length)
@@ -363,9 +408,14 @@ export function installBeneficiaryProfile(
     "/api/admin/beneficiary-jobs",
     async (_req, res) => {
       const { rows } = await query(
-        "SELECT job_id,title,company,location,description,closing_date,active FROM beneficiary_jobs ORDER BY created_at DESC",
+        "SELECT job_id,title,company,company_id,location,description,closing_date,active FROM beneficiary_jobs ORDER BY created_at DESC",
       );
-      return res.json({ ok: true, jobs: rows });
+      const companies = await configuredCompanies();
+      return res.json({
+        ok: true,
+        jobs: companyJobs(rows, companies),
+        companies,
+      });
     },
     true,
   );
@@ -374,30 +424,34 @@ export function installBeneficiaryProfile(
     "/api/admin/beneficiary-jobs",
     async (req, res, actor) => {
       const title = field(req.body?.title, 160),
-        company = field(req.body?.company, 160),
+        companyId = String(req.body?.companyId ?? ""),
         location = field(req.body?.location, 160),
         description = field(req.body?.description, 10000),
         closingDate = field(req.body?.closingDate, 10);
       if (
         !title ||
-        !company ||
+        !companyId ||
         !location ||
         !description ||
         !/^\d{4}-\d{2}-\d{2}$/.test(closingDate) ||
         Number.isNaN(Date.parse(closingDate))
       )
         throw fail("Complete the vacancy fields and closing date.");
+      const companies = await configuredCompanies();
+      const company = companies.find((item) => String(item.id) === companyId);
+      if (!company) throw fail("Choose a company from the Trust company list.");
       const id = randomUUID();
       await query(
-        "INSERT INTO beneficiary_jobs(job_id,title,company,location,description,closing_date,created_by) VALUES($1,$2,$3,$4,$5,$6,$7)",
+        "INSERT INTO beneficiary_jobs(job_id,title,company,location,description,closing_date,created_by,company_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
         [
           id,
           title,
-          company,
+          company.name,
           location,
           description,
           closingDate,
           actor.admin_id,
+          companyId,
         ],
       );
       return res.status(201).json({ ok: true, jobId: id });
@@ -408,11 +462,26 @@ export function installBeneficiaryProfile(
     "patch",
     "/api/admin/beneficiary-jobs/:id",
     async (req, res) => {
-      if (!uuid.test(req.params.id) || typeof req.body?.active !== "boolean")
-        throw fail("Choose whether this vacancy is open.");
+      if (
+        !uuid.test(req.params.id) ||
+        (typeof req.body?.active !== "boolean" &&
+          req.body?.companyId === undefined)
+      )
+        throw fail("Choose a vacancy action.");
+      const companies = await configuredCompanies();
+      const companyId =
+        req.body.companyId === undefined ? null : String(req.body.companyId);
+      const company = companies.find((item) => String(item.id) === companyId);
+      if (companyId !== null && !company)
+        throw fail("Choose a company from the Trust company list.");
       const result = await query(
-        "UPDATE beneficiary_jobs SET active=$2 WHERE job_id=$1 RETURNING job_id",
-        [req.params.id, req.body.active],
+        "UPDATE beneficiary_jobs SET active=COALESCE($2,active),company_id=COALESCE($3,company_id),company=COALESCE($4,company) WHERE job_id=$1 RETURNING job_id",
+        [
+          req.params.id,
+          typeof req.body.active === "boolean" ? req.body.active : null,
+          companyId,
+          company?.name || null,
+        ],
       );
       if (!result.rowCount) throw fail("Vacancy unavailable.", 404);
       return res.json({ ok: true });

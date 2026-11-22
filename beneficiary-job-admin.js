@@ -44,6 +44,15 @@
       api("beneficiary-jobs"),
       api("beneficiary-job-applications"),
     ]);
+    const selection = $("newJob").elements.companyId;
+    const selected = selection.value;
+    selection.replaceChildren(
+      new Option("Choose a Trust company", ""),
+      ...jobs.companies.map(
+        (company) => new Option(company.name, String(company.id)),
+      ),
+    );
+    selection.value = selected;
     $("vacancies").replaceChildren();
     for (const job of jobs.jobs) {
       const card = node("article");
@@ -68,7 +77,31 @@
           toggle.disabled = false;
         }
       });
-      card.append(toggle);
+      const companyLabel = node("label", "Posting company");
+      const companySelect = node("select");
+      companySelect.append(
+        new Option("Choose a Trust company", ""),
+        ...jobs.companies.map(
+          (company) => new Option(company.name, String(company.id)),
+        ),
+      );
+      companySelect.value = job.company_id || "";
+      companyLabel.append(companySelect);
+      const assign = node("button", "Save posting company");
+      assign.addEventListener("click", async () => {
+        assign.disabled = true;
+        try {
+          await api("beneficiary-jobs/" + job.job_id, "PATCH", {
+            companyId: companySelect.value,
+          });
+          await load();
+        } catch (error) {
+          $("status").textContent = error.message;
+        } finally {
+          assign.disabled = false;
+        }
+      });
+      card.append(toggle, companyLabel, assign);
       $("vacancies").append(card);
     }
     if (!jobs.jobs.length) $("vacancies").textContent = "No vacancies posted.";
