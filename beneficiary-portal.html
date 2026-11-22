@@ -72,6 +72,66 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 .job-company-heading p{font-size:12px}
 
 
+
+/* Welcome banner and Profile palette */
+.welcome-banner{
+  position:relative;isolation:isolate;min-height:300px;padding:32px clamp(20px,5vw,70px);
+  box-sizing:border-box;align-items:flex-end;gap:18px;
+  background:#0b2444 url("assets/companies.jpg") center top/cover no-repeat;
+  border-bottom:4px solid #d4af37;
+}
+.welcome-banner::before{
+  content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(90deg,rgba(4,16,35,.91),rgba(4,16,35,.48) 38%,rgba(4,16,35,.05) 75%),
+    linear-gradient(0deg,rgba(4,16,35,.48),transparent 60%);
+}
+.welcome-identity{display:flex;align-items:center;gap:18px;max-width:min(72%,600px);min-width:0}
+.welcome-logo{width:82px;height:82px;flex-shrink:0;object-fit:contain;box-sizing:border-box;padding:6px;border:2px solid #f1d88b;border-radius:19px;background:#fff;box-shadow:0 8px 24px #0003}
+.welcome-trust-name{font-size:12px;line-height:1.5;font-weight:700;color:#f6dfa5;margin:0 0 7px}
+.welcome-banner h1{font-size:clamp(23px,3vw,36px);line-height:1.25;letter-spacing:-.7px;text-shadow:0 2px 12px #0008}
+.welcome-signout{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;border:1px solid #ffffff75;background:#071a32bd;color:white;border-radius:10px;padding:10px 13px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+#view-profile{padding:12px;border-radius:22px;background:linear-gradient(140deg,#dff4ec 0%,#edf1ff 46%,#fff0d5 100%)}
+#view-profile>.card{box-sizing:border-box;box-shadow:0 8px 25px #16354f0b}
+#view-profile .profile-identity{position:relative;overflow:hidden;text-align:center;background:linear-gradient(125deg,#071b37,#134c62 60%,#14766e);color:white;border:1px solid #1a6671;padding:26px 18px;border-top:4px solid #d4af37}
+#view-profile .profile-identity::before{content:"";position:absolute;width:200px;height:200px;border:1px solid #ffffff19;border-radius:50%;right:-85px;top:-100px;pointer-events:none;box-shadow:0 0 0 25px #ffffff06,0 0 0 50px #ffffff05}
+#beneficiaryProfilePhoto{display:block;width:88px;height:88px;border-radius:24px;border:3px solid #f4d98b;object-fit:cover;margin:0 auto 14px;background:#fff;box-shadow:0 7px 20px #00172940}
+#profileName{font-size:24px;margin:0;overflow-wrap:anywhere}
+#profileId{font-size:12px;color:#cfece8;margin:8px 0 18px;overflow-wrap:anywhere}
+.profile-photo-controls{max-width:330px;margin:0 auto 17px;padding:13px;border:1px solid #ffffff2b;border-radius:13px;background:#ffffff0c;font-size:12px}
+#profilePhotoFile{font:inherit;font-size:11px;margin:10px 0;color:#e1f5f1}
+#profilePhotoFile::file-selector-button{background:#e2f5ec;color:#115e4b;border:0;border-radius:7px;padding:8px;margin-right:9px;font-weight:700;cursor:pointer}
+#removeProfilePhoto,.profile-signout{font:inherit;font-size:12px;padding:9px 13px;border:1px solid #ffffff50;border-radius:8px;background:#ffffff12;color:#fff;cursor:pointer}
+#view-profile .profile-payments{background:linear-gradient(145deg,#effbf5,#fff 60%);border:1px solid #c4e8d6;border-top:4px solid #10b981}
+#view-profile .profile-payments>h3{color:#126247}
+#view-profile .profile-payments>p{color:#426654;font-size:12px;line-height:1.7}
+#view-profile .profile-applications{background:linear-gradient(145deg,#fff6df,#fff 65%);border:1px solid #f0dbac;border-top:4px solid #f59e0b}
+#view-profile .profile-applications>h3{color:#80571a}
+#view-profile .profile-account{border:1px solid #bde1d1;border-left:4px solid #10b981;background:linear-gradient(115deg,#e6f7ee,#fff)}
+#view-profile .profile-account:nth-child(4n+2){border-color:#bfd6ed;border-left-color:#3b82f6;background:linear-gradient(115deg,#e9f2ff,#fff)}
+#view-profile .profile-account:nth-child(4n+3){border-color:#decbee;border-left-color:#a855f7;background:linear-gradient(115deg,#f5edfc,#fff)}
+#view-profile .profile-account:nth-child(4n+4){border-color:#edd7b2;border-left-color:#f59e0b;background:linear-gradient(115deg,#fff5df,#fff)}
+#view-profile .profile-form{background:#ffffffa6;border:1px solid #d7e9df;padding:14px;border-radius:13px}
+#view-profile .profile-form label{color:#254d3d;font-weight:600}
+#view-profile .profile-form input,#view-profile .profile-form select{border-color:#c3ddcf;background:#fff}
+#view-profile .profile-form input:focus,#view-profile .profile-form select:focus{outline:2px solid #10b981;outline-offset:2px}
+#view-profile .profile-form button[type=submit]{background:#12694f}
+#view-profile #cancelPaymentEdit{background:#e0eee7;color:#244e3b}
+#refreshApplications{font:inherit;font-size:12px;font-weight:700;background:#fff0cd;color:#795214;border:1px solid #ebcf91;padding:9px 13px;border-radius:8px;cursor:pointer}
+#profileStatus:empty{display:none}
+#profileStatus{background:#fff;border:1px solid #cfdfd6;border-radius:10px;color:#234d3a;font-size:12px;line-height:1.6}
+@media(max-width:560px){
+  .welcome-banner{min-height:270px;padding:22px 16px;align-items:flex-end;background-position:54% 36%}
+  .welcome-banner::before{background:linear-gradient(0deg,rgba(4,16,35,.9),rgba(4,16,35,.12) 85%)}
+  .welcome-identity{gap:12px;max-width:100%;padding-right:0}
+  .welcome-logo{width:62px;height:62px;padding:4px;border-radius:14px}
+  .welcome-trust-name{font-size:10px}
+  .welcome-banner h1{font-size:23px}
+  .welcome-signout{position:absolute;right:14px;top:14px;font-size:11px;padding:8px 10px}
+  #view-profile{padding:9px}
+}
+
+
+.mi{white-space:nowrap}#view-profile .profile-form label:has(input[type=checkbox]){display:flex;align-items:center;gap:8px}
 </style>
 </head>
 <body>
@@ -83,13 +143,13 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 <p id="lockId" style="font-weight:800;margin-top:10px"></p>
 <button onclick="location.href='index.html'" style="margin-top:14px;padding:10px 20px;border-radius:8px;border:none;font-weight:700">Back to Home</button>
 </div>
-<div class="top">
-  <div style="display:flex;align-items:center;gap:8px">
-    <img src="assets/gft.png" style="width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:#fff;object-fit:cover" onerror="this.src='assets/logo.png';this.onerror=function(){this.style.display='none'}">
-    <h1 id="topName">GFT- Portal</h1>
+<header class="top welcome-banner">
+  <div class="welcome-identity">
+    <img class="welcome-logo" src="assets/gft.png" alt="Guvaza Family Trust logo" onerror="this.src='assets/logo.png';this.onerror=null">
+    <div><p class="welcome-trust-name">Guvaza Family Trust</p><h1 id="topName">Welcome to your wallet</h1></div>
   </div>
-  <span class="mi" onclick="logout()" style="cursor:pointer">logout</span>
-</div>
+  <button type="button" class="welcome-signout" onclick="logout()">Sign out</button>
+</header>
 <div class="main" id="mainWrap">
 <div id="view-home" class="view active">
 <div class="card" style="background:linear-gradient(135deg,#020a25 0%,#0a1a4a 35%,#0d2c6b 100%);color:#fff;border:none">
@@ -207,16 +267,13 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 </div>
 <div id="view-profile" class="view">
 
-<div class="card" style="text-align:center;background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%);color:#fff;border:none">
-
-<img id="beneficiaryProfilePhoto" src="assets/gft.png" style="width:64px;height:64px;border-radius:50%;border:3px solid #7a1a24;object-fit:cover;margin:0 auto 10px;background:#fff" onerror="this.style.display='none'">
-<div><label for="profilePhotoFile">Change profile image</label><input id="profilePhotoFile" type="file" accept="image/jpeg,image/png"><button type="button" id="removeProfilePhoto">Use default image</button></div>
-<h3 style="margin:0" id="profileName"></h3>
-<p style="font-size:12px;color:#ffffff" id="profileId"></p>
-<button onclick="logout()" style="padding:10px 16px;background:#7a1a24;color:#fff;border:none;border-radius:8px;font-weight:700">Logout</button>
+<div class="card profile-identity">
+  <img id="beneficiaryProfilePhoto" src="assets/gft.png" alt="Your profile image" onerror="this.style.display='none'">
+  <h3 id="profileName"></h3><p id="profileId"></p>
+  <div class="profile-photo-controls"><label for="profilePhotoFile">Change profile image</label><input id="profilePhotoFile" type="file" accept="image/jpeg,image/png"><button type="button" id="removeProfilePhoto">Use default image</button></div>
+  <button class="profile-signout" type="button" onclick="logout()">Sign out</button>
 </div>
-
-<div class="card">
+<div class="card profile-payments">
   <h3>Trusted payment accounts</h3>
   <p>Save your bank accounts and payment wallets here, then choose one when requesting cashout.</p>
   <div id="paymentAccounts"></div>
@@ -231,7 +288,7 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
     <div><button type="submit">Save account</button> <button type="button" id="cancelPaymentEdit">Clear</button></div>
   </form>
 </div>
-<div class="card"><h3>My job applications</h3><button type="button" id="refreshApplications">Refresh status</button><div id="jobApplications"></div></div>
+<div class="card profile-applications"><h3>My job applications</h3><button type="button" id="refreshApplications">Refresh status</button><div id="jobApplications"></div></div>
 <p id="profileStatus" role="status" aria-live="polite"></p>
 
 </div>
