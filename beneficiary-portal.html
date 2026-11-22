@@ -36,7 +36,6 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 .branch-RUTAMBO{background:#166534!important}
 .branch-VURAYAI{background:#a16207!important}
 .clan-item{padding:8px 10px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;border-radius:8px;margin-bottom:4px}
-#view-clan iframe{width:100%;height:78vh;border:0;border-radius:16px;background:#fff;display:block}
 /* === EXACT GFT VISA CARD FROM YOUR PHOTO === */
 .ben-bal-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
 .ben-bal-card b{font-size:15px}
@@ -536,6 +535,10 @@ function renderLibrary(){const box=document.getElementById('libraryContent'),d=w
 function renderPortalData(){renderPortalServices();renderNotifications();renderSecurity();renderDocuments();renderBenefits();renderLibrary();}
 
 function openView(name){
+  if(name==='clan'){
+    window.location.assign('beneficiary-gen-drilldown.html');
+    return;
+  }
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   let target=document.getElementById('view-'+name);
   if(target) target.classList.add('active');
@@ -554,7 +557,7 @@ function openView(name){
   if(name==='library') renderLibrary();
   if(name==='lineage') renderDirectTree();
   let mainWrap=document.getElementById('mainWrap');
-  if(name==='clan'){ mainWrap.classList.add('expanded'); } else { mainWrap.classList.remove('expanded'); }
+  mainWrap.classList.remove('expanded');
   window.scrollTo(0,0);
 }
 async function requestPayout() {
@@ -654,9 +657,7 @@ function renderDirectTree(){
 let lineageDiv=document.createElement('div');lineageDiv.id='view-lineage';lineageDiv.className='view';
 lineageDiv.innerHTML=`<button onclick="openView('home')">Back</button><div class="card"><h3>My Direct Lineage</h3><div id="directTree">Loading...</div></div>`;
 document.querySelector('.main').appendChild(lineageDiv);
-let clanDiv=document.createElement('div');clanDiv.id='view-clan';clanDiv.className='view';
-clanDiv.innerHTML=`<button onclick="openView('home')">Back</button><div class="card"><iframe src="beneficiary-gen-drilldown.html" style="width:100%;height:78vh;border:0"></iframe></div>`;
-document.querySelector('.main').appendChild(clanDiv);
+
 
 function openMyDirectLineage() {
   const systemId = String(session?.systemId || '').trim();

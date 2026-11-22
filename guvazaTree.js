@@ -463,6 +463,10 @@ function fixedMemberStatus(record) {
 // CANONICAL RECORD CREATION
 // ------------------------------------------------------------
 
+function cleanGuvazaDisplayName(value) {
+  return String(value || "").replace(/(\bGuvaza\b)\s*\([^()]*\)(?:\s*\([^()]*\))*\s*$/i, "$1");
+}
+
 function createCanonicalRecord(legacy) {
 
   const wifeNo = normalizeWifeNo(legacy.wifeNo);
@@ -472,11 +476,11 @@ function createCanonicalRecord(legacy) {
   const status = fixedMemberStatus(legacy);
 
   const record = {
-    fullName: legacy.fullName,
+    fullName: cleanGuvazaDisplayName(legacy.fullName),
 
     // ONLY canonical surname fields
     rootSurname: "Guvaza",
-    currentSurname: legacy.currentSurname || null,
+    currentSurname: legacyAnnotation ? "Guvaza" : legacy.currentSurname || null,
 
     systemId: legacy.systemId,
 
@@ -1498,7 +1502,9 @@ async function loadBeneficiaryGenerationTree() {
 
   const people = new Map(guvazaTree.map(person => [person.systemId, person]));
   for (const member of members) {
-    if (!people.has(member.systemId)) people.set(member.systemId, member);
+    if (!people.has(member.systemId)) {
+      people.set(member.systemId, { ...member, fullName: cleanGuvazaDisplayName(member.fullName) });
+    }
   }
   return [...people.values()];
 }

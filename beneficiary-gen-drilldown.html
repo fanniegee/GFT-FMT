@@ -1,6 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<script>
+if (window.self !== window.top) window.top.location.replace(window.location.href);
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -179,6 +182,7 @@ body{
   }
 
 }
+.backBtn[href]{text-decoration:none;display:inline-flex;align-items:center;gap:6px}
 </style>
 </head>
 
@@ -192,14 +196,14 @@ body{
 
   <div style="display:flex;gap:8px;margin-bottom:10px">
 
-    <button
+    <a
       class="backBtn"
-      onclick="location.href='beneficiary-portal.html'"
+      href="beneficiary-portal.html" target="_top"
       style="background:#7a1a24;color:#fff;border-color:#7a1a24"
     >
       <span class="mi">arrow_back</span>
       Back to Portal
-    </button>
+    </a>
 
   </div>
 
@@ -605,7 +609,7 @@ body{
       return "Unknown";
     }
 
-    const name = member.fullName || "Unnamed Beneficiary";
+    const name = cleanGuvazaDisplayName(member.fullName || "Unnamed Beneficiary");
     return member.pendingRegistration ? name + " · Awaiting registration" : name;
 
   }
@@ -632,10 +636,12 @@ body{
     ).trim();
 
 
+    if (/\([^()]*\)/.test(currentSurname)) return "";
+
     if(
       currentSurname &&
-      currentSurname !== rootSurname &&
-      currentSurname !== "Guvaza"
+      currentSurname.toUpperCase() !== rootSurname.toUpperCase() &&
+      currentSurname.toUpperCase() !== "GUVAZA"
     ){
 
       return `
@@ -874,9 +880,10 @@ body{
 
           ${
             parent.currentSurname &&
-            parent.currentSurname !==
-              parent.rootSurname &&
-            parent.currentSurname !== "Guvaza"
+            !/\([^()]*\)/.test(parent.currentSurname) &&
+            String(parent.currentSurname).toUpperCase() !==
+              String(parent.rootSurname || "").toUpperCase() &&
+            String(parent.currentSurname).toUpperCase() !== "GUVAZA"
 
             ? `
               <div
@@ -1272,7 +1279,8 @@ body{
 
       const currentSurname =
         member.currentSurname &&
-        member.currentSurname !== "Guvaza"
+        !/\([^()]*\)/.test(member.currentSurname) &&
+        String(member.currentSurname).toUpperCase() !== "GUVAZA"
 
         ? `
           <span
