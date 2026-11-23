@@ -40,7 +40,7 @@
     }
     card.stage.append(media(item, true));
     const badge = document.createElement('span'); badge.className = 'gft-media-badge';
-    badge.textContent = `${item.type === 'video' ? 'Video' : 'Photo'} · ${card.index + 1} / ${card.items.length}`;
+    badge.textContent = `${item.collection ? item.collection + ' · ' : ''}${item.type === 'video' ? 'Video' : 'Photo'} · ${card.index + 1} / ${card.items.length}`;
     card.stage.append(badge);
     syncPlayback();
   }
@@ -72,7 +72,7 @@
     const item = active.items[active.viewerIndex];
     if (item) view.append(media(item, false));
     else { const empty = document.createElement('p'); empty.textContent = active.error ? 'Unable to load this gallery. Please try again later.' : 'No media has been uploaded yet.'; view.append(empty); }
-    dialog.querySelector('.gft-media-details').textContent = item?.name || '';
+    dialog.querySelector('.gft-media-details').textContent = item ? [item.collection, item.name].filter(Boolean).join(' · ') : '';
     dialog.querySelector('[data-count]').textContent = item ? `${active.viewerIndex + 1} of ${active.items.length}` : '0 items';
     for (const button of dialog.querySelectorAll('[data-prev],[data-next]')) button.disabled = active.items.length < 2;
   }
