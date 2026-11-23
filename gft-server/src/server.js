@@ -1,3 +1,4 @@
+import { installPublicMediaGalleries } from './public-media-galleries.js';
 import { installBeneficiaryTransfers } from './beneficiary-transfers.js';
 import { installBeneficiaryProfile } from './beneficiary-profile.js';
 import { ensurePersonNameCleanup } from './person-name-cleanup.js';
@@ -128,6 +129,8 @@ const publicFiles = [
   '/my-direct-lineage.html',
   '/patient-portal.html',
   '/portalData.js',
+  '/public-media-galleries.css',
+  '/public-media-galleries-client.js',
   '/public-footer.css',
   '/public-footer.js',
   '/register.html',
@@ -150,6 +153,8 @@ app.use('/assets', (req, res, next) => {
   if (!/\.(?:avif|gif|jpe?g|png|svg|webp)$/i.test(req.path)) return next();
   return publicImages(req, res, next);
 });
+
+installPublicMediaGalleries(app, publicRoot);
 
 const allowedOrigins = String(
   process.env.FRONTEND_ORIGINS || 'http://localhost:3000'

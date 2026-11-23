@@ -1,0 +1,23 @@
+.gft-media-section { margin: 30px 0; }
+.gft-media-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.gft-media-heading h2 { margin:0; font-size:clamp(20px,3vw,28px); }
+.gft-media-toggle { border:1px solid #cbd5e1; border-radius:20px; background:white; padding:9px 15px; cursor:pointer; font:inherit; font-size:12px; }
+.gft-media-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+.gft-media-card { padding:0; overflow:hidden; position:relative; border:1px solid #d2dbe5; border-radius:22px; background:#0c1728; color:white; text-align:left; cursor:pointer; min-width:0; box-shadow:0 12px 28px #0f172a18; font:inherit; }
+.gft-media-card:focus-visible,.gft-media-toggle:focus-visible { outline:3px solid #159ce7; outline-offset:4px; }
+.gft-media-stage { display:block; position:relative; height:clamp(260px,29vw,400px); background:linear-gradient(135deg,#142d47,#571e31); }
+.gft-media-stage img,.gft-media-stage video { width:100%; height:100%; object-fit:cover; display:block; }
+.gft-media-empty { display:flex; height:100%; align-items:center; justify-content:center; padding:30px; text-align:center; color:#dce7f2; line-height:1.7; }
+.gft-media-caption { display:block; padding:20px 24px; }
+.gft-media-caption strong { display:block; font-size:23px; margin-bottom:7px; }
+.gft-media-caption span { color:#cbd5e1; font-size:13px; }
+.gft-media-badge { position:absolute; top:16px; left:16px; border-radius:20px; padding:7px 12px; background:#07111fbb; font-size:12px; }
+.gft-media-dialog { width:min(1100px,94vw); max-height:94vh; padding:0; border:1px solid #475569; border-radius:20px; background:#0b1220; color:white; }
+.gft-media-dialog::backdrop { background:#020617d9; }
+.gft-media-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px; }
+.gft-media-dialog button { font:inherit; padding:10px 16px; border:1px solid #64748b; border-radius:10px; background:#192b43; color:white; cursor:pointer; }
+.gft-media-dialog button:disabled { opacity:.4; cursor:default; }
+.gft-media-view { height:min(65vh,700px); display:flex; align-items:center; justify-content:center; }
+.gft-media-view img,.gft-media-view video { display:block; max-width:100%; max-height:100%; object-fit:contain; }
+.gft-media-details { padding:0 20px 12px; color:#cbd5e1; overflow-wrap:anywhere; }
+@media(max-width:640px) { .gft-media-grid { grid-template-columns:1fr; gap:18px; } .gft-media-stage { height:280px; } .gft-media-heading { align-items:flex-start; } .gft-media-toolbar { padding:12px; } }
