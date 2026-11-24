@@ -1347,12 +1347,7 @@
 
             }
 
-            .clinic-nav-links a:not(.back-gft) {
-
-                display:
-                    none;
-
-            }
+            .clinic-nav-links a { display:block; }
 
             .clinic-hero-content {
 
@@ -1447,7 +1442,18 @@
 
         }
 
-    </style>
+    .clinic-menu-toggle { display:none; font:700 14px Montserrat,Arial,sans-serif; color:#fff; background:transparent; border:1px solid #ffffff66; border-radius:9px; min-height:44px; padding:9px 16px; cursor:pointer; }
+@media(max-width:850px) {
+  .clinic-nav { flex-wrap:wrap; gap:12px; padding-top:12px; padding-bottom:12px; }
+  .clinic-brand { flex:1; min-width:0; }
+  .clinic-brand-name { font-size:clamp(13px,3.7vw,19px); }
+  .clinic-brand-subtitle { font-size:10px; }
+  .clinic-menu-toggle { display:block; }
+  .clinic-nav .clinic-nav-links { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; gap:8px; padding:8px 0; }
+  .clinic-nav[data-menu-ready="true"] .clinic-nav-links:not(.is-open) { display:none; }
+  .clinic-nav .clinic-nav-links a { display:flex; align-items:center; justify-content:center; text-align:center; min-height:44px; border:1px solid #ffffff33; border-radius:9px; padding:10px; font-size:13px; }
+}
+</style>
 
 <link rel="manifest" href="/apps/clinic.webmanifest">
 <link rel="apple-touch-icon" href="/assets/clinic-app-192.png">
@@ -1489,7 +1495,8 @@
         </a>
 
 
-       <div class="clinic-nav-links">
+       <button type="button" class="clinic-menu-toggle" aria-expanded="false" aria-controls="clinicMobileLinks">Menu ☰</button>
+       <div class="clinic-nav-links" id="clinicMobileLinks">
 
     <a href="clinic-staff.html"
        class="clinic-staff-login">
@@ -2152,6 +2159,20 @@
 
     </script>
 
+<script>
+(() => {
+  const nav=document.querySelector('.clinic-nav');
+  const button=nav?.querySelector('.clinic-menu-toggle');
+  const links=nav?.querySelector('.clinic-nav-links');
+  if(!button||!links) return;
+  nav.dataset.menuReady='true';
+  function open(value){links.classList.toggle('is-open',value);button.setAttribute('aria-expanded',String(value));button.textContent=value?'Close ✕':'Menu ☰';}
+  button.addEventListener('click',()=>open(button.getAttribute('aria-expanded')!=='true'));
+  links.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>open(false)));
+  nav.addEventListener('keydown',event=>{if(event.key==='Escape'){open(false);button.focus();}});
+  matchMedia('(max-width:850px)').addEventListener('change',()=>open(false));
+})();
+</script>
 </body>
 
 </html>
