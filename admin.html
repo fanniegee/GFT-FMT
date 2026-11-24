@@ -55,6 +55,29 @@ input,select,textarea{background:#0f172a;border:1px solid var(--border);color:#f
 .status-pill{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:800;background:#10b98122;color:#6ee7b7}
 .status-pill.warn{background:#f59e0b22;color:#fbbf24}.status-pill.danger{background:#ef444422;color:#fca5a5}
 @media(max-width:700px){.control-grid{grid-template-columns:1fr}}
+.access-card { background:linear-gradient(135deg,#142638,#1b293e 65%,#172b35)!important; border:1px solid #385269!important; border-left:4px solid #34d399!important; padding:24px!important; }
+.access-card h2 { margin:0 0 22px; }
+.access-role { border-bottom:1px solid #41536b; padding-bottom:18px; }
+.access-eyebrow { display:block; color:#6ee7c5; font-size:10px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; margin-bottom:8px; }
+.access-role strong { display:block; font-size:19px; line-height:1.5; color:#f8fafc; }
+.access-role p { color:#bccbdb; font-size:12px; line-height:1.7; margin:8px 0 0; }
+.access-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:20px 0 24px; }
+.access-stats>div { background:#0b17288c; border:1px solid #3a5068; border-radius:12px; padding:15px; min-width:0; }
+.access-stats dt { color:#b8cadb; font-size:11px; line-height:1.5; }
+.access-stats dd { color:#f1f5f9; font-size:24px; font-weight:800; margin:7px 0 0; overflow-wrap:anywhere; }
+.access-section-title { font-size:14px; margin:0 0 14px; color:#e2e8f0; }
+.access-groups { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; align-items:start; }
+.access-group { background:#0c192a; border:1px solid #3a5068; border-radius:11px; min-width:0; overflow:hidden; }
+.access-group summary { cursor:pointer; padding:15px; font-size:13px; font-weight:700; color:#edf4ff; line-height:1.6; }
+.access-group summary span { margin-left:5px; }
+.access-group summary small { float:right; color:#99bdd2; font-size:10px; font-weight:600; margin-left:8px; }
+.access-group[open] summary { border-bottom:1px solid #30445e; background:#1b3046; }
+.access-group summary:focus-visible { outline:2px solid #6ee7c5; outline-offset:-3px; }
+.access-actions { display:flex; flex-wrap:wrap; gap:8px; padding:14px; }
+.access-action { background:#164039; color:#b8f4dc; border:1px solid #326556; border-radius:7px; font-size:11px; padding:6px 10px; line-height:1.5; overflow-wrap:anywhere; max-width:100%; }
+.access-empty { font-size:12px; color:#becddd; line-height:1.7; margin:0; }
+@media(max-width:700px){.access-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }.access-groups{grid-template-columns:1fr}.access-card{padding:18px!important}}
+
 </style>
 </head>
 <body>
@@ -118,7 +141,7 @@ Roles: Trustees, Family Council, Lawyer, Witness, Exec Assistant, Accountant, Se
 
 <div id="sec-dashboard" class="section active"><div class="card" id="familyCorrections"><h2>Official family corrections</h2><form id="familyCorrectionSearch"><label>Family name or GFT ID <input name="query" minlength="3" maxlength="100" required></label><button type="submit">Find records</button></form><div id="familyCorrectionResults" aria-live="polite"></div><button type="button" id="familyCorrectionRefresh">Review requests</button><div id="familyCorrectionHistory" aria-live="polite"></div></div><div class="card" id="companyContributions"><h2>Monthly company contributions</h2><button type="button" id="refreshCompanyContributions">Open reports</button><div id="companyContributionContent" aria-live="polite"></div></div>
 <div class="manual-callout" style="border-color:#10b98155"><b>Start here:</b> Open <b>My Role & Control Manual</b> whenever you need to confirm your role, responsibilities, permissions, tasks or escalation path.</div>
-<div class="card fin"><h2>Your Permissions</h2><div id="permList" style="font-size:12px"></div></div>
+<div class="card fin access-card"><h2>Your Permissions</h2><div id="permList"></div></div>
 <div class="card mem"><h2><span class="mi">group</span> Pending Approvals - Failed Auto Register</h2><p style="font-size:11px;color:var(--muted)">Registrations that failed auto-approve need manual approve here</p><div id="dashPendingRegs"></div><button class="blue" onclick="showSec('pending')">Go to Pending</button></div>
 <div class="card fun"><h2><span class="mi">church</span> Funeral Claims Pending</h2><div id="dashFun"></div></div>
 <div class="card sch"><h2><span class="mi">school</span> School Invoices Pending</h2><div id="dashSch"></div></div>
@@ -433,11 +456,40 @@ function refreshAuthorityGuards(){
   }).join('');
 }
 
+function permissionLabel(value){
+  const labels={dashboard:'Dashboard',pending:'Registration reviews',members:'Beneficiary records',aboutEdit:'About page',familyRoot:'Family lineage',homeEdit:'Homepage',secondEmail:'Secondary email',finances:'Finance',bookkeeping:'Bookkeeping',funeral:'Funeral support',school:'School fees',companies:'Companies',approval:'Approval workflow',lawyer:'Legal',library:'Library',communications:'Communications',audit:'Audit trail',REGISTRATION_REVIEW_APPROVE:'Approve registration reviews'};
+  return labels[value]||String(value).replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[_-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+}
+function permissionGroups(access){
+  const groups=new Map();
+  for(const module of access.modules){
+    if(!['roleManual','authority','tasks'].includes(module)) groups.set(module,[]);
+  }
+  for(const permission of access.permissions){
+    const separator=String(permission).indexOf(':');
+    const module=separator<0?'additional':String(permission).slice(0,separator);
+    const action=separator<0?String(permission):String(permission).slice(separator+1);
+    if(!groups.has(module)) groups.set(module,[]);
+    groups.get(module).push({action,permission});
+  }
+  return [...groups].sort(([a],[b])=>permissionLabel(a).localeCompare(permissionLabel(b)));
+}
+function permissionSections(access){
+  const groups=permissionGroups(access);
+  if(!groups.length) return '<p class="access-empty">No modules or action permissions are assigned.</p>';
+  return '<div class="access-groups">'+groups.map(([module,actions])=>{
+    const label=module==='additional'?'Additional permissions':permissionLabel(module);
+    const chips=actions.map(({action,permission})=>'<span class="access-action" title="'+taskText(permission)+'">'+taskText(permissionLabel(action))+'</span>').join('');
+    return '<details class="access-group"><summary><span>'+taskText(label)+'</span><small>'+actions.length+' action'+(actions.length===1?'':'s')+'</small></summary><div class="access-actions">'+(chips||'<p class="access-empty">Module assigned; no individual actions listed.</p>')+'</div></details>';
+  }).join('')+'</div>';
+}
 function renderPermissionSummary(){
   const el=document.getElementById('permList'); if(!el) return;
   const x=getEffectiveAccess();
-  el.innerHTML=`<b>Role template:</b> ${x.roleDef.label||currentAdmin.role}<br><b>Deployed modules:</b> ${Array.from(x.modules).filter(x=>!['roleManual','authority','tasks'].includes(x)).join(', ')||'None'}<br><b>Action permissions:</b> ${Array.from(x.permissions).join(', ')||'None'}<br><b>Tasks:</b> ${x.tasks.length}<br><b>Deployment:</b> ${x.deployment.version||'Legacy role deployment'} `;
+  const moduleCount=[...x.modules].filter(m=>!['roleManual','authority','tasks'].includes(m)).length;
+  el.innerHTML='<div class="access-role"><span class="access-eyebrow">Your assigned role</span><strong>'+taskText(x.roleDef.label||currentAdmin.role||'Admin')+'</strong><p>Open an area below to see its assigned actions. Access is controlled by the server.</p></div><dl class="access-stats"><div><dt>Work areas</dt><dd>'+moduleCount+'</dd></div><div><dt>Action permissions</dt><dd>'+x.permissions.size+'</dd></div><div><dt>Assigned tasks</dt><dd>'+x.tasks.length+'</dd></div><div><dt>Deployment version</dt><dd>'+taskText(x.deployment.version??'Legacy')+'</dd></div></dl><h3 class="access-section-title">Permissions by work area</h3>'+permissionSections(x);
 }
+
 function renderRoleManual(){
   const el=document.getElementById('roleManualContent'); if(!el) return;
   const x=getEffectiveAccess(), m=x.roleManual||{purpose:'No role manual has been configured yet.',duties:[],mustNot:['Do not exceed your deployed authority.'],escalate:'Founder'};
@@ -447,8 +499,8 @@ function renderAuthority(){
   const el=document.getElementById('authorityContent'); if(!el) return;
   const x=getEffectiveAccess(), a=x.deployment;
   const modules=Array.from(x.modules).filter(m=>!['roleManual','authority','tasks'].includes(m));
-  const chips=modules.map(m=>`<span class="permission-chip on">${m}</span>`).join('')||'<span class="permission-chip off">No deployed business modules</span>';
-  const perms=Array.from(x.permissions).map(p=>`<span class="permission-chip on">${p}</span>`).join('')||'<span class="permission-chip off">No granular permissions</span>';
+  const chips=modules.map(m=>`<span class="permission-chip on">${taskText(permissionLabel(m))}</span>`).join('')||'<span class="permission-chip off">No deployed business modules</span>';
+  const perms=permissionSections(x);
   const overrides=x.overrides.length?x.overrides.map(o=>`<div class="ben-item"><div><b>${taskText(o.permission||o.module||'Override')}</b><br><small>${taskText(o.reason||'No reason recorded')} ${taskText(o.expiresAt?'• Expires '+o.expiresAt:'')}</small></div><span class="status-pill ${o.active===false?'danger':''}">${o.active===false?'INACTIVE':'ACTIVE'}</span></div>`).join(''):'<p style="font-size:11px;color:var(--muted)">No temporary overrides are currently recorded.</p>';
   el.innerHTML=`<div class="control-grid"><div class="control-card"><h3>Deployment status</h3><p><span class="status-pill ${a.status==='SUSPENDED'?'danger':a.status==='PENDING'?'warn':''}">${a.status||'ACTIVE'}</span></p><p>Version: <b>${a.version||'Legacy'}</b><br>Deployed by: <b>${a.deployedBy||'Founder role template / legacy system'}</b><br>Deployed: <b>${a.deployedAt||'Not recorded'}</b></p></div><div class="control-card"><h3>Role</h3><p><b>${currentAdmin.role||'Admin'}</b><br>${x.roleDef.label||''}</p></div></div><div class="control-card"><h3>Modules</h3><div>${chips}</div></div><div class="control-card"><h3>Action permissions</h3><div>${perms}</div></div><div class="control-card"><h3>Temporary overrides</h3>${overrides}</div>`;
 }
