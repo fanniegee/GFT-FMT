@@ -12,7 +12,7 @@ export function installDepartmentApps(app, publicRoot) {
     res.type('application/manifest+json').set('Cache-Control','no-cache').json({
       id:'/apps/'+name, name:config.name, short_name:config.name, description:config.name+' official app',
       start_url:'/'+config.page, scope:'/', display:'standalone', theme_color:config.color, background_color:config.color,
-      icons:[192,512].map(size=>({src:`/assets/${name}-app-${size}.png`,sizes:`${size}x${size}`,type:'image/png',purpose:'any'}))
+      icons:[192,512].map(size=>({src:name === 'clinic' ? `/api/clinic/public/icon/${size}` : `/assets/${name}-app-${size}.png`,sizes:`${size}x${size}`,type:'image/png',purpose:'any'}))
     });
   });
   app.get('/app-worker.js', (_req,res) => res.set({'Cache-Control':'no-store','Service-Worker-Allowed':'/'}).type('application/javascript').sendFile(path.join(publicRoot,'app-worker.js')));

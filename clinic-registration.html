@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
     <!-- Trust browser and home-screen icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/gft-icon-32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/assets/gft-icon-192.png">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#123B5D">
 <title>Resident Registration | Guvaza Geriatric Clinic</title>
@@ -184,13 +181,15 @@ footer { background: #0B2942; color: var(--white); padding: 45px 6% 25px; font-s
 }
 </style>
 <link rel="manifest" href="/apps/clinic.webmanifest">
-<link rel="apple-touch-icon" href="/assets/clinic-app-192.png">
+
 <link rel="stylesheet" href="/install-app.css">
 <script src="/install-app.js" data-app="clinic" defer></script>
+<link rel="icon" type="image/png" href="/api/clinic/public/icon/192">
+<link rel="apple-touch-icon" href="/api/clinic/public/icon/192">
 </head>
 <body>
 <nav class="topbar">
-  <div class="brand">GUVAZA GERIATRIC CLINIC
+  <div class="brand"><img src="/api/clinic/public/icon/192" alt="Clinic logo" style="width:48px;height:48px;object-fit:contain;vertical-align:middle;margin-right:10px">GUVAZA GERIATRIC CLINIC
     <small>INTEGRATED HEALTH &amp; GERIATRIC NURSING HOME</small>
   </div>
   <a href="clinic.html"> Back to Clinic Home</a>

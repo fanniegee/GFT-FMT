@@ -2,14 +2,14 @@
   'use strict';
   const sections = [...document.querySelectorAll('[data-media-galleries]')];
   if (!sections.length) return;
-  const labels = { 'ama-2k': 'AMA-2k', 'gen-1-5': 'GEN 1–5', events: 'Family Events', biographs: 'Family Biography', 'clinic-life': 'Clinic life & care', 'clinic-stories': 'Patient stories & care videos' };
+  const labels = { 'ama-2k': 'AMA-2k', 'gen-1-5': 'GEN 1–5', events: 'Family Events', biographs: 'Family Biography', 'clinic-life': 'Clinic life & care', 'clinic-stories': 'Patient stories & care' };
   const cards = [];
   let active = null;
   let previousFocus;
   const dialog = document.createElement('dialog');
   dialog.className = 'gft-media-dialog';
   dialog.setAttribute('aria-label', 'Family media viewer');
-  dialog.innerHTML = '<div class="gft-media-toolbar"><strong class="gft-media-title"></strong><button type="button" data-close>Close ✕</button></div><div class="gft-media-view"></div><div class="gft-media-details"></div><div class="gft-media-toolbar"><button type="button" data-prev>← Previous</button><span aria-live="polite" data-count></span><button type="button" data-next>Next →</button></div>';
+  dialog.innerHTML = '<div class="gft-media-toolbar"><strong class="gft-media-title"></strong><button type="button" data-close>Close ✕</button></div><div class="gft-media-view"></div><div class="gft-media-details"></div><div class="gft-media-toolbar"><button type="button" data-prev>← Previous</button><button type="button" data-next>Next →</button></div>';
   document.body.append(dialog);
   const view = dialog.querySelector('.gft-media-view');
   function clearMedia(container) {
@@ -39,9 +39,6 @@
       card.stage.append(empty); return;
     }
     card.stage.append(media(item, true));
-    const badge = document.createElement('span'); badge.className = 'gft-media-badge';
-    badge.textContent = `${item.collection ? item.collection + ' · ' : ''}${item.type === 'video' ? 'Video' : 'Photo'}`;
-    card.stage.append(badge);
     syncPlayback();
   }
   function syncPlayback() {
@@ -73,7 +70,6 @@
     if (item) view.append(media(item, false));
     else { const empty = document.createElement('p'); empty.textContent = active.error ? 'Unable to load this gallery. Please try again later.' : 'No media has been uploaded yet.'; view.append(empty); }
     dialog.querySelector('.gft-media-details').textContent = item ? [item.collection, item.name].filter(Boolean).join(' · ') : '';
-    dialog.querySelector('[data-count]').textContent = item ? (item.type === 'video' ? 'Video' : 'Photo') : '';
     for (const button of dialog.querySelectorAll('[data-prev],[data-next]')) button.disabled = active.items.length < 2;
   }
   function step(delta) { if (active?.items.length) { active.viewerIndex = (active.viewerIndex + delta + active.items.length) % active.items.length; drawViewer(); } }
@@ -97,7 +93,7 @@
       const stage = document.createElement('span'); stage.className = 'gft-media-stage';
       const caption = document.createElement('span'); caption.className = 'gft-media-caption';
       const name = document.createElement('strong'); name.textContent = labels[key];
-      const hint = document.createElement('span'); hint.textContent = 'Open gallery · Photos & videos →'; caption.append(name, hint); button.append(stage, caption); grid.append(button);
+      const hint = document.createElement('span'); hint.textContent = 'Open gallery →'; caption.append(name, hint); button.append(stage, caption); grid.append(button);
       const card = { key, button, stage, section, items: [], index: 0, visible: false }; cards.push(card); observer.observe(button);
       button.onclick = async () => { if (card.error) await load(card); previousFocus = button; active = card; active.viewerIndex = card.index; drawViewer(); dialog.showModal(); syncPlayback(); };
       load(card);
