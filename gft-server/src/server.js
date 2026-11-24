@@ -1,3 +1,4 @@
+import { installAdminPortalAccess, portalRoleError } from './admin-portal-access.js';
 import { installPublicMediaGalleries } from './public-media-galleries.js';
 import { installBeneficiaryTransfers } from './beneficiary-transfers.js';
 import { installBeneficiaryProfile } from './beneficiary-profile.js';
@@ -146,6 +147,7 @@ const publicFiles = [
   '/typography.css',
 ];
 app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
+installAdminPortalAccess(app, getAuthenticatedAdmin);
 app.get(publicFiles, (req, res) => res.sendFile(req.path.slice(1), { root: publicRoot, dotfiles: 'deny' }));
 
 const publicImages = express.static(path.join(publicRoot, 'assets'), { dotfiles: 'deny', index: false, redirect: false });
@@ -5386,6 +5388,9 @@ app.post('/api/admin/login', async (req, res) => {
         error: 'Invalid email or password'
       });
     }
+
+    const portalError = portalRoleError(req.body?.portal, admin);
+    if (portalError) return res.status(403).json({ ok: false, error: portalError });
 
     // If this was a legacy password, immediately upgrade it
     // to the secure server-side scrypt format.

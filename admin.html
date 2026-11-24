@@ -566,7 +566,8 @@ async function doAdminLogin(){
       },
       body:JSON.stringify({
         email,
-        password:pw
+        password:pw,
+        portal:'admin'
       })
     });
 
@@ -579,6 +580,7 @@ async function doAdminLogin(){
       return;
     }
 
+    if(String(result.admin?.role||'').toUpperCase()==='FOUNDER'){ msg.innerText='Founder accounts cannot enter the Admin platform. Return to Founder and sign out first.'; return; }
     currentAdmin = result.admin;
 
     /*
@@ -601,6 +603,7 @@ async function doAdminLogin(){
 async function showAdminApp(){
 
 if(!currentAdmin) return;
+if(String(currentAdmin.role||'').toUpperCase()==='FOUNDER'){ document.getElementById('loginMsg').textContent='Access denied: use an Admin account for this platform.'; return; }
 loadCustomConfigFromServer();
  
  if(currentAdmin.active===false || ['PENDING','SUSPENDED','REVOKED','TEMPORARILY_LOCKED','EXPIRED'].includes(String(currentAdmin.status||'').toUpperCase())){ alert('This Admin account is not currently active. Contact Founder.'); return; }
