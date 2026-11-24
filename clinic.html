@@ -1459,6 +1459,10 @@
 <link rel="apple-touch-icon" href="/assets/clinic-app-192.png">
 <link rel="stylesheet" href="/install-app.css">
 <script src="/install-app.js" data-app="clinic" defer></script>
+<link rel="stylesheet" href="/public-media-galleries.css">
+<link rel="stylesheet" href="/clinic-public.css">
+<script src="/public-media-galleries-client.js" defer></script>
+<script src="/clinic-public.js" defer></script>
 </head>
 
 
@@ -1503,15 +1507,15 @@
         Staff Login
     </a>
 
-    <a href="#services">
+    <a href="clinic-services.html">
         Services
     </a>
 
-    <a href="#about">
+    <a href="clinic-about.html">
         About
     </a>
 
-    <a href="#contact">
+    <a href="clinic-contact.html">
         Contact
     </a>
 
@@ -1581,7 +1585,7 @@
 
 
                     <a
-                        href="#services"
+                        href="clinic-services.html"
                         class="secondary-button"
                     >
                         Explore Our Services
@@ -1688,81 +1692,7 @@
          ABOUT
          ===================================================== -->
 
-    <section
-        class="section"
-        id="about"
-    >
-
-        <div class="section-heading">
-
-            <div class="label">
-                About the Clinic
-            </div>
-
-            <h2>
-                Care with dignity at every stage
-            </h2>
-
-            <p>
-
-                Guvaza Geriatric Clinic is being developed
-                as an integrated health and geriatric care
-                service within the wider Guvaza platform.
-
-            </p>
-
-        </div>
-
-
-        <div class="info-grid">
-
-            <div class="info-card">
-
-                <h3>
-                    Assisted Living
-                </h3>
-
-                <p>
-                    A supportive environment for older people
-                    who require assistance while maintaining
-                    as much independence as possible.
-                </p>
-
-            </div>
-
-
-            <div class="info-card">
-
-                <h3>
-                    Frail Care
-                </h3>
-
-                <p>
-                    Structured care for residents who require
-                    additional assistance because of frailty,
-                    disability or higher care needs.
-                </p>
-
-            </div>
-
-
-            <div class="info-card">
-
-                <h3>
-                    Integrated Health
-                </h3>
-
-                <p>
-                    Health monitoring and care coordination
-                    within the scope of the clinic's approved
-                    services and professional oversight.
-                </p>
-
-            </div>
-
-        </div>
-
-    </section>
+    <section class="section" id="clinic-media"><div class="gft-media-section" data-media-galleries="clinic-life,clinic-stories" data-media-title="Care, community &amp; patient stories" aria-label="Clinic photographs and video gallery"></div><p class="cp-media-note">Starter photos and videos are illustrative stock media, not images of our premises or patient testimonies. Patient stories will be added here when shared with permission. <a href="clinic-about.html">Learn about our vision →</a></p></section>
 
 
     <!-- =====================================================
@@ -1943,7 +1873,7 @@
 
 
             <a
-                href="clinic-register.html"
+                href="clinic-registration.html"
                 class="gateway-button"
             >
                 Begin Registration
@@ -1988,6 +1918,7 @@
          FOOTER
          ===================================================== -->
 
+    <div class="section cp-contact" data-clinic-contact></div>
     <footer>
 
         <div class="footer-grid">
@@ -2018,15 +1949,15 @@
 
                 <div class="footer-links">
 
-                    <a href="#about">
+                    <a href="clinic-about.html">
                         About
                     </a>
 
-                    <a href="#services">
+                    <a href="clinic-services.html">
                         Services
                     </a>
 
-                    <a href="clinic-register.html">
+                    <a href="clinic-registration.html">
                         Register / Apply for Care
                     </a>
 

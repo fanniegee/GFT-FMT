@@ -1,7 +1,7 @@
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
-const folders = Object.freeze({ 'ama-2k': 'AMA-2k', 'gen-1-5': 'GEN-1-5', events: 'events', biographs: 'Biography' });
+const folders = Object.freeze({ 'ama-2k': 'AMA-2k', 'gen-1-5': 'GEN-1-5', events: 'events', biographs: 'Biography', 'clinic-life': 'clinic/gallery', 'clinic-stories': 'clinic/stories' });
 const imagePattern = /\.(?:avif|gif|jpe?g|png|webp)$/i;
 const videoPattern = /\.(?:mp4|webm|m4v|mov)$/i;
 const supported = name => imagePattern.test(name) || videoPattern.test(name);

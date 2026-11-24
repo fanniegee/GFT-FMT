@@ -1,3 +1,4 @@
+import { installClinicPublicSettings } from './clinic-public-settings.js';
 import { installDepartmentApps } from './department-apps.js';
 import { installAdminPortalAccess, portalRoleError } from './admin-portal-access.js';
 import { installPublicMediaGalleries } from './public-media-galleries.js';
@@ -110,6 +111,13 @@ const publicFiles = [
   '/clinic-registration.html',
   '/clinic-staff.html',
   '/clinic.html',
+  '/clinic-about.html',
+  '/clinic-services.html',
+  '/clinic-contact.html',
+  '/clinic-contact-admin.html',
+  '/clinic-public.css',
+  '/clinic-public.js',
+  '/clinic-contact-editor.js',
   '/companies.html',
   '/company-contribution-panel.js',
   '/family-correction-panel.js',
@@ -7937,6 +7945,8 @@ installDepartmentAdmin(app, {
 // ------------------------------------------------------------
 // SAFE API 404
 // ------------------------------------------------------------
+
+installClinicPublicSettings(app, { query, withTransaction, getAuthenticatedAdmin, getAuthenticatedClinicStaff });
 
 app.use('/api', (_req, res) => {
   res.status(404).json({

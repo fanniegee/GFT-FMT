@@ -2,7 +2,7 @@
   'use strict';
   const sections = [...document.querySelectorAll('[data-media-galleries]')];
   if (!sections.length) return;
-  const labels = { 'ama-2k': 'AMA-2k', 'gen-1-5': 'GEN 1–5', events: 'Family Events', biographs: 'Family Biography' };
+  const labels = { 'ama-2k': 'AMA-2k', 'gen-1-5': 'GEN 1–5', events: 'Family Events', biographs: 'Family Biography', 'clinic-life': 'Clinic life & care', 'clinic-stories': 'Patient stories & care videos' };
   const cards = [];
   let active = null;
   let previousFocus;
