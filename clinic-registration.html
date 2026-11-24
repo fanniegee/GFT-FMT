@@ -5,7 +5,6 @@
     <!-- Trust browser and home-screen icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/gft-icon-32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/assets/gft-icon-192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/gft-icon-180.png">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#123B5D">
@@ -184,6 +183,10 @@ footer { background: #0B2942; color: var(--white); padding: 45px 6% 25px; font-s
   .footer-grid { grid-template-columns: 1fr; gap: 25px; }
 }
 </style>
+<link rel="manifest" href="/apps/clinic.webmanifest">
+<link rel="apple-touch-icon" href="/assets/clinic-app-192.png">
+<link rel="stylesheet" href="/install-app.css">
+<script src="/install-app.js" data-app="clinic" defer></script>
 </head>
 <body>
 <nav class="topbar">
@@ -439,7 +442,7 @@ footer { background: #0B2942; color: var(--white); padding: 45px 6% 25px; font-s
     <div>
       <div class="footer-title">Guvaza</div>
       <div class="footer-links">
-        <a href="index.html">GFT Homepage</a>
+        <a href="https://guvazafamilytrust.com/">GFT Homepage</a>
         <a href="companies.html">Companies</a>
         <a href="library.html">Library</a>
       </div>

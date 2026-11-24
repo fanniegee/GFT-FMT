@@ -1,3 +1,4 @@
+import { installDepartmentApps } from './department-apps.js';
 import { installAdminPortalAccess, portalRoleError } from './admin-portal-access.js';
 import { installPublicMediaGalleries } from './public-media-galleries.js';
 import { installBeneficiaryTransfers } from './beneficiary-transfers.js';
@@ -145,7 +146,10 @@ const publicFiles = [
   '/styles.css',
   '/trustRules.js',
   '/typography.css',
+  '/install-app.js',
+  '/install-app.css',
 ];
+installDepartmentApps(app, publicRoot);
 app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
 installAdminPortalAccess(app, getAuthenticatedAdmin);
 app.get(publicFiles, (req, res) => res.sendFile(req.path.slice(1), { root: publicRoot, dotfiles: 'deny' }));
@@ -164,6 +168,8 @@ const allowedOrigins = String(
   .split(',')
   .map(v => v.trim())
   .filter(Boolean);
+
+allowedOrigins.push('https://library.guvazafamilytrust.com', 'https://clinic.guvazafamilytrust.com');
 
 app.use(helmet());
 
