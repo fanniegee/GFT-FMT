@@ -7,6 +7,24 @@
     return;
   }
 
+  const themes = {
+    tv: { name: 'GFT.TV', mark: 'TV', tagline: 'Four Worlds. One Destination.', home: 'https://gft-tv.onrender.com', description: 'Welcome to GFT.TV administration. Sign in or accept your invitation to join the television team.' },
+    library: { name: 'Guvaza Library', mark: '▤', tagline: 'Knowledge • Heritage • Imagination', home: 'library.html', description: 'A home for knowledge, heritage and imagination. Sign in or accept your invitation to join the Library team.' },
+    spotlight: { name: 'Spotlight Studio', mark: '✦', tagline: 'Create • Collaborate • Inspire', home: 'gft-spotlight-membership.html', description: 'Support our creative community. Sign in or accept your invitation to join the Spotlight Studio team.' }
+  };
+  const theme = themes[department];
+  document.body.dataset.department = department;
+  document.title = theme.name + ' Admin | Guvaza Family Trust';
+  get('departmentBrand').textContent = theme.name;
+  get('departmentMark').textContent = theme.mark;
+  get('departmentTagline').textContent = theme.tagline;
+  get('departmentDescription').textContent = theme.description;
+  get('departmentHome').href = theme.home;
+  get('departmentBack').href = theme.home;
+  document.querySelectorAll('nav a').forEach(link => {
+    if (new URL(link.href).searchParams.get('department') === department) link.setAttribute('aria-current', 'page');
+  });
+
   const base = '/api/staff-admin/' + department;
   let invitation = new URLSearchParams(location.hash.slice(1)).get('invite');
   if (invitation) history.replaceState(null, '', location.pathname + location.search);

@@ -12,26 +12,66 @@
   <title>Department Admin | Guvaza Family Trust</title>
   <link rel="stylesheet" href="typography.css">
   <style>
-    body { margin: 0; background: #f4f7f5; color: #17251d; }
-    main { max-width: 38rem; margin: 3rem auto; padding: 0 1rem; }
-    nav { display: flex; flex-wrap: wrap; gap: 1rem; }
-    form, #account { padding: 1.3rem; margin: 1rem 0; border: 1px solid #cad8ce; border-radius: .7rem; background: white; }
-    label, input, button { display: block; margin: .55rem 0; }
-    input { box-sizing: border-box; width: 100%; padding: .65rem; }
-    button { background: #185737; color: white; border: 0; border-radius: .4rem; padding: .65rem 1rem; font-weight: 700; cursor: pointer; }
-    a { color: #185737; font-weight: 700; }
-  </style>
+:root { --page:#f3f5f8; --ink:#10131b; --muted:#626b78; --line:#dce1e8; --dark:#10131b; --accent:#164b9a; --button-ink:#fff; --wash:#d222311a; --brand:linear-gradient(145deg,#164b9a,#d22231); }
+body[data-department="library"] { --page:#f6f2eb; --ink:#29231f; --muted:#746a60; --line:#e5d8c6; --dark:#17120f; --accent:#c9a45c; --button-ink:#211915; --wash:#c9a45c20; --brand:linear-gradient(135deg,#ead7a7,#a97a2d); }
+body[data-department="tv"] { --page:#eef5fc; --ink:#07152b; --muted:#526580; --line:#d5e2f0; --dark:#07152b; --accent:#0878e8; --button-ink:#fff; --wash:#0878e820; --brand:linear-gradient(135deg,#0878e8,#27c5ef); }
+* { box-sizing:border-box; }
+body { margin:0; background:radial-gradient(circle at top right,var(--wash),transparent 55%),var(--page); color:var(--ink); min-height:100vh; font-family:Montserrat,Arial,sans-serif; }
+.department-top { background:var(--dark); color:white; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:18px max(5%,calc((100% - 1120px)/2)); border-bottom:3px solid var(--accent); }
+.department-brand { display:flex; align-items:center; gap:12px; color:white; text-decoration:none; }
+.department-mark { display:grid; place-items:center; width:48px; height:48px; border-radius:50%; background:var(--brand); color:var(--button-ink); font-size:23px; }
+.department-brand strong { display:block; font-size:18px; }
+.department-brand small { display:block; font-size:10px; letter-spacing:1px; color:#e1e5eb; margin-top:5px; }
+.department-home { color:white; text-decoration:none; font-size:12px; border:1px solid #ffffff66; padding:10px 14px; border-radius:24px; }
+main { max-width:1080px; margin:0 auto; padding:34px 22px 65px; }
+nav { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:30px; }
+nav a { text-decoration:none; border:1px solid var(--line); border-radius:22px; background:#fff; padding:10px 16px; color:var(--ink); font-size:12px; font-weight:700; }
+nav a[aria-current="page"] { background:var(--dark); color:white; border-color:var(--dark); }
+.department-intro { padding:18px 0 22px; max-width:760px; }
+.department-eyebrow { color:var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:2px; font-weight:800; }
+body[data-department="library"] .department-eyebrow { color:#8c6726; }
+h1 { font-size:clamp(28px,4vw,43px); margin:12px 0; }
+.department-intro p { color:var(--muted); line-height:1.8; font-size:14px; }
+.department-secure { display:inline-block; background:white; border:1px solid var(--line); padding:9px 14px; border-radius:24px; font-size:11px; font-weight:700; }
+.department-forms { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; align-items:start; }
+form,#account { min-width:0; margin:0; padding:28px; border:1px solid var(--line); border-radius:18px; background:white; box-shadow:0 12px 35px #07152b09; }
+form h2 { margin:0 0 20px; font-size:21px; }
+label { display:block; margin:15px 0; font-size:13px; font-weight:600; }
+input,select { display:block; width:100%; min-width:0; margin-top:8px; padding:12px; border:1px solid var(--line); border-radius:9px; background:#fff; color:var(--ink); font:inherit; }
+button { display:block; margin-top:20px; border:0; border-radius:10px; background:var(--accent); color:var(--button-ink); padding:13px 18px; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+body[data-department="spotlight"] form button { background:linear-gradient(115deg,#d22231,#171b25 48%,#164b9a); }
+button:disabled { opacity:.6; cursor:wait; }
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+#status:not(:empty) { border:1px solid var(--line); border-left:4px solid var(--accent); background:#fff; border-radius:10px; padding:14px 18px; line-height:1.6; }
+[hidden] { display:none!important; }
+@media(max-width:680px) { .department-top { padding:16px; flex-wrap:wrap; } main { padding:24px 16px 45px; } .department-forms { grid-template-columns:1fr; } form,#account { padding:22px; } .department-brand strong { font-size:16px; } }
+
+body[data-department="tv"] { --page:#081120; --ink:#fff; --muted:#aebbd0; --line:#263b59; }
+body[data-department="tv"] form,body[data-department="tv"] #account,body[data-department="tv"] nav a,body[data-department="tv"] .department-secure,body[data-department="tv"] #status:not(:empty) { background:#0e2039; }
+body[data-department="tv"] input,body[data-department="tv"] select { background:#07152b; }
+body[data-department="tv"] nav a[aria-current="page"] { background:#0878e8; border-color:#0878e8; }
+</style>
   <script defer src="staff-admin.js"></script>
 </head>
 <body>
+<header class="department-top">
+  <a id="departmentHome" class="department-brand" href="index.html"><span id="departmentMark" class="department-mark" aria-hidden="true">✦</span><span><strong id="departmentBrand">Department Admin</strong><small id="departmentTagline">Guvaza Family Trust</small></span></a>
+  <a id="departmentBack" class="department-home" href="index.html">Visit homepage →</a>
+</header>
 <main>
   <nav aria-label="Departments">
     <a href="?department=tv">GFT-TV</a>
     <a href="?department=spotlight">Spotlight Studio</a>
     <a href="?department=library">GFT-Library</a>
   </nav>
-  <h1 id="heading">Department Admin</h1>
+  <section class="department-intro">
+    <span class="department-eyebrow">Administration &amp; invitations</span>
+    <h1 id="heading">Department Admin</h1>
+    <p id="departmentDescription">Secure access for your department team.</p>
+    <span class="department-secure">Private staff access</span>
+  </section>
   <p id="status" role="status"></p>
+  <div class="department-forms">
   <section id="account" hidden>
     <p id="identity"></p>
     <button id="logout" type="button">Sign out</button>
@@ -63,6 +103,7 @@
     <label>Super Admin invitations <select name="enabled"><option value="true">Grant authority</option><option value="false">Revoke authority</option></select></label>
     <button>Save authority</button>
   </form>
+  </div>
 </main>
 </body>
 </html>
