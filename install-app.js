@@ -1,7 +1,7 @@
 (() => {
   const script = document.currentScript;
   const app = script?.dataset.app;
-  const names = { tv: 'GFT.TV', library: 'Guvaza Library', clinic: 'GGC Clinic' };
+  const names = { gft: 'Guvaza Family Trust', tv: 'GFT.TV', library: 'Guvaza Library', clinic: 'GGC Clinic' };
   if (!names[app] || !window.isSecureContext) return;
   let promptEvent;
   let banner;

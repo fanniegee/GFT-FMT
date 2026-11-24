@@ -1,5 +1,6 @@
 import path from 'node:path';
 export const departmentApps = Object.freeze({
+  gft: { name:'Guvaza Family Trust', color:'#0f172a', page:'index.html' },
   library: { name:'Guvaza Library', color:'#17120f', page:'library.html' },
   clinic: { name:'GGC Clinic', color:'#0B2942', page:'clinic.html' }
 });
@@ -16,7 +17,7 @@ export function installDepartmentApps(app, publicRoot) {
   });
   app.get('/app-worker.js', (_req,res) => res.set({'Cache-Control':'no-store','Service-Worker-Allowed':'/'}).type('application/javascript').sendFile(path.join(publicRoot,'app-worker.js')));
   app.use((req,res,next)=>{
-    const name=Object.keys(departmentApps).find(key=>req.hostname===key+'.guvazafamilytrust.com');
+    const name=Object.keys(departmentApps).find(key=>key!=='gft' && req.hostname===key+'.guvazafamilytrust.com');
     if(!name) return next();
     if(req.path==='/'||req.path==='/index.html') return res.sendFile(path.join(publicRoot,departmentApps[name].page));
     if(['/about.html','/contact.html','/companies.html','/founder.html','/admin.html'].includes(req.path)) return res.redirect(302,'https://guvazafamilytrust.com'+req.originalUrl);
