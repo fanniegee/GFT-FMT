@@ -13,8 +13,10 @@
             : String(value);
     }
 
+    let serverFooterConfig = null;
+    const configEndpoint = document.currentScript?.dataset.configEndpoint || '/api/config/public';
     function getConfig() {
-        return window.TRUST_CONFIG || {};
+        return serverFooterConfig || window.TRUST_CONFIG || {};
     }
 
     function createEl(tag, className, text) {
@@ -26,7 +28,7 @@
 
     function makeLink(href, label, icon) {
         const a = document.createElement("a");
-        a.href = href || "#";
+        a.href = href ? new URL(href, "https://guvazafamilytrust.com/").href : "#";
         a.className = "gft-footer-link";
 
         if (icon) {
@@ -44,7 +46,7 @@
 
         const CFG = getConfig();
         const contact = CFG.contact || {};
-        const social = CFG.social || {};
+        const social = Array.isArray(CFG.social) ? Object.fromEntries(CFG.social.map(item => [String(item.platform || '').toLowerCase(), item.url])) : (CFG.social || {});
         const year = new Date().getFullYear();
 
         const footer = createEl("footer", "gft-public-footer");
@@ -63,7 +65,7 @@
         const trustName = createEl(
             "div",
             "gft-footer-trust-name",
-            safe(CFG.trustName, "Guvaza Family Trust")
+            safe(CFG.trustName || CFG.name, "Guvaza Family Trust")
         );
 
         logo.appendChild(trustName);
@@ -179,7 +181,7 @@
             "span",
             "",
             "© " + year + " " +
-            safe(CFG.trustName, "The Guvaza Family Trust") +
+            safe(CFG.trustName || CFG.name, "The Guvaza Family Trust") +
             ". All Rights Reserved."
         );
 
@@ -198,8 +200,17 @@
         mount.dataset.rendered = "true";
     }
 
-    function boot() {
+    async function boot() {
         renderFooter();
+        try {
+            const response = await fetch(configEndpoint, { credentials: 'omit', signal: AbortSignal.timeout(8000) });
+            const result = await response.json();
+            if (!response.ok || !result.ok || !result.config) return;
+            serverFooterConfig = result.config;
+            const mount = document.getElementById('gft-public-footer');
+            if (mount) delete mount.dataset.rendered;
+            renderFooter();
+        } catch { /* Keep navigation available during a temporary outage. */ }
     }
 
     if (document.readyState === "loading") {

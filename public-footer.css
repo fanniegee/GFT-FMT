@@ -250,3 +250,6 @@
         padding: 10px 0;
     }
 }
+
+.gft-public-footer { margin:0; padding:0; border:0; background:none; max-width:none; text-align:left; }
+.gft-public-footer,.gft-public-footer * { box-sizing:border-box; }
