@@ -1,6 +1,1525 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GPTS | Technology Solutions &amp; Payments</title><meta name="description" content="Guvaza Pro-Technology Solutions: software, websites, POS and digital solutions, alongside regional payment account services."><link rel="icon" href="assets/company7.png"><link rel="stylesheet" href="typography.css"><link rel="stylesheet" href="gpts-public.css"></head><body>
-<header><div class="gpts-nav"><a class="gpts-brand" href="gpts.html"><img src="assets/company7.png" alt="GPTS logo"><span>GPTS<small>Guvaza Pro-Technology Solutions</small></span></a><nav aria-label="GPTS navigation"><a href="#services">Our services</a><a href="gpts-exchange-rates.html">Exchange board</a><a href="gpts-customer-access.html">Sign in</a><a class="button" href="gpts-customer-access.html?mode=register">Create account</a></nav></div></header>
-<main><section class="wrap hero"><div><span class="eyebrow">Technology. Connection. Possibility.</span><h1>Digital tools for business.<br>Connections for people.</h1><p>Build your digital presence, simplify business operations and manage your regional payment instructions with Guvaza Pro-Technology Solutions.</p><div class="actions"><a class="button" href="gpts-customer-access.html?mode=register">Open your GPTS account</a><a class="button secondary" href="#services">Explore our services</a></div><p class="caption">Open to customers beyond the Guvaza family. Your GPTS account is separate from Trust beneficiary membership.</p></div><img src="assets/gpts-technology.svg" alt="Illustration of connected software, mobile and point of sale tools" fetchpriority="high"></section>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <!-- Trust browser and home-screen icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/gft-icon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/gft-icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/gft-icon-180.png">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="The Guvaza Family Trust">
+    <meta property="og:title" content="GPTS | Technology Solutions &amp; Payments">
+    <meta property="og:description" content="Explore the Guvaza Family Trust: our family heritage, companies, community and creative opportunities.">
+    <meta property="og:url" content="https://guvazafamilytrust.com/gpts.html">
+    <meta property="og:image" content="https://guvazafamilytrust.com/assets/gft-share-banner.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:alt" content="The Guvaza Family Trust logo and official website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Company - Guvaza Trust">
+    <meta name="twitter:description" content="Family. Heritage. Opportunity. Explore the Guvaza Family Trust.">
+    <meta name="twitter:image" content="https://guvazafamilytrust.com/assets/gft-share-banner.png">
+    <meta name="twitter:image:alt" content="The Guvaza Family Trust logo and official website">
+
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>GPTS | Technology Solutions &amp; Payments</title>
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<link rel="stylesheet" href="typography.css">
+
+<script src="config.js"></script>
+
+<link rel="stylesheet" href="public-footer.css">
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Montserrat, Arial, sans-serif;
+    background:#FFF5EB;
+    color:#1e293b;
+}
+
+.mi{
+    font-family:'Material Icons Round';
+    vertical-align:middle;
+}
+
+/* =========================
+   TOP NAVIGATION
+========================= */
+
+.top-menu{
+    display:flex;
+    gap:18px;
+    padding:14px 20px;
+    background:#fff;
+    position:sticky;
+    top:0;
+    z-index:20;
+    border-bottom:1px solid #fde5c8;
+}
+
+.top-menu a{
+    color:#57534e;
+    text-decoration:none;
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    padding:7px 12px;
+    border-radius:8px;
+}
+
+.top-menu a.active{
+    color:#ea580c;
+    background:#FFF7ED;
+    border:1px solid #fed7aa;
+}
+
+/* =========================
+   COMPANY BANNER
+========================= */
+
+.banner-wrap{
+    position:relative;
+    height:320px;
+    background:#0f172a;
+    overflow:hidden;
+    border-bottom:4px solid var(--company-color,#ea580c);
+}
+
+.banner-wrap img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.banner-overlay{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+        to top,
+        rgba(0,0,0,.7) 0%,
+        rgba(0,0,0,.1) 60%
+    );
+}
+
+/* =========================
+   COMPANY HEADER
+========================= */
+
+.company-header{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 20px;
+    position:relative;
+    margin-top:-70px;
+    z-index:2;
+    display:flex;
+    gap:18px;
+    align-items:flex-end;
+    flex-wrap:wrap;
+}
+
+.logo-big{
+    width:110px;
+    height:110px;
+    background:#fff;
+    border-radius:18px;
+    border:4px solid #fff;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    flex-shrink:0;
+}
+
+.logo-big img{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+}
+
+.header-text{
+    flex:1;
+    min-width:260px;
+    background:#fff;
+    border-radius:16px;
+    padding:14px 18px;
+    border:1px solid #fde5c8;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+}
+
+.header-text h1{
+    margin:0;
+    font-size:26px;
+    color:#1c1917;
+}
+
+.header-text p{
+    margin:4px 0 0 0;
+    color:#78716c;
+    font-size:13px;
+}
+
+/* =========================
+   MAIN CONTENT
+========================= */
+
+.content{
+    max-width:1100px;
+    margin:20px auto;
+    padding:0 20px 40px 20px;
+}
+
+.card{
+    background:#fff;
+    border:1px solid #fde5c8;
+    border-radius:16px;
+    padding:20px;
+    margin-bottom:18px;
+    box-shadow:0 4px 20px rgba(251,146,60,.06);
+}
+
+.badge{
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:800;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+}
+
+/* =========================
+   WELCOME NOTE
+========================= */
+
+.welcome-card{
+    position:relative;
+    overflow:hidden;
+    border-left:5px solid var(--company-color,#ea580c);
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff 0%,
+            #fffaf5 100%
+        );
+}
+
+.welcome-card::after{
+    content:"";
+    position:absolute;
+    width:150px;
+    height:150px;
+    border-radius:50%;
+    right:-65px;
+    top:-70px;
+    background:var(--company-color,#ea580c);
+    opacity:.06;
+}
+
+.welcome-title{
+    margin:0 0 8px 0;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#1c1917;
+    font-size:18px;
+}
+
+.welcome-title .mi{
+    color:var(--company-color,#ea580c);
+    font-size:23px;
+}
+
+.welcome-text{
+    margin:0;
+    color:#57534e;
+    line-height:1.7;
+    font-size:14px;
+}
+
+/* =========================
+   GALLERY
+========================= */
+
+.gallery-grid{
+    display:grid;
+    grid-template-columns:
+        repeat(auto-fill,minmax(220px,1fr));
+    gap:14px;
+    margin-top:14px;
+}
+
+.gallery-item{
+    background:#1e293b;
+    border-radius:12px;
+    overflow:hidden;
+    border:1px solid #334155;
+    position:relative;
+    cursor:pointer;
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.gallery-item:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
+}
+
+.gallery-item img{
+    width:100%;
+    height:160px;
+    object-fit:cover;
+    display:block;
+}
+
+.gallery-info{
+    padding:10px;
+    color:#e2e8f0;
+}
+
+.gallery-info.tag{
+    background:#0f172a;
+    border:1px solid #334155;
+    padding:3px 8px;
+    border-radius:20px;
+    font-size:10px;
+    font-weight:800;
+    color:#94a3b8;
+    display:inline-block;
+    margin-bottom:6px;
+    text-transform:capitalize;
+}
+
+.gallery-info.caption{
+    font-size:12px;
+    color:#cbd5e1;
+    line-height:1.3;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.back-btn{
+    background:#1e293b;
+    color:#fff;
+    border:0;
+    padding:10px 16px;
+    border-radius:10px;
+    font-weight:800;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin:16px 0;
+}
+
+.back-btn:hover{
+    opacity:.92;
+}
+
+/* =========================
+   LIGHTBOX
+========================= */
+
+.lightbox{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.9);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+}
+
+.lightbox.show{
+    display:flex;
+}
+
+.lightbox-inner{
+    position:relative;
+    text-align:center;
+    max-width:95vw;
+}
+
+.lightbox img{
+    max-width:90vw;
+    max-height:80vh;
+    border-radius:12px;
+    display:block;
+    margin:auto;
+}
+
+.lightbox-close{
+    position:absolute;
+    top:-42px;
+    right:0;
+    width:36px;
+    height:36px;
+    border:0;
+    border-radius:50%;
+    background:#fff;
+    color:#111827;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+}
+
+.lightbox-caption{
+    color:#fff;
+    margin-top:12px;
+    font-size:13px;
+}
+
+.lightbox-tag{
+    margin-top:8px;
+    background:#fff;
+    color:#000;
+    text-transform:capitalize;
+}
+
+/* =========================
+   EMPTY / ERROR STATES
+========================= */
+
+.company-error{
+    max-width:700px;
+    margin:60px auto;
+    padding:30px 20px;
+    text-align:center;
+}
+
+.company-error .mi{
+    font-size:48px;
+    color:#ea580c;
+}
+
+.company-error h2{
+    margin:12px 0 8px;
+}
+
+.company-error p{
+    color:#78716c;
+    font-size:14px;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:700px){
+
+    .top-menu{
+        gap:5px;
+        padding:10px;
+        overflow-x:auto;
+    }
+
+    .top-menu a{
+        font-size:10px;
+        padding:7px 9px;
+        white-space:nowrap;
+    }
+
+    .banner-wrap{
+        height:240px;
+    }
+
+    .company-header{
+        margin-top:-50px;
+        padding:0 14px;
+    }
+
+    .logo-big{
+        width:90px;
+        height:90px;
+    }
+
+    .header-text{
+        min-width:0;
+        width:100%;
+    }
+
+    .header-text h1{
+        font-size:21px;
+    }
+
+    .content{
+        padding:0 14px 30px;
+    }
+
+    .gallery-grid{
+        grid-template-columns:
+            repeat(auto-fill,minmax(150px,1fr));
+        gap:10px;
+    }
+
+    .gallery-item img{
+        height:125px;
+    }
+
+    .card{
+        padding:16px;
+    }
+}
+
+.top-menu{flex-wrap:wrap;align-items:center}#galleryCountBadge,#galleryBadge2{display:none}@media(max-width:700px){.top-menu{overflow-x:visible}.top-menu a{white-space:normal}}
+/* New face contained within the original company layout. */
+.gpts-face{--ink:#16223a;--purple:#66409b;--muted:#5c6a80;--line:#dbe0ec}.gpts-face *{box-sizing:border-box}.gpts-face{margin:0;font-family:Montserrat,Arial,sans-serif;color:var(--ink);background:#f7f8fc;line-height:1.65}.gpts-face a{color:inherit}.gpts-face header{background:#fff;border-bottom:1px solid var(--line)}.gpts-face .gpts-nav{max-width:1200px;margin:auto;padding:18px 24px;display:flex;align-items:center;gap:20px;justify-content:space-between}.gpts-face .gpts-brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-weight:800}.gpts-face .gpts-brand img{width:52px;height:52px;object-fit:contain;border-radius:12px}.gpts-face .gpts-brand small{display:block;font-size:10px;font-weight:600;color:var(--muted)}.gpts-face nav{display:flex;align-items:center;gap:18px;flex-wrap:wrap}.gpts-face nav a{text-decoration:none;font-size:13px;font-weight:600}.gpts-face .button,.gpts-face button{display:inline-flex;justify-content:center;align-items:center;background:var(--purple);color:white;border:1px solid transparent;padding:12px 19px;border-radius:10px;font:inherit;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}.gpts-face .button.secondary{background:#fff;color:var(--purple);border-color:#cdbfdf}.gpts-face .wrap{max-width:1200px;padding:0 24px;margin:auto}.gpts-face .hero{display:grid;grid-template-columns:1fr 1fr;gap:46px;align-items:center;padding-top:65px;padding-bottom:65px}.gpts-face .eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;color:var(--purple)}.gpts-face h1{font-size:clamp(32px,4.7vw,57px);line-height:1.13;letter-spacing:-1.5px;margin:14px 0 20px}.gpts-face h2{font-size:clamp(25px,3vw,35px);line-height:1.25;margin:12px 0 18px}.gpts-face h3{font-size:18px}.gpts-face .hero p,.gpts-face .lede{font-size:16px;color:var(--muted)}.gpts-face .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}.gpts-face .hero img,.gpts-face .service-image{width:100%;height:auto;display:block;border-radius:26px}.gpts-face .services{padding-top:20px;padding-bottom:65px}.gpts-face .service-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.gpts-face .service-card{padding:28px;background:#fff;border:1px solid var(--line);border-radius:22px}.gpts-face .service-card img{height:245px;width:100%;object-fit:cover;border-radius:16px;margin-bottom:25px}.gpts-face .service-card p{color:var(--muted)}.gpts-face .points{padding-left:20px;font-size:14px}.gpts-face .points li{margin:9px 0}.gpts-face .connection{background:#1a213a;color:#fff;border-radius:24px;padding:40px;margin-bottom:60px;display:grid;grid-template-columns:1.2fr 1fr;gap:30px}.gpts-face .connection p{color:#d4d9e5}.gpts-face .connection .eyebrow{color:#c6aae9}.gpts-face .steps{display:grid;gap:16px}.gpts-face .step{border:1px solid #ffffff26;border-radius:12px;padding:18px}.gpts-face .step strong{display:block}.gpts-face .step small{color:#c6cddd}.gpts-face .account-shell{max-width:930px;margin:45px auto;padding:0 20px 50px}.gpts-face .account-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:32px}.gpts-face .account-card h1{font-size:32px}.gpts-face .account-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}.gpts-face .account-tabs button{background:#edf0f7;color:#3c3550}.gpts-face .account-tabs button[aria-selected=true]{background:var(--purple);color:white}.gpts-face .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}.gpts-face label{display:block;font-size:13px;font-weight:600;margin:14px 0}.gpts-face input,.gpts-face select{display:block;width:100%;padding:12px;margin-top:6px;border:1px solid #acb8cc;border-radius:8px;font:inherit;color:var(--ink);background:#fff;min-width:0}.gpts-face .check{display:flex;align-items:flex-start;gap:10px;font-size:12px}.gpts-face .check input{width:auto;margin:5px 0}.gpts-face .caption{font-size:12px;color:var(--muted)}.gpts-face #accessStatus{padding:14px;background:#f1ecf9;border-radius:9px;overflow-wrap:anywhere}.gpts-face #accessStatus:empty{display:none}.gpts-face .recovery{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.gpts-face .recovery button{background:none;color:var(--purple);padding:6px;border:0}.gpts-face .wide{grid-column:1/-1}.gpts-face button:disabled{opacity:.6;cursor:wait}.gpts-face [hidden]{display:none!important}.gpts-face a:focus-visible,.gpts-face button:focus-visible,.gpts-face input:focus-visible,.gpts-face select:focus-visible{outline:3px solid #c49338;outline-offset:3px}.gpts-face footer{border-top:1px solid var(--line);padding:25px;text-align:center;color:var(--muted);font-size:12px}@media(max-width:760px){.gpts-face .gpts-nav{align-items:flex-start;flex-direction:column;gap:14px;padding:16px 20px}.gpts-face nav{gap:12px}.gpts-face .hero{grid-template-columns:1fr;gap:28px;padding-top:35px;padding-bottom:40px}.gpts-face .hero img{max-height:350px;object-fit:cover}.gpts-face .service-grid,.gpts-face .connection,.gpts-face .form-grid{grid-template-columns:1fr}.gpts-face .service-card{padding:21px}.gpts-face .service-card img{height:auto}.gpts-face .connection{padding:25px;gap:18px}.gpts-face .wrap{padding-left:20px;padding-right:20px}.gpts-face .account-card{padding:22px}.gpts-face .gpts-brand small{font-size:9px}.gpts-face .wide{grid-column:auto}}
+
+.gpts-face{--ink:#11283d;--purple:#087dae;--muted:#53697b;--line:#cbdde6;background:transparent;color:var(--ink)}.gpts-face .wrap{max-width:none;padding-left:0;padding-right:0}.gpts-face .hero{padding-top:32px;padding-bottom:46px}.gpts-face .hero h1{font-size:clamp(30px,4vw,49px)}.gpts-face .connection{background:linear-gradient(120deg,#040b13,#092d48);border:1px solid #2a829e}.gpts-face .connection .eyebrow{color:#69d9f0}.gpts-face .button{background:linear-gradient(125deg,#006db3,#0b9bbf);border-color:#087dae}.gpts-face .button.secondary{background:#f4fbfd;color:#075e89;border-color:#9fc9dc}.gpts-face .service-card{border-color:#c6dbe6;box-shadow:0 8px 24px #0c39590a}.gpts-face .step{border-color:#64a7bf55}.gpts-face .connection .step small{color:#c6dae5}.gpts-face .connection p{color:#d0e1ea}.gpts-face .connection h2{color:#fff}.top-menu a.gpts-register{background:#edf9fd;border-color:#9fc9dc;color:#075e89}@media(max-width:760px){.gpts-face .hero{padding-top:24px;padding-bottom:30px}.gpts-face .connection{margin-bottom:25px}}
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     NAVIGATION
+========================= -->
+
+<nav class="top-menu">
+    <a href="index.html">Home</a>
+    <a href="companies.html" class="active">Companies</a>
+    <a href="contact.html">Contact</a>
+    <a href="about.html">About</a>
+    <a href="#services">GPTS Services</a>
+    <a href="gpts-exchange-rates.html">Exchange Board</a>
+    <a href="gpts-customer-access.html">Sign in</a>
+    <a href="gpts-customer-access.html?mode=register" class="gpts-register">Create account</a>
+</nav>
+
+
+<!-- =========================
+     COMPANY BANNER
+========================= -->
+
+<div
+    id="banner"
+    class="banner-wrap"
+    style="--company-color:#ea580c;"
+>
+    <img
+        id="bannerImg"
+        src=""
+        alt="Company banner"
+    >
+
+    <div class="banner-overlay"></div>
+</div>
+
+
+<!-- =========================
+     COMPANY HEADER
+========================= -->
+
+<div class="company-header">
+
+    <div class="logo-big" id="logoWrap">
+        <img
+            id="logoImg"
+            src=""
+            alt="Company logo"
+        >
+    </div>
+
+    <div class="header-text">
+
+        <h1 id="compName">
+            Company
+        </h1>
+
+        <p id="compInfo">
+            Company information
+        </p>
+
+        <div style="margin-top:8px">
+
+            <span
+                class="badge"
+                id="compBadge"
+                style="
+                    background:#FFF7ED;
+                    color:#ea580c;
+                    border:1px solid #fed7aa;
+                "
+            >
+                <span
+                    class="mi"
+                    style="font-size:16px"
+                >apartment</span>
+
+                ID
+            </span>
+
+            <span
+                class="badge"
+                id="galleryCountBadge"
+                style="
+                    background:#1e293b;
+                    color:#e2e8f0;
+                "
+            >
+                0 Photos
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     MAIN CONTENT
+========================= -->
+
+<div class="content">
+
+    <button
+        class="back-btn"
+        id="backBtn"
+        type="button"
+    >
+        <span class="mi">arrow_back</span>
+        Back to Companies
+    </button>
+
+
+<div class="gpts-face"><section class="wrap hero"><div><span class="eyebrow">Technology. Connection. Possibility.</span><h1>Digital tools for business.<br>Connections for people.</h1><p>Build your digital presence, simplify business operations and manage your regional payment instructions with Guvaza Pro-Technology Solutions.</p><div class="actions"><a class="button" href="gpts-customer-access.html?mode=register">Open your GPTS account</a><a class="button secondary" href="#services">Explore our services</a></div><p class="caption">Open to customers beyond the Guvaza family. Your GPTS account is separate from Trust beneficiary membership.</p></div><img src="assets/gpts-technology.svg" alt="Illustration of connected software, mobile and point of sale tools" fetchpriority="high"></section>
 <section class="wrap services" id="services"><span class="eyebrow">Two services. One GPTS account.</span><h2>Practical solutions for a connected world</h2><div class="service-grid"><article class="service-card"><img src="assets/gpts-technology.svg" alt="Digital business systems illustration" loading="lazy"><span class="eyebrow">01 · Technology solutions</span><h3>Bring your business into the digital world</h3><p>Software, websites, point of sale systems and digital solutions shaped around the way your organisation works.</p><ul class="points"><li>Websites and digital business presence</li><li>Business applications and workflow tools</li><li>POS systems and technology integration</li></ul><a class="button secondary" href="gpts-customer-access.html?mode=register&amp;service=TECHNOLOGY">Register for technology services</a></article>
 <article class="service-card"><img src="assets/gpts-regional-payments.svg" alt="Zimbabwe's regional connections with South Africa, Botswana, Zambia and Mozambique" loading="lazy"><span class="eyebrow">02 · Payments &amp; regional transfers</span><h3>Keep your regional payments organised</h3><p>View official published reference rates, save transfer instructions and track your records in a separate GPTS customer account.</p><ul class="points"><li>Zimbabwe and its four neighbouring countries</li><li>Bank and mobile-wallet receiving preferences</li><li>Permanent instruction references and account history</li></ul><p class="caption">Transfer channels are awaiting provider connection. Money movement requires identity verification, an available channel and your acceptance of the provider's quote.</p><a class="button secondary" href="gpts-exchange-rates.html">View official exchange board</a></article></div></section>
-<section class="wrap"><div class="connection"><div><span class="eyebrow">An account for every customer</span><h2>Your business relationship with GPTS starts here.</h2><p>You do not need to be a Trust beneficiary to become a GPTS customer. Register with your own email, verify it and sign in to your account.</p><p>Customer registration gives access to GPTS account services. It does not establish family lineage, create a GFT family ID or grant Trust distributions.</p><a class="button" href="gpts-customer-access.html?mode=register">Create your account</a></div><div class="steps"><div class="step"><strong>1 · Register</strong><small>Enter your details and choose the services that interest you.</small></div><div class="step"><strong>2 · Verify your email</strong><small>Use the single-use link sent to your inbox.</small></div><div class="step"><strong>3 · Manage your account</strong><small>Access your instructions and account status. Payment verification is separate from email verification.</small></div></div></div></section></main><footer>GPTS · Guvaza Pro-Technology Solutions · <a href="companies.html">Trust companies</a> · <a href="index.html">GFT Home</a></footer></body></html>
+<section class="wrap"><div class="connection"><div><span class="eyebrow">An account for every customer</span><h2>Your business relationship with GPTS starts here.</h2><p>You do not need to be a Trust beneficiary to become a GPTS customer. Register with your own email, verify it and sign in to your account.</p><p>Customer registration gives access to GPTS account services. It does not establish family lineage, create a GFT family ID or grant Trust distributions.</p><a class="button" href="gpts-customer-access.html?mode=register">Create your account</a></div><div class="steps"><div class="step"><strong>1 · Register</strong><small>Enter your details and choose the services that interest you.</small></div><div class="step"><strong>2 · Verify your email</strong><small>Use the single-use link sent to your inbox.</small></div><div class="step"><strong>3 · Manage your account</strong><small>Access your instructions and account status. Payment verification is separate from email verification.</small></div></div></div></section></div>
+
+    <!-- =========================
+         GALLERY
+    ========================= -->
+
+    <div class="card">
+
+        <h3
+            style="
+                margin:0 0 8px 0;
+                display:flex;
+                align-items:center;
+                gap:7px;
+                flex-wrap:wrap;
+            "
+        >
+
+            <span
+                class="mi"
+                id="galleryIcon"
+                style="color:#8b5cf6"
+            >
+                photo_library
+            </span>
+
+            Gallery — Tagged Images
+
+            <span
+                id="galleryBadge2"
+                class="badge"
+                style="
+                    margin-left:4px;
+                    background:#f5f3ff;
+                    color:#6d28d9;
+                "
+            >
+                0 images
+            </span>
+
+        </h3>
+
+        <div
+            id="galleryGrid"
+            class="gallery-grid"
+        ></div>
+
+        <div
+            id="noGallery"
+            style="
+                color:#78716c;
+                font-size:13px;
+                display:none;
+                padding:10px 0 2px;
+            "
+        >
+            No images yet — Gallery images can be added from
+            Founder/Admin company management.
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     LIGHTBOX
+========================= -->
+
+<div
+    id="lightbox"
+    class="lightbox"
+    aria-hidden="true"
+>
+
+    <div class="lightbox-inner">
+
+        <button
+            id="lightboxClose"
+            class="lightbox-close"
+            type="button"
+            aria-label="Close image"
+        >
+            <span class="mi">close</span>
+        </button>
+
+        <img
+            id="lightImg"
+            src=""
+            alt="Gallery image"
+        >
+
+        <div
+            id="lightCaption"
+            class="lightbox-caption"
+        ></div>
+
+        <span
+            id="lightTag"
+            class="badge lightbox-tag"
+        ></span>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   GUVAZA COMPANY DETAIL PAGE
+   ---------------------------------------------------------
+   PUBLIC / VIEW ONLY
+
+   Canonical source:
+       config.js
+       TRUST_CONFIG.companies
+
+   Company editing belongs in:
+       Founder.html
+       admin.html
+
+   Stable company identity:
+       company.id
+
+   Shared company colour:
+       company.color
+========================================================= */
+
+
+/* =========================================================
+   CONFIGURATION
+========================================================= */
+
+let CFG =
+    window.TRUST_CONFIG || {
+        name:"The Guvaza Family Trust",
+        companies:[]
+    };
+
+
+/*
+    This is the existing banner used by the old page.
+
+    It remains the permanent DEFAULT until a company-specific
+    banner is supplied through Founder/Admin.
+
+    Later, when the assets folder is ready, this can become:
+
+        assets/company-banner.jpg
+
+    without changing the rest of the page.
+*/
+const DEFAULT_BANNER =
+    "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200";
+
+
+/*
+    Existing company fallback logo behaviour.
+
+    A company-specific logo from config.js takes priority.
+*/
+const DEFAULT_LOGO = "";
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function getCompanyId(){
+    return 7;
+}
+
+
+function getCompanies(){
+
+    return Array.isArray(CFG.companies)
+        ? CFG.companies
+        : [];
+}
+
+
+function getCompany(){
+
+    const id =
+        getCompanyId();
+
+    const companies =
+        getCompanies();
+
+    if(id === null){
+        return null;
+    }
+
+    return companies.find(
+        company =>
+            Number(company.id) === id
+    ) || null;
+}
+
+
+function isSafeImageSource(value){
+
+    if(typeof value !== "string"){
+        return false;
+    }
+
+    const source =
+        value.trim();
+
+    if(!source){
+        return false;
+    }
+
+    /*
+        Allow normal local assets and HTTPS images.
+    */
+    return (
+        source.startsWith("assets/") ||
+        source.startsWith("./assets/") ||
+        source.startsWith("../assets/") ||
+        source.startsWith("https://") ||
+        source.startsWith("data:image/")
+    );
+}
+
+
+function getCompanyColor(company){
+
+    const color =
+        typeof company.color === "string"
+            ? company.color.trim()
+            : "";
+
+    /*
+        Accept normal CSS hex/rgb/rgba colours.
+        If Founder/Admin later stores a validated colour,
+        it will flow through automatically.
+    */
+
+    if(
+        /^#[0-9a-fA-F]{3,8}$/.test(color) ||
+        /^rgba?\([\d\s.,%]+\)$/.test(color)
+    ){
+
+        return color;
+    }
+
+    return "#ea580c";
+}
+
+
+function setText(id,value){
+
+    const element =
+        document.getElementById(id);
+
+    if(!element){
+        return;
+    }
+
+    element.textContent =
+        value == null
+            ? ""
+            : String(value);
+}
+
+
+/* =========================================================
+   COMPANY ERROR PAGE
+========================================================= */
+
+function showCompanyError(message){
+
+    const content =
+        document.querySelector(".content");
+
+    const header =
+        document.querySelector(".company-header");
+
+    const banner =
+        document.getElementById("banner");
+
+    if(header){
+        header.style.display = "none";
+    }
+
+    if(banner){
+        banner.style.display = "none";
+    }
+
+    if(content){
+
+        content.innerHTML = "";
+
+        const error =
+            document.createElement("div");
+
+        error.className =
+            "company-error";
+
+        error.innerHTML = `
+            <span class="mi">business</span>
+            <h2>Company not found</h2>
+            <p>${message}</p>
+            <button
+                class="back-btn"
+                type="button"
+                onclick="window.location.href='companies.html'"
+            >
+                <span class="mi">arrow_back</span>
+                Back to Companies
+            </button>
+        `;
+
+        content.appendChild(error);
+    }
+}
+
+
+/* =========================================================
+   BANNER
+========================================================= */
+
+function setupBanner(company){
+
+    const banner =
+        document.getElementById("banner");
+
+    const image =
+        document.getElementById("bannerImg");
+
+    const color =
+        getCompanyColor(company);
+
+    banner.style.setProperty(
+        "--company-color",
+        color
+    );
+
+    /*
+        Company-specific banner wins.
+
+        If none exists, the existing permanent default
+        banner is used.
+    */
+    const requestedBanner =
+        isSafeImageSource(company.banner)
+            ? company.banner
+            : DEFAULT_BANNER;
+
+    image.src =
+        requestedBanner;
+
+    image.alt =
+        `${company.name || "Company"} banner`;
+
+    /*
+        If the future company-specific image disappears,
+        return to the permanent default banner rather than
+        displaying a broken image.
+    */
+    image.onerror = function(){
+
+        if(this.dataset.defaultApplied === "1"){
+            return;
+        }
+
+        this.dataset.defaultApplied = "1";
+        this.src = DEFAULT_BANNER;
+    };
+}
+
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+function setupLogo(company){
+
+    const image =
+        document.getElementById("logoImg");
+
+    const requestedLogo =
+        isSafeImageSource(company.logo)
+            ? company.logo
+            : DEFAULT_LOGO;
+
+    if(!requestedLogo){
+
+        image.style.display =
+            "none";
+
+        return;
+    }
+
+    image.style.display =
+        "block";
+
+    image.src =
+        requestedLogo;
+
+    image.alt =
+        `${company.name || "Company"} logo`;
+
+    image.onerror = function(){
+
+        this.style.display =
+            "none";
+    };
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+function setupHeader(company){
+
+    const color =
+        getCompanyColor(company);
+
+    setText(
+        "compName",
+        company.name || "Company"
+    );
+
+    setText(
+        "compInfo",
+        company.info || ""
+    );
+
+    document.title =
+        `${company.name || "Company"} - ${
+            CFG.name || "Guvaza Trust"
+        }`;
+
+
+    /*
+        Company ID badge
+    */
+
+    const badge =
+        document.getElementById(
+            "compBadge"
+        );
+
+    badge.style.color =
+        color;
+
+    badge.style.borderColor =
+        color;
+
+    badge.style.background =
+        "#fff7ed";
+
+    badge.replaceChildren();
+
+    const icon =
+        document.createElement("span");
+
+    icon.className =
+        "mi";
+
+    icon.style.fontSize =
+        "16px";
+
+    icon.textContent =
+        "apartment";
+
+    badge.appendChild(icon);
+
+    const text =
+        document.createTextNode(
+            ` ID ${company.id} • ${company.name || "Company"}`
+        );
+
+    badge.appendChild(text);
+}
+
+
+/* =========================================================
+   WELCOME NOTE
+========================================================= */
+
+function setupWelcome(company){
+
+    const name =
+        company.name ||
+        "this company";
+
+    setText(
+        "welcomeTitle",
+        `Welcome to ${name}`
+    );
+
+    /*
+        Keep this welcoming but general so it works
+        for every company without inventing claims.
+    */
+    setText(
+        "welcomeText",
+        `Welcome to ${name}, a company within the Guvaza Family Trust. Explore our technology solutions and regional payment account services, create your GPTS customer account, and discover our company activities below.`
+    );
+}
+
+
+/* =========================================================
+   WHAT WE OFFER
+========================================================= */
+
+function setupDescription(company){
+
+    const color =
+        getCompanyColor(company);
+
+    setText(
+        "compDesc",
+        company.description ||
+        company.info ||
+        "Company information will be provided here."
+    );
+
+    document
+        .getElementById("offerIcon")
+        .style.color =
+        color;
+}
+
+
+/* =========================================================
+   GALLERY
+========================================================= */
+
+function setupGallery(company){
+
+    const gallery =
+        Array.isArray(company.gallery)
+            ? company.gallery
+            : [];
+
+    const grid =
+        document.getElementById(
+            "galleryGrid"
+        );
+
+    const noGallery =
+        document.getElementById(
+            "noGallery"
+        );
+
+    const count =
+        gallery.length;
+
+    setText(
+        "galleryCountBadge",
+        `${count} ${count === 1 ? "Photo" : "Photos"}`
+    );
+
+    setText(
+        "galleryBadge2",
+        `${count} ${count === 1 ? "image" : "images"}`
+    );
+
+    grid.replaceChildren();
+
+    window._currentGallery =
+        gallery;
+
+
+    if(count === 0){
+
+        noGallery.style.display =
+            "block";
+
+        return;
+    }
+
+    noGallery.style.display =
+        "none";
+
+
+    gallery.forEach(
+        (item,index) => {
+
+            if(!item){
+                return;
+            }
+
+            const card =
+                document.createElement("div");
+
+            card.className =
+                "gallery-item";
+
+            card.setAttribute(
+                "role",
+                "button"
+            );
+
+            card.setAttribute(
+                "tabindex",
+                "0"
+            );
+
+            card.setAttribute(
+                "aria-label",
+                `Open gallery image ${index + 1}`
+            );
+
+
+            const image =
+                document.createElement("img");
+
+            const source =
+                isSafeImageSource(item.url)
+                    ? item.url
+                    : DEFAULT_BANNER;
+
+            image.src =
+                source;
+
+            image.alt =
+                item.caption ||
+                `${company.name || "Company"} gallery image`;
+
+            image.loading =
+                "lazy";
+
+            image.onerror =
+                function(){
+
+                    if(
+                        this.dataset.fallbackApplied === "1"
+                    ){
+                        return;
+                    }
+
+                    this.dataset.fallbackApplied =
+                        "1";
+
+                    this.src =
+                        DEFAULT_BANNER;
+                };
+
+
+            const info =
+                document.createElement("div");
+
+            info.className =
+                "gallery-info";
+
+
+            const tag =
+                document.createElement("div");
+
+            tag.className =
+                "tag";
+
+            tag.textContent =
+                item.tag ||
+                "general";
+
+
+            const caption =
+                document.createElement("div");
+
+            caption.className =
+                "caption";
+
+            caption.textContent =
+                item.caption ||
+                "";
+
+
+            info.appendChild(tag);
+            info.appendChild(caption);
+
+            card.appendChild(image);
+            card.appendChild(info);
+
+            card.addEventListener(
+                "click",
+                () => openLightbox(index)
+            );
+
+            card.addEventListener(
+                "keydown",
+                event => {
+
+                    if(
+                        event.key === "Enter" ||
+                        event.key === " "
+                    ){
+
+                        event.preventDefault();
+
+                        openLightbox(index);
+                    }
+                }
+            );
+
+            grid.appendChild(card);
+        }
+    );
+}
+
+
+/* =========================================================
+   LIGHTBOX
+========================================================= */
+
+function openLightbox(index){
+
+    const gallery =
+        window._currentGallery || [];
+
+    const item =
+        gallery[index];
+
+    if(!item){
+        return;
+    }
+
+    const lightbox =
+        document.getElementById(
+            "lightbox"
+        );
+
+    const image =
+        document.getElementById(
+            "lightImg"
+        );
+
+    const caption =
+        document.getElementById(
+            "lightCaption"
+        );
+
+    const tag =
+        document.getElementById(
+            "lightTag"
+        );
+
+
+    image.src =
+        isSafeImageSource(item.url)
+            ? item.url
+            : DEFAULT_BANNER;
+
+    image.alt =
+        item.caption ||
+        "Gallery image";
+
+    caption.textContent =
+        item.caption ||
+        "";
+
+    tag.textContent =
+        item.tag ||
+        "general";
+
+    lightbox.classList.add(
+        "show"
+    );
+
+    lightbox.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+}
+
+
+function closeLightbox(){
+
+    const lightbox =
+        document.getElementById(
+            "lightbox"
+        );
+
+    lightbox.classList.remove(
+        "show"
+    );
+
+    lightbox.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+}
+
+
+/* =========================================================
+   INITIALISE
+========================================================= */
+
+function renderCompany(){
+
+    const company =
+        getCompany();
+
+    if(!company){
+
+        showCompanyError(
+            "The requested company could not be found in the Guvaza Trust company register."
+        );
+
+        return;
+    }
+
+
+    setupBanner(company);
+
+    setupLogo(company);
+
+    setupHeader(company);
+
+    setupWelcome(company);
+
+    setupDescription(company);
+
+    setupGallery(company);
+
+
+    /*
+        Back button
+    */
+
+    document
+        .getElementById("backBtn")
+        .addEventListener(
+            "click",
+            () => {
+                window.location.href =
+                    "companies.html";
+            }
+        );
+
+
+    /*
+        Gallery/lightbox controls
+    */
+
+    document
+        .getElementById("lightboxClose")
+        .addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                closeLightbox();
+            }
+        );
+
+
+    document
+        .getElementById("lightbox")
+        .addEventListener(
+            "click",
+            event => {
+
+                /*
+                    Clicking the dark background closes it.
+                    Clicking the image/content does not.
+                */
+
+                if(
+                    event.target.id === "lightbox"
+                ){
+
+                    closeLightbox();
+                }
+            }
+        );
+
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if(event.key === "Escape"){
+
+                closeLightbox();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async function(){
+        try{
+            const response = await fetch('/api/config/public');
+            const result = await response.json();
+
+            if(response.ok && result.ok && result.config){
+                CFG = result.config;
+            }
+        }catch(error){
+            console.warn(
+                'Using existing company configuration:',
+                error
+            );
+        }
+
+        renderCompany();
+    }
+);
+
+</script>
+
+<div id="gft-public-footer"></div>
+
+<script src="public-footer.js"></script>
+
+</body>
+</html>
