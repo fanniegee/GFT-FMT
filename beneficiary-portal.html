@@ -94,7 +94,8 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 .welcome-logo{width:82px;height:82px;flex-shrink:0;object-fit:contain;box-sizing:border-box;padding:6px;border:2px solid #f1d88b;border-radius:19px;background:#fff;box-shadow:0 8px 24px #0003}
 .welcome-trust-name{font-size:12px;line-height:1.5;font-weight:700;color:#f6dfa5;margin:0 0 7px}
 .welcome-banner h1{font-size:clamp(23px,3vw,36px);line-height:1.25;letter-spacing:-.7px;text-shadow:0 2px 12px #0008}
-.welcome-signout{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;border:1px solid #ffffff75;background:#071a32bd;color:white;border-radius:10px;padding:10px 13px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.welcome-actions{position:absolute;top:14px;right:14px;left:14px;display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;z-index:1}
+.welcome-signout{min-height:40px;box-sizing:border-box;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;border:1px solid #ffffff75;background:#071a32bd;color:white;border-radius:10px;padding:10px 13px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 #view-profile{padding:12px;border-radius:22px;background:linear-gradient(140deg,#dff4ec 0%,#edf1ff 46%,#fff0d5 100%)}
 #view-profile>.card{box-sizing:border-box;box-shadow:0 8px 25px #16354f0b}
 #view-profile .profile-identity{position:relative;overflow:hidden;text-align:center;background:linear-gradient(125deg,#071b37,#134c62 60%,#14766e);color:white;border:1px solid #1a6671;padding:26px 18px;border-top:4px solid #d4af37}
@@ -125,13 +126,13 @@ body{margin:0;font-family:Montserrat, Arial, sans-serif;background:#f5f1f1}
 #profileStatus:empty{display:none}
 #profileStatus{background:#fff;border:1px solid #cfdfd6;border-radius:10px;color:#234d3a;font-size:12px;line-height:1.6}
 @media(max-width:560px){
-  .welcome-banner{min-height:270px;padding:22px 16px;align-items:flex-end;background-position:54% 36%}
+  .welcome-banner{min-height:270px;padding:80px 16px 22px;align-items:flex-end;background-position:54% 36%}
   .welcome-banner::before{background:linear-gradient(0deg,rgba(4,16,35,.9),rgba(4,16,35,.12) 85%)}
   .welcome-identity{gap:12px;max-width:100%;padding-right:0}
   .welcome-logo{width:62px;height:62px;padding:4px;border-radius:14px}
   .welcome-trust-name{font-size:10px}
   .welcome-banner h1{font-size:23px}
-  .welcome-signout{position:absolute;right:14px;top:14px;font-size:11px;padding:8px 10px}
+  .welcome-signout{font-size:11px;padding:8px 12px}
   #view-profile{padding:9px}
 }
 
@@ -159,8 +160,10 @@ background:radial-gradient(ellipse at 96% 0%,#c3c5cb77,transparent 47%),repeatin
     <img class="welcome-logo" src="assets/gft.png" alt="Guvaza Family Trust logo" onerror="this.src='assets/logo.png';this.onerror=null">
     <div><p class="welcome-trust-name">Guvaza Family Trust</p><h1 id="topName">Welcome to your wallet</h1></div>
   </div>
-  <a class="welcome-signout" href="beneficiary-family.html" style="text-decoration:none">← Family Chat</a>
-<button type="button" class="welcome-signout" onclick="logout()">Sign out</button>
+  <nav class="welcome-actions" aria-label="Wallet navigation">
+    <a class="welcome-signout" href="beneficiary-family.html">← Family Chat</a>
+    <button type="button" class="welcome-signout" onclick="logout()">Sign out</button>
+  </nav>
 </header>
 <div class="main" id="mainWrap">
 <div id="view-home" class="view active">
