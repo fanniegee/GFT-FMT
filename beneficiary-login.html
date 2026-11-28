@@ -156,7 +156,7 @@ input:focus{
 <script>
 "use strict";
 
-const PORTAL_URL = "beneficiary-portal.html";
+const PORTAL_URL = "beneficiary-family.html";
 const $ = id => document.getElementById(id);
 
 function setMessage(message, color){
@@ -216,7 +216,7 @@ async function doLogin(){
       return;
     }
 
-    setMessage("Login verified. Opening your GFT Beneficiary Portal…", "var(--green)");
+    setMessage("Login verified. Opening Family Chat…", "var(--green)");
     window.location.href = PORTAL_URL;
   }catch(error){
     console.error("Beneficiary login request failed:", error);

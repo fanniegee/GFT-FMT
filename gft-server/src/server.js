@@ -1,3 +1,4 @@
+import { createBeneficiaryFamily } from './beneficiary-family.js';
 import { installClinicBranding } from './clinic-branding.js';
 import { installClinicPublicSettings } from './clinic-public-settings.js';
 import { installDepartmentApps } from './department-apps.js';
@@ -91,6 +92,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const publicRoot = path.resolve(__dirname, '..', '..');
+const familyHub = createBeneficiaryFamily({ query, withTransaction, getBeneficiary: getAuthenticatedBeneficiary, getCookie, publicRoot });
 
 // Only website entry points, client scripts and styles are served from the repository root.
 const publicFiles = [
@@ -100,6 +102,11 @@ const publicFiles = [
   '/assets/ggc.html',
   '/beneficiary-gen-drilldown.html',
   '/beneficiary-login.html',
+  '/beneficiary-family.html',
+  '/beneficiary-wallet-login.html',
+  '/beneficiary-family-client.js',
+  '/beneficiary-wallet-access.js',
+  '/beneficiary-family.css',
   '/beneficiary-companies.js',
   '/beneficiary-transfers.js',
   '/beneficiary-transfers.css',
@@ -162,6 +169,7 @@ const publicFiles = [
 installDepartmentApps(app, publicRoot);
 app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
 installAdminPortalAccess(app, getAuthenticatedAdmin);
+familyHub.installPageGuards(app);
 app.get(publicFiles, (req, res) => res.sendFile(req.path.slice(1), { root: publicRoot, dotfiles: 'deny' }));
 
 const publicImages = express.static(path.join(publicRoot, 'assets'), { dotfiles: 'deny', index: false, redirect: false });
@@ -200,10 +208,13 @@ app.use(express.json({ limit: '1mb' }));
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
+  skip: req => req.path.startsWith('/api/beneficiary/family-chat/'),
   standardHeaders: true,
   legacyHeaders: false
 }));
 
+
+familyHub.installApi(app);
 
    // ------------------------------------------------------------
    // REGISTRATION OTP SEND RATE LIMIT
