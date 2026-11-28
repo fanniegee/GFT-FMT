@@ -1,3 +1,4 @@
+import { installGptsPayments } from './gpts-payments.js';
 import { createBeneficiaryFamily } from './beneficiary-family.js';
 import { installClinicBranding } from './clinic-branding.js';
 import { installClinicPublicSettings } from './clinic-public-settings.js';
@@ -96,6 +97,10 @@ const familyHub = createBeneficiaryFamily({ query, withTransaction, getBeneficia
 
 // Only website entry points, client scripts and styles are served from the repository root.
 const publicFiles = [
+  '/gpts-payments.html',
+  '/gpts-payments-admin.html',
+  '/gpts-payments.css',
+  '/gpts-payments-client.js',
   '/about.html',
   '/admin.html',
   '/assets/gftggc.html',
@@ -170,6 +175,15 @@ installDepartmentApps(app, publicRoot);
 app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
 installAdminPortalAccess(app, getAuthenticatedAdmin);
 familyHub.installPageGuards(app);
+app.get('/gpts-payments-admin.html', async (req,res,next) => {
+  res.set('Cache-Control','no-store');
+  try {
+    const actor=await getAuthenticatedAdmin(req);
+    if(!actor)return res.redirect('/founder.html');
+    if(String(actor.role).toUpperCase()!=='FOUNDER')return res.status(403).type('text').send('Founder access is required.');
+    next();
+  }catch(error){next(error);}
+});
 app.get(publicFiles, (req, res) => res.sendFile(req.path.slice(1), { root: publicRoot, dotfiles: 'deny' }));
 
 const publicImages = express.static(path.join(publicRoot, 'assets'), { dotfiles: 'deny', index: false, redirect: false });
@@ -7941,6 +7955,7 @@ app.get('/api/spotlight/health', async (_req, res) => {
 });
 
 
+installGptsPayments(app, { query, withTransaction, getBeneficiary: getAuthenticatedBeneficiary, getAdmin: getAuthenticatedAdmin });
 installCompanyContributions(app, {query,withTransaction,requireAdmin});
 installLibrary(app,{query,withTransaction,getCookie,sha256,createPasswordHash,verifyPassword,rateLimit});
 installVirtualCardRequests(app,{query,withTransaction,getAuthenticatedBeneficiary,requireAdmin});

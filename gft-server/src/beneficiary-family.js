@@ -40,11 +40,11 @@ export function createBeneficiaryFamily({query,withTransaction,getBeneficiary,ge
       res.set('Cache-Control','no-store');const b=await beneficiary(req);
       if(!b)return res.redirect('/beneficiary-login.html');
       if(req.path==='/beneficiary-family.html')await lock(req,res,b);
-      if(req.path==='/beneficiary-portal.html'&&!await unlocked(req,b))return res.redirect('/beneficiary-wallet-login.html');
+      if(['/beneficiary-portal.html','/gpts-payments.html'].includes(req.path)&&!await unlocked(req,b))return res.redirect('/beneficiary-wallet-login.html');
       next();
     }catch(error){next(error);}
   }
-  function installPageGuards(app){app.get(['/beneficiary-family.html','/beneficiary-wallet-login.html','/beneficiary-portal.html'],pageGuard);}
+  function installPageGuards(app){app.get(['/beneficiary-family.html','/beneficiary-wallet-login.html','/beneficiary-portal.html','/gpts-payments.html'],pageGuard);}
   function installApi(app){
     app.use('/api/beneficiary/family-chat',rateLimit({windowMs:60*1000,limit:600,standardHeaders:true,legacyHeaders:false,message:{ok:false,error:'Chat is busy. Please try again shortly.'}}));
     // Financial endpoints require wallet authority; family trees require family sign-in.

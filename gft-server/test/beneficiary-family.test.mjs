@@ -49,7 +49,7 @@ test('family chat and separate wallet authority, using isolated fixtures',async(
   const hub=createBeneficiaryFamily({query,withTransaction,getBeneficiary:async req=>sessions[getCookie(req,'family')]||null,getCookie,publicRoot:process.cwd()});
   hub.installPageGuards(app);hub.installApi(app);
   app.get(['/beneficiary-family.html','/beneficiary-wallet-login.html','/beneficiary-portal.html'],(_req,res)=>res.send('Fixture page'));
-  for(const route of ['/wallet','/payouts','/cashout','/transfers','/profile/payments','/card'])app.all('/api/beneficiary'+route,(_req,res)=>res.json({ok:true}));
+  for(const route of ['/wallet','/payouts','/cashout','/transfers','/profile/payments','/card','/gpts-payments/overview','/gpts-payments/instructions'])app.all('/api/beneficiary'+route,(_req,res)=>res.json({ok:true}));
   const treeRoutes=['/lineage','/lineage/settings','/lineage/GFT-1/photo','/generation-tree','/family-extension','/family-extension/123','/family-extension/123/photo','/family-extension/123/registration-code'];
   for(const route of treeRoutes)app.all('/api/beneficiary'+route,(_req,res)=>res.json({ok:true}));
   app.get('/api/beneficiary/me',(_req,res)=>res.json({ok:true}));
@@ -64,7 +64,8 @@ test('family chat and separate wallet authority, using isolated fixtures',async(
   try{
     assert.equal((await request('/beneficiary-family.html','')).status,302);
     assert.equal((await request('/beneficiary-portal.html')).headers.get('location'),'/beneficiary-wallet-login.html');
-    for(const route of ['/wallet','/payouts','/cashout','/transfers','/profile/payments','/card'])assert.equal((await request('/api/beneficiary'+route)).status,423,route+' must require PIN authority');
+    assert.equal((await request('/gpts-payments.html')).headers.get('location'),'/beneficiary-wallet-login.html');
+    for(const route of ['/wallet','/payouts','/cashout','/transfers','/profile/payments','/card','/gpts-payments/overview','/gpts-payments/instructions'])assert.equal((await request('/api/beneficiary'+route)).status,423,route+' must require PIN authority');
     for(const route of treeRoutes){
       assert.equal((await request('/api/beneficiary'+route)).status,200,route+' is available outside the wallet');
       assert.equal((await request('/api/beneficiary'+route,'')).status,401,route+' requires family sign-in');
