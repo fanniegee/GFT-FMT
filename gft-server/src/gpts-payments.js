@@ -56,11 +56,11 @@ export function installGptsPayments(app, { query, withTransaction, getBeneficiar
         );
         ALTER TABLE gpts_payment_instructions ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES gpts_customers(customer_id);
         ALTER TABLE gpts_payment_instructions ALTER COLUMN beneficiary_id DROP NOT NULL;
-        DO $ BEGIN
+        DO $$ BEGIN
           IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname='gpts_instruction_one_owner' AND conrelid='gpts_payment_instructions'::regclass) THEN
             ALTER TABLE gpts_payment_instructions ADD CONSTRAINT gpts_instruction_one_owner CHECK((beneficiary_id IS NOT NULL)<>(customer_id IS NOT NULL));
           END IF;
-        END $;
+        END $$;
         CREATE UNIQUE INDEX IF NOT EXISTS gpts_instruction_customer_request_idx ON gpts_payment_instructions(customer_id,client_request_id) WHERE customer_id IS NOT NULL;
         CREATE INDEX IF NOT EXISTS gpts_instruction_customer_history_idx ON gpts_payment_instructions(customer_id,created_at DESC,instruction_id);
         CREATE INDEX IF NOT EXISTS gpts_instruction_owner_idx ON gpts_payment_instructions(beneficiary_id,created_at DESC,instruction_id);

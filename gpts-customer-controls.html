@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Your GPTS payments workspace</title>
+    <link rel="icon" href="assets/company7.png" />
+    <link rel="stylesheet" href="typography.css" />
+    <link rel="stylesheet" href="gpts-controls.css" />
+    <script src="gpts-controls-client.js" defer></script>
+  </head>
+  <body data-controls-role="CUSTOMER">
+    <header class="control-header">
+      <div class="control-brand">
+        <img src="assets/company7.png" alt="GPTS" />
+        <div>
+          <h1>Your GPTS payments workspace</h1>
+          <p>Guvaza Pro-Technology Solutions</p>
+        </div>
+      </div>
+      <nav aria-label="Payments navigation">
+        <a id="returnPlatform" href="gpts-customer.html">Back to your account</a
+        ><a href="gpts.html">GPTS Home</a
+        ><a href="gpts-exchange-rates.html">Exchange board</a>
+        <button type="button" id="controlSignOut">Sign out</button>
+      </nav>
+    </header>
+    <main>
+      <p id="controlStatus" role="status" aria-live="polite"></p>
+      <nav class="control-tabs" aria-label="Workspace sections">
+        <button type="button" data-tab="overview" aria-pressed="true">
+          Account</button
+        ><button type="button" data-tab="security" aria-pressed="false">
+          Security</button
+        ><button type="button" data-tab="verification" aria-pressed="false">
+          Verification</button
+        ><button type="button" data-tab="recipients" aria-pressed="false">
+          Recipients</button
+        ><button type="button" data-tab="transfers" aria-pressed="false">
+          Quotes & transfers</button
+        ><button type="button" data-tab="support" aria-pressed="false">
+          Help</button
+        ><button type="button" id="refreshControls" class="secondary">
+          Refresh
+        </button>
+      </nav>
+      <section class="control-panel" data-panel="security" hidden>
+        <h2>Account security</h2>
+        <p id="securitySummary"></p>
+        <p class="control-caption">
+          Sensitive actions require a recent authenticator confirmation. Codes
+          and security confirmations stay in this page's memory.
+        </p>
+        <div class="control-grid">
+          <form id="mfaSetup">
+            <h3>Add an authenticator</h3>
+            <label
+              >Current account password<input
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                maxlength="200"
+                required /></label
+            ><button type="submit">Start secure setup</button>
+          </form>
+          <form id="mfaConfirm">
+            <h3>Confirm a code</h3>
+            <label
+              >Authenticator code or recovery code<input
+                name="code"
+                autocomplete="one-time-code"
+                maxlength="24"
+                required /></label
+            ><button type="submit">Confirm security</button>
+          </form>
+        </div>
+        <div id="securitySecret" class="control-secret" hidden></div>
+        <p id="securityExpiry" class="control-caption"></p>
+      </section>
+      <section class="control-panel" data-panel="overview">
+        <h2>Your payments account</h2>
+        <div id="accountOverview"></div>
+        <div id="accountBalances"></div>
+        <p class="control-note">
+          Balances come from confirmed funding and ledger records. An
+          instruction or quote is not a settled payment.
+        </p>
+      </section>
+      <section class="control-panel" data-panel="verification" hidden>
+        <h2>Financial identity verification</h2>
+        <p class="control-caption">
+          Email verification and financial identity verification are separate.
+          Uploaded images are sanitised, encrypted and restricted to authorised
+          reviewers.
+        </p>
+        <form id="verificationForm">
+          <div class="control-grid">
+            <label
+              >Legal full name<input
+                name="legalName"
+                minlength="2"
+                maxlength="120"
+                required /></label
+            ><label
+              >Date of birth<input
+                name="dateOfBirth"
+                type="date"
+                required /></label
+            ><label
+              >Identity document<select name="identityType">
+                <option value="NATIONAL_ID">National identity document</option>
+                <option value="PASSPORT">Passport</option>
+              </select></label
+            ><label
+              >Document number<input
+                name="identityNumber"
+                minlength="3"
+                maxlength="80"
+                required
+                autocomplete="off"
+            /></label>
+          </div>
+          <label
+            >Residential address<textarea
+              name="address"
+              minlength="8"
+              maxlength="500"
+              required
+            ></textarea></label
+          ><button type="submit">Create verification draft</button>
+        </form>
+        <div id="verificationCases"></div>
+      </section>
+      <section class="control-panel" data-panel="recipients" hidden>
+        <h2>Your recipients</h2>
+        <p class="control-caption">
+          Changing receiving details creates a new recipient version. Accepted
+          transfers retain the original details.
+        </p>
+        <form id="recipientForm">
+          <div class="control-grid">
+            <label
+              >Recipient label<input
+                name="label"
+                minlength="2"
+                maxlength="80"
+                required /></label
+            ><label
+              >Recipient's full name<input
+                name="name"
+                minlength="2"
+                maxlength="120"
+                required /></label
+            ><label
+              >Country<select name="country">
+                <option value="ZW">Zimbabwe</option>
+                <option value="ZA">South Africa</option>
+                <option value="BW">Botswana</option>
+                <option value="ZM">Zambia</option>
+                <option value="MZ">Mozambique</option>
+              </select></label
+            ><label
+              >Receiving method<select name="method">
+                <option value="BANK">Bank account</option>
+                <option value="MOBILE_WALLET">Mobile wallet</option>
+              </select></label
+            ><label
+              >Bank or mobile network<input
+                name="network"
+                minlength="2"
+                maxlength="80"
+                required /></label
+            ><label
+              >Account or wallet number<input
+                name="account"
+                minlength="4"
+                maxlength="80"
+                required
+                autocomplete="off"
+            /></label>
+          </div>
+          <button type="submit" id="recipientSave">Save recipient</button
+          ><button type="button" id="recipientNew" class="secondary">
+            Start another
+          </button>
+        </form>
+        <div id="recipientList"></div>
+      </section>
+      <section class="control-panel" data-panel="transfers" hidden>
+        <h2>Quotes and transfers</h2>
+        <p>
+          <a href="gpts-customer.html">Create a transfer instruction</a> before
+          requesting a provider quote.
+        </p>
+        <form id="quoteForm">
+          <label
+            >Saved instruction<select
+              name="instructionId"
+              id="quoteInstruction"
+              required
+            ></select></label
+          ><label
+            >Saved recipient<select
+              name="recipientId"
+              id="quoteRecipient"
+              required
+            ></select></label
+          ><label
+            >Receiving currency<select name="targetCurrency">
+              <option>USD</option>
+              <option>ZWG</option>
+              <option>ZAR</option>
+              <option>BWP</option>
+              <option>ZMW</option>
+              <option>MZN</option>
+            </select></label
+          ><button type="submit">Request provider quote</button>
+        </form>
+        <div id="quoteList"></div>
+        <h3>Transfer history</h3>
+        <div id="transferList"></div>
+      </section>
+      <section class="control-panel" data-panel="support" hidden>
+        <h2>Help and complaints</h2>
+        <form id="supportForm">
+          <label
+            >Category<select name="category">
+              <option value="PAYMENT">Payment</option>
+              <option value="ACCOUNT">Account</option>
+              <option value="COMPLAINT">Complaint</option>
+            </select></label
+          ><label
+            >Transfer reference (optional)<select
+              name="transferId"
+              id="supportTransfer"
+            >
+              <option value="">Account question</option>
+            </select></label
+          ><label
+            >Subject<input
+              name="subject"
+              minlength="3"
+              maxlength="120"
+              required /></label
+          ><label
+            >Your message<textarea
+              name="message"
+              minlength="8"
+              maxlength="2000"
+              required
+            ></textarea></label
+          ><button type="submit">Open case</button>
+        </form>
+        <div id="supportList"></div>
+      </section>
+      <section id="receiptPanel" class="control-panel" hidden>
+        <h2>Confirmed payment receipt</h2>
+        <div id="receiptBody" class="control-receipt"></div>
+        <button type="button" id="printReceipt">Print receipt</button
+        ><button type="button" id="closeReceipt" class="secondary">
+          Close receipt
+        </button>
+      </section>
+    </main>
+  </body>
+</html>

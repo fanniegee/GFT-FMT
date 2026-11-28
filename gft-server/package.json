@@ -9,7 +9,8 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "test:gpts": "node --test test/gpts-controls-client.test.mjs test/gpts-controls.test.mjs test/gpts-customers.test.mjs test/gpts-exchange-rates.test.mjs test/gpts-payments.test.mjs test/beneficiary-family.test.mjs"
   },
   "dependencies": {
     "argon2": "^0.41.1",
@@ -22,6 +23,11 @@
     "pdf-parse": "^2.4.5",
     "pg": "^8.16.3",
     "resend": "^6.31.0",
+    "sharp": "^0.35.5",
     "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.6.1",
+    "prettier": "^3.10.1"
   }
 }

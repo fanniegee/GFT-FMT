@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>GPTS Payments operations</title>
+    <link rel="icon" href="assets/company7.png" />
+    <link rel="stylesheet" href="typography.css" />
+    <link rel="stylesheet" href="gpts-controls.css" />
+    <script src="gpts-controls-client.js" defer></script>
+  </head>
+  <body data-controls-role="STAFF">
+    <header class="control-header">
+      <div class="control-brand">
+        <img src="assets/company7.png" alt="GPTS" />
+        <div>
+          <h1>GPTS Payments operations</h1>
+          <p>Guvaza Pro-Technology Solutions</p>
+        </div>
+      </div>
+      <nav aria-label="Payments navigation">
+        <a id="returnPlatform" href="admin.html">Back to your platform</a
+        ><a href="gpts.html">GPTS Home</a
+        ><a href="gpts-exchange-rates.html">Exchange board</a>
+        <button type="button" id="controlSignOut">Sign out</button>
+      </nav>
+    </header>
+    <main>
+      <p id="controlStatus" role="status" aria-live="polite"></p>
+      <nav class="control-tabs" aria-label="Workspace sections">
+        <button type="button" data-tab="security" aria-pressed="true">
+          Security</button
+        ><button type="button" data-tab="policy" aria-pressed="false">
+          Access & policy</button
+        ><button type="button" data-tab="verification" aria-pressed="false">
+          Verification</button
+        ><button type="button" data-tab="transfers" aria-pressed="false">
+          Transfers</button
+        ><button type="button" data-tab="finance" aria-pressed="false">
+          Finance</button
+        ><button type="button" data-tab="support" aria-pressed="false">
+          Support</button
+        ><button type="button" data-tab="audit" aria-pressed="false">
+          Audit</button
+        ><button type="button" id="refreshControls" class="secondary">
+          Refresh
+        </button>
+      </nav>
+      <section class="control-panel" data-panel="security">
+        <h2>Account security</h2>
+        <p id="securitySummary"></p>
+        <p class="control-caption">
+          Sensitive actions require a recent authenticator confirmation. Codes
+          and security confirmations stay in this page's memory.
+        </p>
+        <div class="control-grid">
+          <form id="mfaSetup">
+            <h3>Add an authenticator</h3>
+            <label
+              >Current account password<input
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                maxlength="200"
+                required /></label
+            ><button type="submit">Start secure setup</button>
+          </form>
+          <form id="mfaConfirm">
+            <h3>Confirm a code</h3>
+            <label
+              >Authenticator code or recovery code<input
+                name="code"
+                autocomplete="one-time-code"
+                maxlength="24"
+                required /></label
+            ><button type="submit">Confirm security</button>
+          </form>
+        </div>
+        <div id="securitySecret" class="control-secret" hidden></div>
+        <p id="securityExpiry" class="control-caption"></p>
+      </section>
+      <section class="control-panel" data-panel="policy" hidden>
+        <h2>Payments access and operating rules</h2>
+        <p class="control-caption">
+          The Founder assigns separate payments permissions. Limits, required
+          checks and approval counts must be entered explicitly; no financial
+          defaults are supplied.
+        </p>
+        <form id="policyForm">
+          <div class="control-grid">
+            <label
+              >Transfer approval count<input
+                name="approvalQuorum"
+                type="number"
+                min="1"
+                max="5"
+                required /></label
+            ><label
+              >Identity-review approval count<input
+                name="verificationQuorum"
+                type="number"
+                min="1"
+                max="5"
+                required
+            /></label>
+          </div>
+          <label
+            >Required identity checks, one per line<textarea
+              name="verificationChecks"
+              required
+            ></textarea>
+          </label>
+          <div id="policyRoutes"></div>
+          <button type="button" id="addPolicyRoute" class="secondary">
+            Add connected route</button
+          ><button type="submit">Save operating rules</button>
+        </form>
+        <h3>Staff permissions</h3>
+        <div id="staffList"></div>
+      </section>
+      <section class="control-panel" data-panel="verification" hidden>
+        <h2>Identity review</h2>
+        <div id="staffVerifications"></div>
+        <div id="verificationDetail"></div>
+        <h3>Security and screening flags</h3>
+        <div id="riskFlags"></div>
+        <h3>Account restriction</h3>
+        <form id="holdForm">
+          <label>Customer reference<input name="customerId" required /></label
+          ><label
+            >Account state<select name="frozen">
+              <option value="true">Restrict pending review</option>
+              <option value="false">Remove restriction</option>
+            </select></label
+          ><label
+            >Reason<textarea
+              name="reason"
+              minlength="8"
+              maxlength="2000"
+              required
+            ></textarea></label
+          ><button type="submit">Record restriction decision</button>
+        </form>
+      </section>
+      <section class="control-panel" data-panel="transfers" hidden>
+        <h2>Transfer decisions</h2>
+        <p class="control-note">
+          Approval, provider acknowledgement and confirmed settlement are
+          distinct. This page cannot mark a transfer as paid.
+        </p>
+        <button type="button" id="runQueue">
+          Process approved queued work
+        </button>
+        <div id="staffTransfers"></div>
+      </section>
+      <section class="control-panel" data-panel="finance" hidden>
+        <h2>Ledger and reconciliation</h2>
+        <p class="control-caption">
+          Earned fees and provider costs are accounting entries. Other operating
+          costs and taxes are handled in company accounts before net profit is
+          determined.
+        </p>
+        <button type="button" id="loadLedger" class="secondary">
+          View ledger totals
+        </button>
+        <div id="ledgerTotals"></div>
+        <form id="reconcileForm">
+          <div class="control-compact">
+            <label
+              >Connected provider<select
+                name="provider"
+                id="reconcileProvider"
+                required
+              ></select></label
+            ><label
+              >Statement date<input name="date" type="date" required
+            /></label>
+          </div>
+          <button type="submit">Retrieve and reconcile statement</button>
+        </form>
+        <div id="financeIssues"></div>
+      </section>
+      <section class="control-panel" data-panel="support" hidden>
+        <h2>Customer support and complaints</h2>
+        <div id="staffSupport"></div>
+      </section>
+      <section class="control-panel" data-panel="audit" hidden>
+        <h2>Permanent payments audit</h2>
+        <button type="button" id="loadAudit" class="secondary">
+          Load audit records
+        </button>
+        <div id="auditList"></div>
+      </section>
+      <section id="receiptPanel" class="control-panel" hidden>
+        <h2>Confirmed payment receipt</h2>
+        <div id="receiptBody" class="control-receipt"></div>
+        <button type="button" id="printReceipt">Print receipt</button
+        ><button type="button" id="closeReceipt" class="secondary">
+          Close receipt
+        </button>
+      </section>
+    </main>
+  </body>
+</html>
