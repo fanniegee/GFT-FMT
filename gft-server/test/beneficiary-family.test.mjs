@@ -50,6 +50,8 @@ test('family chat and separate wallet authority, using isolated fixtures',async(
   hub.installPageGuards(app);hub.installApi(app);
   app.get(['/beneficiary-family.html','/beneficiary-wallet-login.html','/beneficiary-portal.html'],(_req,res)=>res.send('Fixture page'));
   for(const route of ['/wallet','/payouts','/cashout','/transfers','/profile/payments','/card'])app.all('/api/beneficiary'+route,(_req,res)=>res.json({ok:true}));
+  const treeRoutes=['/lineage','/lineage/settings','/lineage/GFT-1/photo','/generation-tree','/family-extension','/family-extension/123','/family-extension/123/photo','/family-extension/123/registration-code'];
+  for(const route of treeRoutes)app.all('/api/beneficiary'+route,(_req,res)=>res.json({ok:true}));
   app.get('/api/beneficiary/me',(_req,res)=>res.json({ok:true}));
   app.post('/api/beneficiary/logout',(_req,res)=>res.json({ok:true}));
   app.use((error,_req,res,_next)=>res.status(500).json({ok:false,error:'Fixture failure'}));
@@ -63,6 +65,11 @@ test('family chat and separate wallet authority, using isolated fixtures',async(
     assert.equal((await request('/beneficiary-family.html','')).status,302);
     assert.equal((await request('/beneficiary-portal.html')).headers.get('location'),'/beneficiary-wallet-login.html');
     for(const route of ['/wallet','/payouts','/cashout','/transfers','/profile/payments','/card'])assert.equal((await request('/api/beneficiary'+route)).status,423,route+' must require PIN authority');
+    for(const route of treeRoutes){
+      assert.equal((await request('/api/beneficiary'+route)).status,200,route+' is available outside the wallet');
+      assert.equal((await request('/api/beneficiary'+route,'')).status,401,route+' requires family sign-in');
+    }
+    assert.equal((await request('/api/beneficiary/lineage/financial')).status,423);
     assert.equal((await request('/api/beneficiary/wallet','')).status,401);
     assert.equal((await access('setup',{pin:'123',confirmPin:'123'})).status,400);
     assert.equal((await access('setup',{pin:'001234',confirmPin:'001234'})).status,200);

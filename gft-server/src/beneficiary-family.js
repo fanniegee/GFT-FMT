@@ -47,14 +47,16 @@ export function createBeneficiaryFamily({query,withTransaction,getBeneficiary,ge
   function installPageGuards(app){app.get(['/beneficiary-family.html','/beneficiary-wallet-login.html','/beneficiary-portal.html'],pageGuard);}
   function installApi(app){
     app.use('/api/beneficiary/family-chat',rateLimit({windowMs:60*1000,limit:600,standardHeaders:true,legacyHeaders:false,message:{ok:false,error:'Chat is busy. Please try again shortly.'}}));
-    // All existing beneficiary data and finance endpoints are behind the wallet gate.
-    // Only sign-in, family identity, chat and the PIN access endpoints are exempt.
+    // Financial endpoints require wallet authority; family trees require family sign-in.
+    // Existing tree handlers continue enforcing ownership and record permissions.
     app.use('/api/beneficiary',async(req,res,next)=>{
       if(['/login','/me','/profile/photo'].includes(req.path)||req.path==='/family-chat'||req.path.startsWith('/family-chat/')||req.path.startsWith('/wallet-access/'))return next();
       try{
         const b=await beneficiary(req);
         if(req.path==='/logout'){if(b)await lock(req,res,b);return next();}
         if(!b)return res.status(401).json({ok:false,error:'Beneficiary sign-in is required.'});
+        const familyTreePath=/^\/(?:generation-tree|lineage(?:\/settings|\/[^/]+\/photo)?|family-extension(?:\/[^/]+(?:\/(?:photo|registration-code))?)?)$/.test(req.path);
+        if(familyTreePath){res.set('Cache-Control','no-store');return next();}
         if(!await unlocked(req,b))return res.status(423).json({ok:false,code:'WALLET_LOCKED',error:'Unlock your wallet with your six-digit PIN.'});
         res.set('Cache-Control','no-store');next();
       }catch(error){next(error);}
