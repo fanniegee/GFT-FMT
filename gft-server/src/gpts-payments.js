@@ -30,10 +30,10 @@ const fields = 'instruction_id,corridor_id,currency,amount,recipient_name,payout
 
 // This book records instructions, not customer money. Only a contracted provider's
 // authenticated quote/funding/settlement integration may introduce money movement.
-export function installGptsPayments(app, { query, withTransaction, getBeneficiary, getAdmin }) {
+export function installGptsPayments(app, { query, withTransaction, getBeneficiary, getAdmin, getCustomer = async()=>null, ensureCustomers = async()=>{} }) {
   let ready;
   function ensureSchema() {
-    ready ??= withTransaction(async client => {
+    ready ??= (async()=>{ await ensureCustomers(); return withTransaction(async client => {
       await client.query("SELECT pg_advisory_xact_lock(hashtext('gpts-payments-v1'))");
       await client.query(`
         CREATE TABLE IF NOT EXISTS gpts_payment_corridors (
@@ -54,6 +54,15 @@ export function installGptsPayments(app, { query, withTransaction, getBeneficiar
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           UNIQUE(beneficiary_id,client_request_id)
         );
+        ALTER TABLE gpts_payment_instructions ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES gpts_customers(customer_id);
+        ALTER TABLE gpts_payment_instructions ALTER COLUMN beneficiary_id DROP NOT NULL;
+        DO $ BEGIN
+          IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname='gpts_instruction_one_owner' AND conrelid='gpts_payment_instructions'::regclass) THEN
+            ALTER TABLE gpts_payment_instructions ADD CONSTRAINT gpts_instruction_one_owner CHECK((beneficiary_id IS NOT NULL)<>(customer_id IS NOT NULL));
+          END IF;
+        END $;
+        CREATE UNIQUE INDEX IF NOT EXISTS gpts_instruction_customer_request_idx ON gpts_payment_instructions(customer_id,client_request_id) WHERE customer_id IS NOT NULL;
+        CREATE INDEX IF NOT EXISTS gpts_instruction_customer_history_idx ON gpts_payment_instructions(customer_id,created_at DESC,instruction_id);
         CREATE INDEX IF NOT EXISTS gpts_instruction_owner_idx ON gpts_payment_instructions(beneficiary_id,created_at DESC,instruction_id);
         CREATE TABLE IF NOT EXISTS gpts_payment_events (
           event_id UUID PRIMARY KEY, instruction_id UUID NOT NULL REFERENCES gpts_payment_instructions(instruction_id),
@@ -85,19 +94,19 @@ export function installGptsPayments(app, { query, withTransaction, getBeneficiar
       for (const route of corridors) await client.query(
         'INSERT INTO gpts_payment_corridors(corridor_id,origin_country,destination_country) VALUES($1,$2,$3) ON CONFLICT(corridor_id) DO NOTHING',
         [route.id, route.origin, route.destination]);
-    }).catch(error => { ready = undefined; throw error; });
+    }); })().catch(error => { ready = undefined; throw error; });
     return ready;
   }
   const mutations = rateLimit({ windowMs: 60 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false,
-    keyGenerator: req => String(req.gptsActor.beneficiary_id), message: { ok: false, error: 'Too many changes. Please try again later.' } });
+    keyGenerator: req => (req.gptsActor.customer_id?'CUSTOMER:':'BENEFICIARY:')+String(req.gptsActor.customer_id||req.gptsActor.beneficiary_id), message: { ok: false, error: 'Too many changes. Please try again later.' } });
   function route(method, url, founder, handler) {
     const authorize = async (req, res, next) => {
       res.set('Cache-Control', 'no-store');
       try {
-        const actor = await (founder ? getAdmin(req) : getBeneficiary(req));
+        const actor = await (founder === true ? getAdmin(req) : founder === 'CUSTOMER' ? getCustomer(req) : getBeneficiary(req));
         if (!actor) return res.status(401).json({ ok: false, error: 'Sign-in is required.' });
-        if (founder && String(actor.role).toUpperCase() !== 'FOUNDER') return res.status(403).json({ ok: false, error: 'Founder access is required.' });
-        req.gptsActor = actor; next();
+        if (founder === true && String(actor.role).toUpperCase() !== 'FOUNDER') return res.status(403).json({ ok: false, error: 'Founder access is required.' });
+        req.gptsActor = actor; req.gptsOwnerColumn = founder === 'CUSTOMER' ? 'customer_id' : 'beneficiary_id'; next();
       } catch (error) { next(error); }
     };
     app[method](url, authorize, ...(method === 'post' ? [mutations] : []), async (req, res) => {
@@ -113,42 +122,42 @@ export function installGptsPayments(app, { query, withTransaction, getBeneficiar
   }
   async function event(client, id, actor, action) {
     await client.query('INSERT INTO gpts_payment_events(event_id,instruction_id,actor_id,actor_role,action) VALUES($1,$2,$3,$4,$5)',
-      [randomUUID(), id, String(actor.beneficiary_id), 'BENEFICIARY', action]);
+      [randomUUID(), id, String(actor.customer_id||actor.beneficiary_id), actor.customer_id?'CUSTOMER':'BENEFICIARY', action]);
   }
-  const base = '/api/beneficiary/gpts-payments';
-  route('get', `${base}/overview`, false, async (_req, res) => {
+  for(const [base,access] of [['/api/beneficiary/gpts-payments',false],['/api/gpts-payments/customer','CUSTOMER']]){
+  route('get', `${base}/overview`, access, async (_req, res) => {
     const { rows } = await query('SELECT corridor_id,origin_country,destination_country,status FROM gpts_payment_corridors ORDER BY corridor_id');
     res.json({ ok: true, companyId: 7, companyName: 'GPTS | Guvaza Pro-Technology Solutions', countries, corridors: rows,
       moneyMovementAvailable: false, status: 'AWAITING_PROVIDER' });
   });
-  route('get', `${base}/instructions`, false, async (req, res, actor) => {
+  route('get', `${base}/instructions`, access, async (req, res, actor) => {
     const before = req.query.before ? idInput.parse(req.query.before) : null;
-    const { rows } = await query(`SELECT ${fields} FROM gpts_payment_instructions WHERE beneficiary_id=$1
-      AND ($2::uuid IS NULL OR (created_at,instruction_id)<(SELECT created_at,instruction_id FROM gpts_payment_instructions WHERE instruction_id=$2 AND beneficiary_id=$1))
-      ORDER BY created_at DESC,instruction_id DESC LIMIT 51`, [String(actor.beneficiary_id), before]);
+    const { rows } = await query(`SELECT ${fields} FROM gpts_payment_instructions WHERE ${req.gptsOwnerColumn}=$1
+      AND ($2::uuid IS NULL OR (created_at,instruction_id)<(SELECT created_at,instruction_id FROM gpts_payment_instructions WHERE instruction_id=$2 AND ${req.gptsOwnerColumn}=$1))
+      ORDER BY created_at DESC,instruction_id DESC LIMIT 51`, [String(actor.customer_id||actor.beneficiary_id), before]);
     const items = rows.slice(0, 50); res.json({ ok: true, instructions: items, next: rows.length > 50 ? items.at(-1).instruction_id : null });
   });
-  route('post', `${base}/instructions`, false, async (req, res, actor) => {
+  route('post', `${base}/instructions`, access, async (req, res, actor) => {
     const data = instructionInput.parse(req.body), amount = normalizeAmount(data.amount);
     const corridor = corridors.find(item => item.id === data.corridor);
     if (!countries[corridor.origin].currencies.includes(data.currency)) throw failure(400, 'Choose a currency for the sending country.');
     const payload = { corridor: data.corridor, currency: data.currency, amount, recipientName: data.recipientName, payoutMethod: data.payoutMethod, purpose: data.purpose };
     const hash = createHash('sha256').update(JSON.stringify(payload)).digest('hex');
     const result = await withTransaction(async client => {
-      const { rows } = await client.query(`INSERT INTO gpts_payment_instructions(instruction_id,beneficiary_id,client_request_id,payload_hash,corridor_id,currency,amount,recipient_name,payout_method,purpose)
-        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT(beneficiary_id,client_request_id) DO NOTHING RETURNING ${fields}`,
-        [randomUUID(), String(actor.beneficiary_id), data.requestId, hash, data.corridor, data.currency, amount, data.recipientName, data.payoutMethod, data.purpose]);
+      const { rows } = await client.query(`INSERT INTO gpts_payment_instructions(instruction_id,${req.gptsOwnerColumn},client_request_id,payload_hash,corridor_id,currency,amount,recipient_name,payout_method,purpose)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT(${req.gptsOwnerColumn},client_request_id) ${actor.customer_id?'WHERE customer_id IS NOT NULL':''} DO NOTHING RETURNING ${fields}`,
+        [randomUUID(), String(actor.customer_id||actor.beneficiary_id), data.requestId, hash, data.corridor, data.currency, amount, data.recipientName, data.payoutMethod, data.purpose]);
       if (rows.length) { await event(client, rows[0].instruction_id, actor, 'CREATED'); return { created: true, instruction: rows[0] }; }
-      const previous = await client.query(`SELECT ${fields},payload_hash FROM gpts_payment_instructions WHERE beneficiary_id=$1 AND client_request_id=$2`, [String(actor.beneficiary_id), data.requestId]);
+      const previous = await client.query(`SELECT ${fields},payload_hash FROM gpts_payment_instructions WHERE ${req.gptsOwnerColumn}=$1 AND client_request_id=$2`, [String(actor.customer_id||actor.beneficiary_id), data.requestId]);
       if (previous.rows[0]?.payload_hash !== hash) throw failure(409, 'This request reference was already used for different details. Start a new instruction.');
       const { payload_hash, ...instruction } = previous.rows[0]; return { created: false, instruction };
     });
     res.status(result.created ? 201 : 200).json({ ok: true, ...result });
   });
-  route('post', `${base}/instructions/:id/cancel`, false, async (req, res, actor) => {
+  route('post', `${base}/instructions/:id/cancel`, access, async (req, res, actor) => {
     const id = idInput.parse(req.params.id); z.object({}).strict().parse(req.body);
     const instruction = await withTransaction(async client => {
-      const { rows } = await client.query(`SELECT ${fields} FROM gpts_payment_instructions WHERE instruction_id=$1 AND beneficiary_id=$2 FOR UPDATE`, [id, String(actor.beneficiary_id)]);
+      const { rows } = await client.query(`SELECT ${fields} FROM gpts_payment_instructions WHERE instruction_id=$1 AND ${req.gptsOwnerColumn}=$2 FOR UPDATE`, [id, String(actor.customer_id||actor.beneficiary_id)]);
       if (!rows.length) throw failure(404, 'Instruction not found.');
       if (rows[0].status === 'CANCELLED') return rows[0];
       const updated = await client.query(`UPDATE gpts_payment_instructions SET status='CANCELLED',updated_at=NOW() WHERE instruction_id=$1 RETURNING ${fields}`, [id]);
@@ -156,9 +165,10 @@ export function installGptsPayments(app, { query, withTransaction, getBeneficiar
     });
     res.json({ ok: true, instruction });
   });
+  }
   route('get', '/api/founder/gpts-payments/instructions', true, async (req, res) => {
     const before = req.query.before ? idInput.parse(req.query.before) : null;
-    const { rows } = await query(`SELECT ${fields},beneficiary_id FROM gpts_payment_instructions
+    const { rows } = await query(`SELECT ${fields},beneficiary_id,customer_id FROM gpts_payment_instructions
       WHERE ($1::uuid IS NULL OR (created_at,instruction_id)<(SELECT created_at,instruction_id FROM gpts_payment_instructions WHERE instruction_id=$1))
       ORDER BY created_at DESC,instruction_id DESC LIMIT 51`, [before]);
     const items = rows.slice(0, 50); res.json({ ok: true, instructions: items, next: rows.length > 50 ? items.at(-1).instruction_id : null });

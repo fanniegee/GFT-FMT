@@ -5,7 +5,7 @@
   "description": "Guvaza Family Trust server foundation",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.16.0 <21 || >=22.3.0"
   },
   "scripts": {
     "start": "node src/server.js",
@@ -19,6 +19,7 @@
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.1.0",
     "multer": "^2.4.0",
+    "pdf-parse": "^2.4.5",
     "pg": "^8.16.3",
     "resend": "^6.31.0",
     "zod": "^3.25.76"

@@ -34,4 +34,24 @@ Do not auto-execute saved instructions when a channel becomes available. Ask the
 
 ## Verification
 
-Run `node --test test/gpts-payments.test.mjs` from gft-server. HTTP checks use isolated fixtures, including transaction snapshots and controlled audit failures; they do not exercise a real PostgreSQL engine or provider. Production data must not be populated with fixture payments. Before production execution is introduced, run PostgreSQL integration tests against an isolated database and the contracted provider's test environment.
+Run `node --test test/gpts-payments.test.mjs test/gpts-customers.test.mjs test/gpts-exchange-rates.test.mjs test/beneficiary-family.test.mjs` from gft-server. HTTP checks use isolated fixtures, including transaction snapshots and controlled audit failures; they do not exercise a real PostgreSQL engine or provider. Production data must not be populated with fixture payments. Before production execution is introduced, run PostgreSQL integration tests against an isolated database and the contracted provider's test environment.
+
+## Public reference exchange board
+
+`gpts-exchange-rates.html` and `/api/gpts-payments/rates` are public. The server checks RBZ's published report date and retrieves dated PDFs from the official domain, newest first. If the HTML index is unavailable, it checks actual report files within the last ten Harare calendar dates; it never invents a missing publication or a rate. Retrieval has a 30-second network budget. It validates the PDF header, publication date, known table layout, all five regional currency rows, six positive values per row, and bid/mid/ask ordering. Values and currency labels are reproduced as published, without deriving exchange quotes or changing the publisher's quoting conventions.
+
+Successfully parsed source reports are stored in `gpts_reference_rate_reports`, keyed by the PDF SHA-256. Source checks are coalesced and limited to once per 15 minutes per running process; browser views refresh every five minutes while visible. Free hosting may sleep; the next visit checks the source. This is a daily publication board, not a continuous market-price feed. Source date, retrieval time and check time are separate. Refresh failures retain the last valid dated report with a visible warning; no report means unavailable, never fixture or guessed rates. A publisher layout or filename change fails closed and needs parser maintenance.
+
+Public customer registration is available from gpts.html and gpts-customer-access.html. Customers use gpts_customers, hashed single-use email tokens and hashed opaque sessions. They are never inserted into beneficiary, family or Trust wallet records. Email verification does not establish financial KYC; the financial verification state remains NOT_STARTED.
+
+Instructions have exactly one owner: a beneficiary_id OR customer_id. The original beneficiary instruction rows and request references are preserved. Customer requests use a separate authenticated API namespace and a customer-specific unique request index. Customer references are not represented as family IDs.
+
+The existing payments instruction area still requires beneficiary sign-in and wallet PIN. The separate public customer area requires a verified GPTS customer session. Founder oversight remains read-only and identifies the owner type.
+
+## Public customer account operations
+
+Company detail URLs with id=7 redirect to gpts.html. Registration records name, normalized email, residence country, service interest and acknowledgement of the account/membership separation. Passwords use the existing server scrypt functions. The Resend account and RESEND_FROM_EMAIL supply verification and recovery messages; no message is sent during automated tests. GPTS_PUBLIC_ORIGIN optionally sets the email link origin and defaults to https://guvazafamilytrust.com. Never derive verification links from request Host headers.
+
+Verification and recovery tokens last 30 minutes, are hashed in PostgreSQL and are consumed only by explicit POST. Recovery revokes every customer session. Resend/recovery links are limited per account and IP. Failed logins persist a 15-minute account lock after five failures. All account mutations are transactionally audited; email delivery is attempted after commit. Delivery failure leaves a pending account, which can resend verification after the cooldown. The account cannot sign in before email verification. GPTS account cookies are HttpOnly, SameSite Strict, Secure in production, and expire after eight hours.
+
+The account access page removes email-link secrets from the URL and uses no-referrer. No credential or session is stored in browser storage. Customer session authority does not authorize beneficiary APIs or Founder APIs. Financial execution, customer identity verification, transaction screening and the separate payments ledger remain gated on provider integration and the appropriate regulatory and operating arrangements.

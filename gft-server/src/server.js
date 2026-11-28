@@ -1,3 +1,5 @@
+import { createGptsCustomers } from './gpts-customers.js';
+import { installGptsExchangeRates } from './gpts-exchange-rates.js';
 import { installGptsPayments } from './gpts-payments.js';
 import { createBeneficiaryFamily } from './beneficiary-family.js';
 import { installClinicBranding } from './clinic-branding.js';
@@ -95,8 +97,25 @@ const __dirname = path.dirname(__filename);
 const publicRoot = path.resolve(__dirname, '..', '..');
 const familyHub = createBeneficiaryFamily({ query, withTransaction, getBeneficiary: getAuthenticatedBeneficiary, getCookie, publicRoot });
 
+const gptsCustomers = createGptsCustomers({ query, withTransaction, getCookie, createPasswordHash, verifyPassword,
+  publicOrigin: process.env.GPTS_PUBLIC_ORIGIN || 'https://guvazafamilytrust.com',
+  sendEmail: async ({to,subject,text}) => {
+    if(!process.env.RESEND_FROM_EMAIL)throw new Error('GPTS account email sender unavailable');
+    const result=await resend.emails.send({from:process.env.RESEND_FROM_EMAIL,to:[to],subject,text});
+    if(result.error)throw new Error('GPTS account email delivery failed');
+  }
+});
+
 // Only website entry points, client scripts and styles are served from the repository root.
 const publicFiles = [
+  '/gpts.html',
+  '/gpts-public.css',
+  '/gpts-customer-access.html',
+  '/gpts-customer-access.js',
+  '/gpts-customer.html',
+  '/gpts-customer-session.js',
+  '/gpts-exchange-rates.html',
+  '/gpts-exchange-rates-client.js',
   '/gpts-payments.html',
   '/gpts-payments-admin.html',
   '/gpts-payments.css',
@@ -175,6 +194,8 @@ installDepartmentApps(app, publicRoot);
 app.get('/', (_req, res) => res.sendFile(path.join(publicRoot, 'index.html')));
 installAdminPortalAccess(app, getAuthenticatedAdmin);
 familyHub.installPageGuards(app);
+gptsCustomers.installPages(app);
+app.get('/company.html',(req,res,next)=>req.query.id==='7'?res.redirect('/gpts.html'):next());
 app.get('/gpts-payments-admin.html', async (req,res,next) => {
   res.set('Cache-Control','no-store');
   try {
@@ -7955,7 +7976,10 @@ app.get('/api/spotlight/health', async (_req, res) => {
 });
 
 
-installGptsPayments(app, { query, withTransaction, getBeneficiary: getAuthenticatedBeneficiary, getAdmin: getAuthenticatedAdmin });
+installGptsExchangeRates(app, { query });
+gptsCustomers.installApi(app);
+installGptsPayments(app, { query, withTransaction, getBeneficiary: getAuthenticatedBeneficiary, getAdmin: getAuthenticatedAdmin,
+  getCustomer: gptsCustomers.getCustomer, ensureCustomers: gptsCustomers.ensureSchema });
 installCompanyContributions(app, {query,withTransaction,requireAdmin});
 installLibrary(app,{query,withTransaction,getCookie,sha256,createPasswordHash,verifyPassword,rateLimit});
 installVirtualCardRequests(app,{query,withTransaction,getAuthenticatedBeneficiary,requireAdmin});

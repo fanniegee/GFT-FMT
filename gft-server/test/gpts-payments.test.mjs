@@ -21,8 +21,8 @@ test('GPTS instructions preserve ownership, idempotency and atomic audit without
     if (sql.startsWith('INSERT INTO gpts_payment_corridors')) { if (!state.corridors.some(row => row.corridor_id === args[0])) state.corridors.push({ corridor_id: args[0], origin_country: args[1], destination_country: args[2], status: 'AWAITING_PROVIDER' }); return { rows: [] }; }
     if (sql.startsWith('SELECT corridor_id')) return { rows: state.corridors };
     if (sql.startsWith('INSERT INTO gpts_payment_instructions')) {
-      if (state.instructions.some(row => row.beneficiary_id === args[1] && row.client_request_id === args[2])) return { rows: [] };
-      const row = { instruction_id: args[0], beneficiary_id: args[1], client_request_id: args[2], payload_hash: args[3], corridor_id: args[4], currency: args[5], amount: args[6], recipient_name: args[7], payout_method: args[8], purpose: args[9], status: 'AWAITING_CHANNEL', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      if (state.instructions.some(row => row[sql.includes('(instruction_id,customer_id,')?'customer_id':'beneficiary_id'] === args[1] && row.client_request_id === args[2])) return { rows: [] };
+      const row = { instruction_id: args[0], beneficiary_id: sql.includes('(instruction_id,customer_id,') ? null : args[1], customer_id: sql.includes('(instruction_id,customer_id,') ? args[1] : null, client_request_id: args[2], payload_hash: args[3], corridor_id: args[4], currency: args[5], amount: args[6], recipient_name: args[7], payout_method: args[8], purpose: args[9], status: 'AWAITING_CHANNEL', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
       state.instructions.push(row); return { rows: [publicRow(row)] };
     }
     if (sql.startsWith('INSERT INTO gpts_payment_events')) { if (failAudit) throw Error('Isolated audit failure'); state.events.push({ event_id: args[0], instruction_id: args[1], actor_id: args[2], actor_role: args[3], action: args[4] }); return { rows: [] }; }
@@ -30,19 +30,20 @@ test('GPTS instructions preserve ownership, idempotency and atomic audit without
     if (sql.startsWith('SELECT event_id')) return { rows: state.events.filter(row => row.instruction_id === args[0]) };
     if (sql.startsWith('SELECT instruction_id')) {
       let rows;
-      if (sql.includes('client_request_id=$2')) return { rows: state.instructions.filter(row => row.beneficiary_id === args[0] && row.client_request_id === args[1]).map(row => ({ ...publicRow(row), payload_hash: row.payload_hash })) };
-      if (sql.includes('FOR UPDATE')) rows = state.instructions.filter(row => row.instruction_id === args[0] && row.beneficiary_id === args[1]);
-      else if (sql.includes('WHERE beneficiary_id=$1')) rows = state.instructions.filter(row => row.beneficiary_id === args[0]);
+      if (sql.includes('client_request_id=$2')) return { rows: state.instructions.filter(row => row[sql.includes('WHERE customer_id=$1')?'customer_id':'beneficiary_id'] === args[0] && row.client_request_id === args[1]).map(row => ({ ...publicRow(row), payload_hash: row.payload_hash })) };
+      if (sql.includes('FOR UPDATE')) rows = state.instructions.filter(row => row.instruction_id === args[0] && row[sql.includes('AND customer_id=$2')?'customer_id':'beneficiary_id'] === args[1]);
+      else if (sql.includes('WHERE beneficiary_id=$1')||sql.includes('WHERE customer_id=$1')) rows = state.instructions.filter(row => row[sql.includes('WHERE customer_id=$1')?'customer_id':'beneficiary_id'] === args[0]);
       else rows = state.instructions;
-      return { rows: rows.slice(-51).reverse().map(row => ({ ...publicRow(row), ...(sql.includes('fields_unavailable') ? {} : sql.includes(',beneficiary_id FROM') ? { beneficiary_id: row.beneficiary_id } : {}) })) };
+      return { rows: rows.slice(-51).reverse().map(row => ({ ...publicRow(row), ...(sql.includes('fields_unavailable') ? {} : sql.includes(',beneficiary_id,customer_id FROM') ? { beneficiary_id: row.beneficiary_id,customer_id:row.customer_id } : {}) })) };
     }
     throw Error('Unexpected SQL statement: ' + sql);
   }
-  function publicRow(row) { const { beneficiary_id, client_request_id, payload_hash, ...item } = row; return { ...item }; }
+  function publicRow(row) { const { beneficiary_id, customer_id, client_request_id, payload_hash, ...item } = row; return { ...item }; }
   function withTransaction(callback) { const job = queue.then(async () => { const before = structuredClone(state); try { return await callback({ query }); } catch (error) { state = before; throw error; } }); queue = job.catch(() => {}); return job; }
   const app = express(); app.use(express.json());
   installGptsPayments(app, { query, withTransaction,
     getBeneficiary: async req => ['A', 'B'].includes(req.get('x-session')) ? { beneficiary_id: req.get('x-session') } : null,
+    getCustomer: async req => ['C','C2'].includes(req.get('x-session')) ? { customer_id: req.get('x-session')==='C'?'00000000-0000-4000-8000-000000000001':'00000000-0000-4000-8000-000000000002' } : null,
     getAdmin: async req => ['F', 'D'].includes(req.get('x-session')) ? { admin_id: 'ADMIN', role: req.get('x-session') === 'F' ? 'FOUNDER' : 'SUPER ADMIN' } : null });
   const server = app.listen(0, '127.0.0.1'); await new Promise(resolve => server.once('listening', resolve));
   const base = 'http://127.0.0.1:' + server.address().port;
@@ -85,6 +86,16 @@ test('GPTS instructions preserve ownership, idempotency and atomic audit without
     const events = await (await request('/api/founder/gpts-payments/instructions/' + id + '/events', 'F')).json(); assert.equal(events.events.length, 2);
     assert.equal((await request(root + '/instructions?before=bad')).status, 400);
     assert.equal((await request(root + '/instructions/' + id + '/execute', 'A', {})).status, 404);
+    const customerRoot='/api/gpts-payments/customer';
+    assert.equal((await request(customerRoot+'/overview','A')).status,401,'beneficiary session is not a public customer session');
+    assert.equal((await request(customerRoot+'/instructions','C',data)).status,201,'same request UUID can belong to a separate customer');
+    const customerHistory=await(await request(customerRoot+'/instructions','C')).json();assert.equal(customerHistory.instructions.length,1);
+    const customerId=customerHistory.instructions[0].instruction_id;
+    assert.equal((await request(customerRoot+'/instructions/'+customerId+'/cancel','C2',{})).status,404);
+    assert.equal((await request(root+'/instructions/'+customerId+'/cancel','A',{})).status,404,'beneficiary cannot cancel a customer instruction');
+    assert.equal((await request(customerRoot+'/instructions/'+customerId+'/cancel','C',{})).status,200);
+    assert.equal(state.events.at(-1).actor_role,'CUSTOMER');
+    assert.equal((await(await request(root+'/instructions','A')).json()).instructions.length,1,'beneficiary history excludes customer instructions');
     assert.ok(calls.every(sql => !/\b(?:wallets|ledger_entries|payout_requests|configuration)\b/i.test(sql)), 'Trust accounts and balances are never touched');
   } finally { await new Promise(resolve => server.close(resolve)); }
 });

@@ -2,13 +2,15 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const founder = document.body.dataset.paymentsRole === 'founder';
-  const base = founder ? '/api/founder/gpts-payments' : '/api/beneficiary/gpts-payments';
+  const customer = document.body.dataset.paymentsRole === 'customer';
+  const base = founder ? '/api/founder/gpts-payments' : customer ? '/api/gpts-payments/customer' : '/api/beneficiary/gpts-payments';
   let next = null, loading = false, overview, requestId = crypto.randomUUID(), saved = false, submission = null;
   const text = (tag, value, className) => { const el = document.createElement(tag); el.textContent = value; if (className) el.className = className; return el; };
   function status(value) { $('pageStatus').textContent = value; }
   async function api(path, options = {}) {
     const response = await fetch(base + path, { credentials: 'same-origin', cache: 'no-store', ...options });
-    if (response.status === 401) throw Error('Please sign in again to continue.');
+    if (!customer && response.status === 401) throw Error('Please sign in again to continue.');
+    if (customer && response.status === 401) { location.replace('gpts-customer-access.html'); throw Error('Please sign in.'); }
     if (response.status === 423) { location.replace('beneficiary-wallet-login.html'); throw Error('Unlock your wallet to continue.'); }
     const data = await response.json();
     if (!response.ok || !data.ok) throw Object.assign(Error(data.error || 'Unable to load payment records.'), { status: response.status });
@@ -23,7 +25,7 @@
     if (item.purpose) card.append(text('p', item.purpose));
     card.append(text('p', 'Reference: ' + item.instruction_id, 'caption'), text('p', new Date(item.created_at).toLocaleString(), 'caption'));
     if (founder) {
-      card.append(text('p', 'Beneficiary record: ' + item.beneficiary_id, 'caption'));
+      card.append(text('p', (item.customer_id?'GPTS customer: ':'Beneficiary record: ') + (item.customer_id||item.beneficiary_id), 'caption'));
       const button = text('button', 'View audit history'); button.type = 'button'; button.className = 'secondary';
       const history = text('div', '');
       button.onclick = async () => { button.disabled = true; try { const data = await api('/instructions/' + item.instruction_id + '/events'); history.replaceChildren(...data.events.map(event => text('p', `${new Date(event.created_at).toLocaleString()} · ${event.action} · ${event.actor_role} ${event.actor_id}`, 'caption'))); if (!data.events.length) history.textContent = 'No events recorded.'; } catch (error) { status(error.message); } finally { button.disabled = false; } };
