@@ -30,151 +30,173 @@
     "companies": [
       {
         "id": 1,
-        "name": "The Guvaza Imperial Institute | TGII",
-        "profit": 0,
+        "info": "Education: The Home Where Future Leaders Begin Their Journey",
         "logo": "assets/company1.png",
-        "banner": "assets/banner1.jpg",
+        "name": "The Guvaza Imperial Institute",
         "color": "#10b981",
-        "info": "Education",
-        "description": "Where Future Leardes Begin Their Journey ",
+        "banner": "assets/banner1.jpg",
+        "profit": 0,
         "gallery": [
           {
-            "url": "assets/tgii.jpg",
-            "tag": "Agmission | 2027",
-            "caption": "Hurry and Register While On Time"
+            "tag": "Enroll Today",
+            "url": "assets/TGII.jpg",
+            "caption": ""
           },
           {
-            "url": "assets/tgii2.jpg",
-            "tag": "Fees Structure",
-            "caption": "Affordable Prices | Best Educatin Quality"
+            "tag": "Admissions",
+            "url": "assets/TGII2.jpg",
+            "caption": ""
           },
           {
-            "url": "assets/tgii1.jpg",
-            "tag": "Admission | 2027",
-            "caption": "Begin Your Journey With Excellence"
+            "tag": "Join Us",
+            "url": "assets/TGII1.jpg",
+            "caption": ""
           }
-        ]
+        ],
+        "description": "We are committed to providing an affordable, high-quality education that transforms learners into leaders. Our mission is to make every Level of Education easy to understand, easy to revise, and easy to pass."
       },
       {
         "id": 2,
-        "name": "Mining",
-        "profit": 0,
+        "info": "Restaurant + BnB: From Our Pastures To Your Table",
         "logo": "assets/company2.png",
-        "banner": "assets/banner2.jpg",
+        "name": "Guvaza Pitstop Grill",
         "color": "#f59e0b",
-        "info": "Mining Operations",
-        "description": "Mining operations focusing on gold, chrome and lithium.",
-        "gallery": []
+        "banner": "assets/banner2.jpg",
+        "profit": 0,
+        "gallery": [
+          {
+            "tag": "The Chefs Team:",
+            "url": "assets/pit.png",
+            "caption": ""
+          },
+          {
+            "tag": "The taste is in their magical hands...",
+            "url": "assets/pit1.png",
+            "caption": ""
+          }
+        ],
+        "description": "Healthy Food and Clinical Sleep..."
       },
       {
         "id": 3,
-        "name": "Property",
-        "profit": 0,
+        "info": "Beauty Spa",
         "logo": "assets/company3.png",
-        "banner": "assets/banner3.jpg",
+        "name": "Pristine Glow Lab",
         "color": "#3b82f6",
-        "info": "Property Development",
-        "description": "Residential stands, housing development and commercial property management.",
-        "gallery": []
+        "banner": "assets/banner3.jpg",
+        "profit": 0,
+        "gallery": [],
+        "description": "The Best Beauty World"
       },
       {
         "id": 4,
-        "name": "Logistics",
-        "profit": 0,
+        "info": "Dynamic solutions For Total Security",
         "logo": "assets/company4.png",
-        "banner": "assets/banner4.jpg",
+        "name": "Guvaza Aegis Dynamics",
         "color": "#06b6d4",
-        "info": "Supply Chain",
-        "description": "Warehousing, distribution and supply chain optimization.",
-        "gallery": []
+        "banner": "assets/banner4.jpg",
+        "profit": 0,
+        "gallery": [],
+        "description": "Guvaza Aegis Dynamics is a next-generation security company integrating physical security and cyber security under one roof. We protect what matters - your people, premises, and data. From manned guarding, armed response, CCTV and access control to network security, threat monitoring, and data protection, we provide a single, seamless security solution for the modern threat landscape."
       },
       {
         "id": 5,
-        "name": "Agriculture",
-        "profit": 0,
+        "info": "Farming  And Agriculture",
         "logo": "assets/company5.png",
-        "banner": "assets/banner5.jpg",
+        "name": "AMA - 2K | Aimal And Crop Sciences | Commercial Farming",
         "color": "#84cc16",
-        "info": "Farming & Agric",
-        "description": "Commercial farming, poultry, livestock and agro-processing.",
-        "gallery": []
+        "banner": "assets/banner5.jpg",
+        "profit": 0,
+        "gallery": [],
+        "description": "Commercial farming, poultry, livestock and agro-processing."
       },
       {
         "id": 6,
-        "name": "Retail",
-        "profit": 0,
+        "info": "Bar | Groceries | Food Outlet",
         "logo": "assets/company6.png",
-        "banner": "assets/banner6.jpg",
+        "name": "Triad Nexus Market",
         "color": "#ef4444",
-        "info": "Retail & Trading",
-        "description": "Retail shops, supermarkets and general trading.",
-        "gallery": []
+        "banner": "assets/banner6.jpg",
+        "profit": 0,
+        "gallery": [],
+        "description": "Retail shops, supermarkets and general trading."
       },
       {
         "id": 7,
-        "name": "Tech",
-        "profit": 0,
-        "logo": "assets/company7.png",
-        "banner": "assets/banner7.jpg",
-        "color": "#8b5cf6",
         "info": "Technology Solutions",
-        "description": "Software, websites, POS systems and digital solutions.",
-        "gallery": []
+        "logo": "assets/company7.png",
+        "name": "GPTS | Guvaza Pro-Technology Solutions",
+        "color": "#8b5cf6",
+        "banner": "assets/banner7.jpg",
+        "profit": 0,
+        "gallery": [],
+        "description": "Software, websites, POS systems and digital solutions."
       },
       {
         "id": 8,
-        "name": "Energy",
-        "profit": 0,
+        "info": "One Call - 360 Clean",
         "logo": "assets/company8.png",
-        "banner": "assets/banner8.jpg",
+        "name": "PristineKlinix360",
         "color": "#eab308",
-        "info": "Energy & Power",
-        "description": "Solar installations, fuel supply and alternative energy.",
-        "gallery": []
+        "banner": "assets/banner8.jpg",
+        "profit": 0,
+        "gallery": [],
+        "description": "We Clean, So You Don't Have To.\nLife is busy. Cleaning shouldn't be. We give you back your time with sparkling, stress-free cleaning you can trust. Whether it's a regular house clean, a deep clean, or getting your home ready for new tenants, our friendly, professional team treats your home like our own. No shortcuts. Just a fresh, healthy shine."
       },
       {
         "id": 9,
-        "name": "Construction",
-        "profit": 0,
+        "info": " Brings Your Dreams to Reality",
         "logo": "assets/company9.png",
-        "banner": "assets/banner9.jpg",
+        "name": "Guvaza Apex Royal Construction",
         "color": "#f97316",
-        "info": "Construction",
-        "description": "Building, renovations, civil works and infrastructure development.",
-        "gallery": []
+        "banner": "assets/banner9.jpg",
+        "profit": 0,
+        "gallery": [
+          {
+            "tag": "Site Vehicles",
+            "url": "assets/tadiwa.png",
+            "caption": ""
+          },
+          {
+            "tag": "Professional Operators",
+            "url": "assets/tadiwa1.png",
+            "caption": ""
+          }
+        ],
+        "description": "Building, renovations, civil works and infrastructure development."
       },
       {
         "id": 10,
-        "name": "Import/Export",
-        "profit": 0,
-        "logo": "assets/company10.png",
-        "banner": "assets/banner10.jpg",
+        "info": "Mineral Extraction",
+        "logo": "assets/min.svg",
+        "name": "GFT-Mining",
         "color": "#14b8a6",
-        "info": "Import Export Business",
-        "description": "Import and export of goods, vehicles, machinery.",
-        "gallery": []
+        "banner": "assets/banner10.jpg",
+        "profit": 0,
+        "gallery": [],
+        "description": "Legal Extraction, Buying And Selling of Minerals"
       },
       {
         "id": 11,
-        "name": "Finance",
-        "profit": 0,
+        "info": "Motor Mechanics  ",
         "logo": "assets/company11.png",
-        "banner": "assets/banner11.jpg",
+        "name": "G-TECH AUTO LAB",
         "color": "#a855f7",
-        "info": "Finance & Savings",
-        "description": "Savings, micro-finance and investment advisory for family.",
-        "gallery": []
+        "banner": "assets/banner11.jpg",
+        "profit": 0,
+        "gallery": [],
+        "description": "For all your mechanical problems"
       },
       {
         "id": 12,
-        "name": "Education",
-        "profit": 0,
+        "info": "From Our Pastures to The World",
         "logo": "assets/company12.png",
-        "banner": "assets/banner12.jpg",
+        "name": "Guvaza Dynasty Meats",
         "color": "#ec4899",
-        "info": "Education & Training",
-        "description": "Scholarships, skills training and education support.",
-        "gallery": []
+        "banner": "assets/banner12.jpg",
+        "profit": 0,
+        "gallery": [],
+        "description": "Best Quality And Original Meat"
       }
     ],
     "homepage": {
